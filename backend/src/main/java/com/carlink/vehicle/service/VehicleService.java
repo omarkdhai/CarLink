@@ -116,9 +116,10 @@ public class VehicleService {
     /**
      * Loads a vehicle and asserts the acting user owns it. Any vehicle the
      * user does not own is treated as absent (404) so a cross-owner probe
-     * leaks nothing about whether it exists.
+     * leaks nothing about whether it exists. Public so other services (e.g.
+     * conversation ownership checks) reuse the same scoping primitive.
      */
-    private Vehicle getOwned(UUID ownerId, UUID vehicleId) {
+    public Vehicle getOwned(UUID ownerId, UUID vehicleId) {
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new NotFoundException("Vehicle not found"));
         if (!vehicle.getOwner().getId().equals(ownerId)) {

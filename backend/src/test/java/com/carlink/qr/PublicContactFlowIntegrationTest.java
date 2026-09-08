@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -95,8 +96,12 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         // The mock relay accepts the delivery, so the conversation is SENT.
         assertThat(conv.getStatus().name()).isEqualTo("SENT");
 
-        assertThat(messageRepository.findAll()).hasSize(1);
-        Message msg = messageRepository.findAll().get(0);
+        // Scoped to this conversation (the DB also holds messages from other
+        // test classes sharing the container).
+        List<Message> messages = messageRepository
+                .findAllByConversation_IdOrderByCreatedAtAsc(UUID.fromString(conversationId));
+        assertThat(messages).hasSize(1);
+        Message msg = messages.get(0);
         assertThat(msg.getContent()).isEqualTo("Hi, is this car still available?");
         assertThat(msg.getConversation().getId().toString()).isEqualTo(conversationId);
     }
@@ -125,12 +130,14 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         String[] creds = ownerWithQr();
         String rawToken = creds[1];
 
+        long before = messageRepository.count();
         mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "SMS",
                                 "message", "x".repeat(501)))))
                 .andExpect(status().isBadRequest());
-        assertThat(messageRepository.findAll()).isEmpty();
+        // Nothing persisted by the rejected submission.
+        assertThat(messageRepository.count()).isEqualTo(before);
     }
 
     @Test

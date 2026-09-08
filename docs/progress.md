@@ -208,9 +208,44 @@ Integration test classes share one Postgres container, so email registration mus
 - Full suite: **78 tests green** (5 new, no regressions from 73).
 - Live `curl` + `psql` + log: register → vehicle → QR → `POST .../contact` (SMS) → `conversations.status = SENT`; app log shows `[CONTACT-DEV] channel=SMS | owner=<sha256> | message=…`; `grep` of the raw phone across the whole log returned 0.
 
-## Phase 7 — Conversations & owner dashboard ⬜
+## Phase 7 — Conversations & owner dashboard ✅
 
-## Phase 7 — Conversations & owner dashboard ⬜
+**Goal:** give the vehicle owner a private dashboard of their conversations — list across all vehicles (or filtered per vehicle), drill into full message history, mark conversations as read, and an automated sweeper that flips stale conversations to `EXPIRED`.
+
+### Files created / changed
+
+| Path | Purpose |
+|------|---------|
+| `db/migration/V4__add_read_at_to_conversations.sql` | `conversations.read_at` column + `(vehicle_id, read_at)` index |
+| `conversation/model/Conversation.java` | +`readAt` (`Null` = unread) |
+| `conversation/repository/ConversationRepository.java` | owner- and vehicle-scoped list queries; `findByExpiresAtBeforeAndStatusIn` for the sweeper |
+| `conversation/repository/MessageRepository.java` | `findAllByConversation_IdOrderByCreatedAtAsc` |
+| `conversation/dto/ConversationSummaryResponse.java` | dashboard list item (unread flag, 80-char last-message preview) |
+| `conversation/dto/ConversationMessageResponse.java` | one chat message (named to avoid colliding with `common.dto.MessageResponse`) |
+| `conversation/dto/ConversationDetailResponse.java` | summary fields + full `messages[]` history |
+| `conversation/service/ConversationService.java` | +`listForOwner`, `listForVehicle`, `getForOwner`, `markRead`, `sweepExpiredConversations` (`@Scheduled`) |
+| `conversation/controller/ConversationController.java` | `GET /api/v1/conversations[?vehicleId=]`, `GET /{id}`, `POST /{id}/read` |
+| `vehicle/service/VehicleService.java` | `getOwned(...)` made `public` so conversation ownership reuses the same 404-scoping primitive |
+| `application.yml` | +`carlink.conversation.sweep-interval-ms` (default 1 h) |
+| `scripts/verify-phase7.sh` | repeatable live-verification flow |
+| Tests | `ConversationServiceTest` (12), `ConversationControllerTest` (5), `ConversationFlowIntegrationTest` (8) |
+
+### Design decisions
+
+- **Ownership by 404, same as vehicles.** The dashboard loads only conversations whose vehicle the caller owns; a cross-owner read or mark-read resolves to not-found, so existence is never revealed.
+- **`read_at` = the read marker; `Null` means unread.** No separate unread counter column to drift — the list computes `unread` from `readAt == null`.
+- **List is lightweight; detail is the only full-content view.** The dashboard list truncates the last message to 80 chars; the full visitor text appears only in the authenticated, ownership-scoped detail view. This is the one deliberate exception to "message content never returned by APIs" (CLAUDE.md updated to state it) — content stays off every public/unauthenticated surface.
+- **Expiry sweeper is config-driven and idempotent.** `@Scheduled` (fixed delay from `sweep-interval-ms`) finds `PENDING`/`SENT` conversations past `expiresAt` and flips them to `EXPIRED`; running it on already-expired/final rows is a no-op.
+- **Message DTO renamed.** `conversation/dto/MessageResponse` would have shadowed the pre-existing `common/dto/MessageResponse` used for action acknowledgments — renamed to `ConversationMessageResponse`.
+
+### Verification results
+
+- Full suite: **103 tests green** (25 new — 12 service + 5 controller + 8 integration, incl. the two Unit runs covering the sweeper against real Postgres; no regressions from 78).
+- Live `curl` + `psql` against the dev jar + compose: two owners → vehicle + QR → two visitor contacts (WHATSAPP, SMS) → owner dashboard lists both newest-first, both unread, previews correct → detail returns history in order with **no licensePlate/phone leak** → mark-read flips `unread` to `false` (other conversation untouched) → cross-owner GET/mark-read `404`, unauthenticated `401`, other owner's dashboard empty → DB shows `read_at` populated and `qr_codes` holding hashes only; raw phone appears **0 times** in the app log.
+
+### Test-hygiene fix along the way
+
+`PublicContactFlowIntegrationTest` asserted **global** `messageRepository.findAll()` counts — correct only while it was the sole class writing messages to the shared Testcontainers DB. Scoped those assertions to the test's own conversation (and a before/after count) so the suite stays correct now that the conversation dashboard tests add more rows.
 
 ## Phase 8 — Admin + reports ⬜
 

@@ -57,6 +57,10 @@ public class Conversation {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /** Timestamp when the vehicle owner first opened this conversation. Null = unread. */
+    @Column(name = "read_at")
+    private Instant readAt;
+
     /**
      * Creates a new conversation in the terminal-success state ({@code SENT}).
      * In Phase 7 the expiry sweeper flips stale conversations to EXPIRED.

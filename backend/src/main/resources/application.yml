@@ -93,6 +93,8 @@ carlink:
   # Conversation / contact
   conversation:
     expiry-hours: ${CONVERSATION_EXPIRY_HOURS:24}
+    # How often the expired-conversation sweeper runs (default: once an hour)
+    sweep-interval-ms: ${CONVERSATION_SWEEP_INTERVAL_MS:3600000}
 
   # QR code
   qr:

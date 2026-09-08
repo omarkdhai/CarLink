@@ -41,7 +41,7 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`. MailHog UI: `http://localho
 - Backend modules: `auth`, `user`, `vehicle`, `qr`, `contact`, `conversation`, `notification`, `admin`, `security`, `common`.
 - Each module: Controller → Service → Repository, with DTO/Mapper/Entity/Exception layers. **Never expose JPA entities through REST.**
 - Schema is Flyway-only (`ddl-auto: validate`). Migrations in `backend/src/main/resources/db/migration/V*.sql`.
-- Owner phone numbers, QR tokens, passwords, and message content must NEVER be logged, returned by APIs, or embedded in URLs/QR/HTML.
+- Owner phone numbers, QR tokens, passwords, and message content must NEVER be logged, returned by public/unauthenticated APIs, or embedded in URLs/QR/HTML. The one exception is the owner-facing conversation dashboard (`/api/v1/conversations`), which returns message content behind JWT authentication and vehicle ownership checks (404 on mismatch).
 - QR encodes only `/c/{token}`; store `SHA-256(token)`.
 - Configuration binds under `carlink.*` (`com.carlink.common.config.CarLinkProperties`).
 
