@@ -7,6 +7,7 @@ import com.carlink.common.security.TokenGenerator;
 import com.carlink.conversation.model.Channel;
 import com.carlink.conversation.model.ConversationStatus;
 import com.carlink.conversation.service.ConversationService;
+import com.carlink.notification.contact.ContactDeliveryService;
 import com.carlink.qr.dto.ContactSubmitRequest;
 import com.carlink.qr.dto.ContactSubmitResponse;
 import com.carlink.qr.dto.QrPublicView;
@@ -44,6 +45,7 @@ public class PublicQrService {
 
     private final QrCodeRepository qrCodeRepository;
     private final ConversationService conversationService;
+    private final ContactDeliveryService contactDeliveryService;
     private final TokenGenerator tokenGenerator;
     private final RateLimiter rateLimiter;
     private final CarLinkProperties properties;
@@ -61,17 +63,22 @@ public class PublicQrService {
                 List.of("WHATSAPP", "SMS"));
     }
 
-    /** Persists a visitor's contact request; the relay itself is Phase 6. */
+    /** Persists a visitor's contact request and relays it to the owner. */
     @Transactional
     public ContactSubmitResponse submit(String rawToken, String clientIp,
                                         ContactSubmitRequest request) {
         requireRate(new RateLimits(
                 rateLimiter, tokenGenerator, properties, clientIp, rawToken));
         QrCode qr = activeQr(rawToken);
+        Channel channel = Channel.valueOf(request.channel());
 
         UUID conversationId = conversationService.open(qr.getVehicle(),
-                Channel.valueOf(request.channel()), ConversationStatus.SENT);
+                channel, ConversationStatus.PENDING);
         conversationService.appendMessage(conversationId, request.message());
+
+        // Owner phone stays server-side: passed to the relay, never exposed.
+        contactDeliveryService.deliver(conversationId, channel,
+                qr.getVehicle().getOwner().getPhone(), request.message());
 
         return new ContactSubmitResponse(conversationId, "Message sent to the owner.");
     }

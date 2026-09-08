@@ -5,7 +5,9 @@ import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.exception.NotFoundException;
 import com.carlink.common.exception.TooManyRequestsException;
 import com.carlink.common.security.TokenGenerator;
+import com.carlink.conversation.model.Channel;
 import com.carlink.conversation.service.ConversationService;
+import com.carlink.notification.contact.ContactDeliveryService;
 import com.carlink.qr.dto.ContactSubmitRequest;
 import com.carlink.qr.dto.ContactSubmitResponse;
 import com.carlink.qr.dto.QrPublicView;
@@ -37,6 +39,7 @@ class PublicQrServiceTest {
 
     @Mock private QrCodeRepository qrCodeRepository;
     @Mock private ConversationService conversationService;
+    @Mock private ContactDeliveryService contactDeliveryService;
     @Mock private RateLimiter rateLimiter;
 
     private final TokenGenerator tokenGenerator = new TokenGenerator();
@@ -46,7 +49,8 @@ class PublicQrServiceTest {
     private final UUID vehicleId = UUID.randomUUID();
     private final Vehicle vehicle = Vehicle.builder()
             .id(vehicleId)
-            .owner(User.builder().id(UUID.randomUUID()).role(Role.USER).build())
+            .owner(User.builder().id(UUID.randomUUID()).role(Role.USER)
+                    .phone("+21655123456").build())
             .nickname("My Car")
             .brand("Toyota")
             .model("Corolla")
@@ -59,7 +63,7 @@ class PublicQrServiceTest {
     @BeforeEach
     void setUp() {
         service = new PublicQrService(qrCodeRepository, conversationService,
-                tokenGenerator, rateLimiter, properties);
+                contactDeliveryService, tokenGenerator, rateLimiter, properties);
     }
 
     private QrCode activeCode() {
@@ -172,6 +176,12 @@ class PublicQrServiceTest {
         assertThat(response.message()).contains("owner");
         verify(conversationService).appendMessage(
                 org.mockito.ArgumentMatchers.any(UUID.class), anyString());
+        // The owner phone travels only into the relay, never out of it.
+        verify(contactDeliveryService).deliver(
+                org.mockito.ArgumentMatchers.any(UUID.class),
+                org.mockito.ArgumentMatchers.eq(Channel.WHATSAPP),
+                org.mockito.ArgumentMatchers.eq("+21655123456"),
+                org.mockito.ArgumentMatchers.eq("Hi! Is this car for sale?"));
     }
 
     @Test

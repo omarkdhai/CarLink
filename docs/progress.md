@@ -178,7 +178,37 @@ Integration test classes now share a **single long-lived Testcontainers instance
 
 Integration test classes share one Postgres container, so email registration must be unique per class **and** per run: each class uses a distinct prefix (`pc`/`qr`/`owner`/`auth`) over a monotonic static counter. A per-test reset of that counter (as in an early draft of `PublicContactFlowIntegrationTest`) re-registers `pc1@example.com` in every test and collides with the DB the previous test populated.
 
-## Phase 6 — WhatsApp + SMS ⬜
+## Phase 6 — WhatsApp + SMS delivery ✅
+
+**Goal:** actually deliver a visitor's contact request to the vehicle owner over the chosen channel. Phase 5 only persisted a `conversation` + `message` and optimistically stamped `SENT`; Phase 6 introduces a channel-sender abstraction (mirroring the `EmailSender` pattern) so a submission is now relayed and the conversation records the real outcome (`SENT` / `FAILED`). Owner phone stays server-side — it is passed to the relay internally and never logged, serialized, or echoed.
+
+### Files created / changed
+
+| Path | Purpose |
+|------|---------|
+| `conversation/model/ConversationStatus.java` | +`PENDING` (awaiting relay) |
+| `db/migration/V3__allow_pending_conversation_status.sql` | widen `conversations.status` CHECK to admit `PENDING` |
+| `conversation/service/ConversationService.java` | +`updateStatus(id, status)` |
+| `notification/contact/ContactDelivery.java` | internal record `(channel, ownerPhone, message)` — never a DTO |
+| `notification/contact/ContactChannelSender.java` | `boolean send(ContactDelivery)` — the delivery seam |
+| `notification/contact/LogContactChannelSender.java` | dev mock for both channels; logs `[CONTACT-DEV]` with the **SHA-256 of the phone**, never the raw number |
+| `notification/contact/ContactDeliveryService.java` | orchestrates one send; records SENT/FAILED; swallows relay errors so a failed send doesn't roll back the persisted request |
+| `qr/service/PublicQrService.java` | `submit` now opens with `PENDING`, then `contactDeliveryService.deliver(...)` (owner phone from the vehicle's owner) |
+| Tests | `ContactDeliveryServiceTest` (3), `LogContactChannelSenderTest` (2); `PublicQrServiceTest` + `PublicContactFlowIntegrationTest` updated |
+
+### Design decisions
+
+- **Abstraction + mock, selectable by config.** The active sender is chosen by `carlink.contact.provider` (default `mock`) exactly like `carlink.email.provider` — a real WhatsApp/Twilio sender can be added behind `ContactChannelSender` without touching the flow (Phase 10).
+- **Phone redaction is enforced by a test.** `LogContactChannelSenderTest` captures the sender's log and asserts the raw phone never appears (only its SHA-256). Whole-log live check also showed 0 occurrences of the raw phone.
+- **`PENDING` → `SENT`/`FAILED`.** A conversation is created `PENDING` before the relay runs; `ContactDeliveryService` flips it to `SENT` (accepted) or `FAILED` (rejected/exception). `FAILED` is now set for real (it was enum-only before).
+- **Delivery failures are swallowed, never propagate.** A relay exception records `FAILED` and returns — the persisted request survives, and the visitor still gets the generic success response (the owner sees the failure in the Phase 7 dashboard).
+
+### Verification results
+
+- Full suite: **78 tests green** (5 new, no regressions from 73).
+- Live `curl` + `psql` + log: register → vehicle → QR → `POST .../contact` (SMS) → `conversations.status = SENT`; app log shows `[CONTACT-DEV] channel=SMS | owner=<sha256> | message=…`; `grep` of the raw phone across the whole log returned 0.
+
+## Phase 7 — Conversations & owner dashboard ⬜
 
 ## Phase 7 — Conversations & owner dashboard ⬜
 

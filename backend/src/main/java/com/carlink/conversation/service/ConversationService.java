@@ -52,4 +52,12 @@ public class ConversationService {
                         "Conversation not found: " + conversationId));
         messageRepository.save(Message.of(conversation, content));
     }
+
+    /** Records the delivery outcome: {@code SENT} on success, {@code FAILED} otherwise. */
+    public void updateStatus(UUID conversationId, ConversationStatus status) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Conversation not found: " + conversationId));
+        conversation.setStatus(status);
+    }
 }

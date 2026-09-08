@@ -92,6 +92,8 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
                 .orElseThrow();
         assertThat(conv.getChannel().name()).isEqualTo("WHATSAPP");
         assertThat(conv.getExpiresAt()).isAfter(conv.getCreatedAt());
+        // The mock relay accepts the delivery, so the conversation is SENT.
+        assertThat(conv.getStatus().name()).isEqualTo("SENT");
 
         assertThat(messageRepository.findAll()).hasSize(1);
         Message msg = messageRepository.findAll().get(0);
