@@ -24,7 +24,26 @@
       "Bash(git config *)",
       "Bash(gh auth *)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(curl *)",
+      "Bash(git ls-remote *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(git credential-manager *)",
+      "Read(//c/Users/21628/**)",
+      "Bash(echo \"token: $\\(git config --global credential.helper \\)\")",
+      "Bash(env)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn -o -q compile)",
+      "Bash(echo \"compile exit=$?\")",
+      "Bash(/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn -o -q test -Dtest=QrServiceTest)",
+      "Bash(MVN=/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn; \"$MVN\" -o -q test -Dtest='QrServiceTest,QrImageGeneratorTest' 2>&1 | tail -15; echo \"===\"; grep -h \"Tests run\" target/surefire-reports/*QrServiceTest.txt 2>/dev/null)",
+      "Bash(MVN=/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn; TESTCONTAINERS_RYUK_DISABLED=true \"$MVN\" -o -q test -Dtest=QrFlowIntegrationTest 2>&1 | tail -15; echo \"=== REPORT ===\"; cat target/surefire-reports/*QrFlowIntegrationTest.txt 2>/dev/null)",
+      "Bash(MVN=/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn; TESTCONTAINERS_RYUK_DISABLED=true \"$MVN\" -o -q test -Dtest=QrFlowIntegrationTest 2>&1 | tail -10; echo \"=== REPORT ===\"; grep -A3 \"Test set\" target/surefire-reports/*QrFlowIntegrationTest.txt 2>/dev/null)",
+      "Bash(MVN=/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn; TESTCONTAINERS_RYUK_DISABLED=true \"$MVN\" -o -q test -Dtest=QrFlowIntegrationTest 2>&1 | tail -6; echo \"=== REPORT ===\"; grep -A2 \"Test set\" target/surefire-reports/*QrFlowIntegrationTest.txt 2>/dev/null)",
+      "Bash(MVN=/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn; TESTCONTAINERS_RYUK_DISABLED=true \"$MVN\" -o -q package 2>&1 | grep -E \"Tests run:|BUILD|ERROR\\\\]\" | tail -20; echo \"=== totals ===\"; grep -h \"Tests run\" target/surefire-reports/*.txt | awk -F'[:,]' '{t+=$2; f+=$4; e+=$6} END {print \"run=\"t\" fail=\"f\" err=\"e}')",
+      "Bash(powershell -Command \"Get-CimInstance Win32_Process -Filter \\\\\"Name='java.exe'\\\\\" | Where-Object { \\\\$_.CommandLine -like '*carlink*' } | ForEach-Object { Stop-Process -Id \\\\$_.ProcessId -Force }\" 2>/dev/null; sleep 1; echo stopped)"
     ]
   }
 }

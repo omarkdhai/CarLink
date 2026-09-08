@@ -107,6 +107,38 @@ Status legend: ✅ done & verified · ⏳ in progress · ⬜ pending
 
 Integration test classes now share a **single long-lived Testcontainers instance** (static holder in `AbstractIntegrationTest`) instead of per-class `@Container`. With Spring's cached `ApplicationContext`, the second integration class previously reused a context pointing at the first class's already-stopped database. Sharing containers keeps every cached context valid for the whole JVM.
 
+## Phase 4 — Secure QR generation ✅
+
+**Goal:** secure QR codes with a full token lifecycle. The QR encodes only the public page URL; the raw token is shown once and only its SHA-256 is stored; regenerating burns the previous QR (one ACTIVE per vehicle, DB-enforced).
+
+### Files created
+
+| Path | Purpose |
+|------|---------|
+| `qr/model/QrCode.java` | Entity → `qr_codes`; stores only `tokenHash`; `deactivate()` |
+| `qr/repository/QrCodeRepository.java` | Active-by-vehicle lookups |
+| `qr/dto/QrIssuedResponse.java` | Raw token + public URL + PNG data URI (returned **once**) |
+| `qr/dto/QrStatusResponse.java` | Status/history payload — **no token ever** |
+| `qr/service/QrImageGenerator.java` | ZXing PNG rendering as base64 data URI; UTF-8, M error correction |
+| `qr/service/QrService.java` | Issue/regenerate/current/history/deactivate, ownership-scoped |
+| `qr/controller/QrController.java` | `POST /vehicles/{id}/qr`, `GET .../qr`, `GET .../qr/history`, `POST .../qr/deactivate` |
+| `db/migration/V2__add_updated_at_to_qr_codes.sql` | `qr_codes` gains `updated_at` to match `BaseEntity` (validate mode) |
+| Tests | `QrServiceTest` (9), `QrFlowIntegrationTest` (3) |
+
+### Design decisions
+
+- **Token shown exactly once.** Generation returns the raw token, its public URL, and the image; every later read (`GET`, history) returns only record status — no token field exists.
+- **Only `SHA-256(token)` at rest.** Verified live: DB rows hold 64-char hashes only.
+- **One ACTIVE QR per vehicle**, guaranteed two ways: service deactivates the previous one on regenerate, and a partial unique index rejects any transient second-active row. A Hibernate flush is issued after the deactivation so the index never sees two active rows.
+- **Ownership by 404** (same as vehicles): cross-owner QR access resolves to not-found.
+- **QR payload is pure navigation** — `{publicUrl}/c/{token}`. Integration test decodes the PNG with ZXing and asserts the text equals the URL and contains no owner/vehicle info.
+- **`V2` migration** added `updated_at` to `qr_codes` (V1 created it without the column while every other table maps `BaseEntity`).
+
+### Verification results
+
+- Full suite: **59 tests green** (9 QR unit + 3 QR integration, no regressions from 47).
+- Live `curl` + `psql`: generate → status (no token leak) → regenerate (old burned, history=2) → deactivate (status 404) → cross-owner generate → 404; DB holds only hashes.
+
 ## Phase 4 — Secure QR generation ⬜
 
 ## Phase 5 — Public QR page ⬜
