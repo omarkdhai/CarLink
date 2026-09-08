@@ -20,4 +20,6 @@ public interface QrCodeRepository extends JpaRepository<QrCode, UUID> {
     List<QrCode> findAllByVehicleId(UUID vehicleId);
 
     boolean existsByVehicleIdAndActiveTrue(UUID vehicleId);
+
+    long countByActive(boolean active);
 }

@@ -109,6 +109,8 @@ carlink:
     # Login brute-force protection
     max-login-failures: ${RATE_LIMIT_MAX_LOGIN_FAILURES:5}
     login-lock-minutes: ${RATE_LIMIT_LOGIN_LOCK_MINUTES:15}
+    # Anonymous report filings, per IP per minute
+    report-ip-per-minute: ${RATE_LIMIT_REPORT_IP_PER_MINUTE:10}
 
   # Contact channel provider
   contact:
@@ -123,6 +125,11 @@ carlink:
   security:
     # Allowed CORS origins
     cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:8080}
+
+  # Initial ADMIN bootstrap (disabled by default; dev profile sets credentials)
+  admin:
+    bootstrap-email: ${ADMIN_BOOTSTRAP_EMAIL:}
+    bootstrap-password: ${ADMIN_BOOTSTRAP_PASSWORD:}
 
 logging:
   level:

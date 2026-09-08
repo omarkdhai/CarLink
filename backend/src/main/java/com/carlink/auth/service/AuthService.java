@@ -162,11 +162,17 @@ public class AuthService {
             throw new UnauthorizedException("Invalid or expired session");
         }
 
+        // A deactivated account must not keep refreshing a prior session.
+        User user = token.getUser();
+        if (!user.isActive()) {
+            throw new UnauthorizedException("Invalid or expired session");
+        }
+
         // Rotate: the old refresh token is single-use.
         token.revoke();
         refreshTokenRepository.save(token);
 
-        return issueTokenPair(token.getUser());
+        return issueTokenPair(user);
     }
 
     /** Revokes all active refresh tokens for a user (logout everywhere). */

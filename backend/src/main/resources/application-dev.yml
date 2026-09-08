@@ -26,6 +26,12 @@ spring:
       hibernate:
         format_sql: true
 
+carlink:
+  # Dev-only initial administrator (created on startup if absent).
+  admin:
+    bootstrap-email: admin@carlink.local
+    bootstrap-password: ChangeMe123!
+
 logging:
   level:
     com.carlink: DEBUG

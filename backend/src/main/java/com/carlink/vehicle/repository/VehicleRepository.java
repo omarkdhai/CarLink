@@ -17,4 +17,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
             UUID ownerId, VehicleStatus status);
 
     long countByOwnerId(UUID ownerId);
+
+    long countByStatus(VehicleStatus status);
 }

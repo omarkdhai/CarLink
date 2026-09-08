@@ -15,7 +15,8 @@ public record CarLinkProperties(
         RateLimit ratelimit,
         Contact contact,
         Email email,
-        Security security
+        Security security,
+        Admin admin
 ) {
 
     public record Jwt(
@@ -34,7 +35,8 @@ public record CarLinkProperties(
             int qrPerHour,
             String captureHosts,
             int maxLoginFailures,
-            int loginLockMinutes
+            int loginLockMinutes,
+            int reportIpPerMinute
     ) {}
 
     public record Contact(String provider) {}
@@ -43,4 +45,11 @@ public record CarLinkProperties(
     public record Email(String provider, long tokenExpiryMinutes) {}
 
     public record Security(String corsAllowedOrigins) {}
+
+    /**
+     * Initial ADMIN bootstrap. When {@code bootstrapEmail} is set and no user
+     * with that email exists, the app creates that user with the ADMIN role on
+     * startup. Left unset in production; only enabled for dev management.
+     */
+    public record Admin(String bootstrapEmail, String bootstrapPassword) {}
 }

@@ -247,7 +247,59 @@ Integration test classes share one Postgres container, so email registration mus
 
 `PublicContactFlowIntegrationTest` asserted **global** `messageRepository.findAll()` counts — correct only while it was the sole class writing messages to the shared Testcontainers DB. Scoped those assertions to the test's own conversation (and a before/after count) so the suite stays correct now that the conversation dashboard tests add more rows.
 
-## Phase 8 — Admin + reports ⬜
+## Phase 8 — Admin + reports ✅
+
+**Goal:** anonymous visitor report filing (rate-limited, public), admin moderation queue with CSV export, user management with self/last-admin guards, audit trail, and analytics overview.
+
+### Files created / changed
+
+| Path | Purpose |
+|------|---------|
+| `admin/model/Report.java`, `ReportReason.java`, `ReportStatus.java` | Report entity + enums |
+| `admin/model/AuditLog.java` | Audit entity (jsonb details) |
+| `admin/repository/ReportRepository.java`, `AuditLogRepository.java` | Persistence + `@EntityGraph` for lazy-safe CSV |
+| `admin/dto/AdminActor.java`, `AdminUserResponse.java`, `ReportSummaryResponse.java`, `ReportDetailResponse.java`, `AdminStatsResponse.java`, `AuditLogResponse.java` | DTOs (no phone) |
+| `admin/dto/ChangeRoleRequest.java`, `ReportStatusRequest.java` | Mutation requests |
+| `admin/service/ReportService.java` | file/list/get/changeStatus |
+| `admin/service/AdminUserService.java` | list/search/get/activate/deactivate/changeRole |
+| `admin/service/AdminStatsService.java` | overview counts |
+| `admin/service/AuditLogService.java` | atomic audit in REQUIRES_NEW |
+| `admin/service/ReportCsvExporter.java` | hand-rolled CSV export |
+| `admin/controller/AdminUserController.java` | `/api/v1/admin/users` CRUD |
+| `admin/controller/AdminReportController.java` | `/api/v1/admin/reports` + export |
+| `admin/controller/AdminStatsController.java` | `/api/v1/admin/stats` |
+| `admin/controller/AdminAuditLogController.java` | `/api/v1/admin/audit-logs` |
+| `qr/dto/ReportSubmitRequest.java`, `qr/controller/PublicReportController.java` | public report endpoint |
+| `admin/config/AdminBootstrapRunner.java` | dev-only admin bootstrap |
+| `user/repository/UserRepository.java` | +`search(q,active,role)` with `cast(:q as text)` for PostgreSQL |
+| `auth/service/AuthService.java` | +active check on refresh |
+| `application.yml` | +`carlink.admin`, `carlink.ratelimit.report-ip-per-minute` |
+| Tests | `ReportServiceTest` (10), `AdminUserServiceTest` (9), `AdminStatsServiceTest` (2), `AuditLogServiceTest` (3), `AdminReportControllerTest` (3), `AdminUserControllerTest` (3), `AdminStatsControllerTest` (2), `AdminAuditLogControllerTest` (2), `PublicReportControllerTest` (3), `PublicReportFlowIntegrationTest` (3), `AdminFlowIntegrationTest` (8) |
+
+### Design decisions
+
+- **Report filed by visitor against a conversation.** Conversation must exist → 404 if not. Reporter IP captured for moderation only (never exposed via API).
+- **Admin message-content exception.** `ReportDetailResponse.conversation.lastMessageContent` exposes the reported message body — the second deliberate exception (after Phase 7's owner dashboard). Requires JWT + ROLE_ADMIN.
+- **CSV export is lazy-safe.** `@EntityGraph(attributePaths = {"conversation", "conversation.vehicle"})` fetches all in one query; detached rows render safely in `toCsv()`.
+- **Null conversation after deletion.** `conversation_id` has `ON DELETE SET NULL`; report survives. DTO uses `@JsonInclude(ALWAYS)` to serialize explicit `null`.
+- **Self/last-admin guards.** Cannot deactivate/demote self; cannot demote the last admin (`countByRole(ADMIN) <= 1`).
+- **Audit is atomic.** `AuditLogService.record()` runs in `REQUIRES_NEW` so a failing audit never rolls back the primary action. Swallows exceptions with a warning.
+- **Rate-limited public report.** Per-IP limit before any DB write; key = SHA-256 hash of IP.
+- **PostgreSQL LIKE type inference.** `UserRepository.search` uses `cast(:q as text)` to avoid `lower(bytea)` on untyped parameters.
+
+### Verification results
+
+- Full suite: **119 tests green** (26 new — service/controller/integration, no regressions from 103).
+- Live: bootstrap admin → register owner → vehicle → QR → contact → anonymous report → admin list/detail/status → CSV export → user deactivate/activate → role change with audit trail.
+
+### Bug fixes during integration tests
+
+1. **Mockito matchers in verify()** — mixed raw args with matchers caused `InvalidUseOfMatchersException`. Fixed with `eq()` wrapper.
+2. **E.164 phone validation** — test phones like `+21655{seq}` too short (need 7+ digits after `+`). Fixed to `+21655100{seq}`.
+3. **PostgreSQL bytea type** — `lower(:q)` failed without `cast(:q as text)`. Fixed in `UserRepository.search`.
+4. **Lazy loading in CSV** — detached entities caused `LazyInitializationException`. Fixed with `@EntityGraph`.
+5. **JSON null omission** — global `non_null` dropped `conversation: null`. Fixed with `@JsonInclude(ALWAYS)`.
+6. **CSV header mismatch** — missing `details` column. Fixed header and body.
 
 ## Phase 9 — Security hardening + tests ⬜
 
