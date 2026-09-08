@@ -1,0 +1,60 @@
+
+services:
+  postgres:
+    # postgres:16-alpine also works; 15-alpine used here for offline dev compatibility.
+    image: postgres:15-alpine
+    container_name: carlink-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-carlink}
+      POSTGRES_USER: ${POSTGRES_USER:-carlink}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carlink_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-carlink} -d ${POSTGRES_DB:-carlink}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - carlink-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: carlink-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-carlink_redis_password}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-carlink_redis_password}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - carlink-network
+
+  mailhog:
+    # Dev-only email catcher. Start with: docker compose --profile email up -d
+    image: mailhog/mailhog:v1.0.1
+    container_name: carlink-mailhog
+    restart: unless-stopped
+    profiles:
+      - email
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"    # SMTP
+      - "${MAILHOG_UI_PORT:-8025}:8025"      # Web UI
+    networks:
+      - carlink-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  carlink-network:
+    driver: bridge

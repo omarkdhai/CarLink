@@ -1,0 +1,30 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_AUTH_TOKEN": "omniroute",
+    "ANTHROPIC_MODEL": "auto/best-free",
+    "ANTHROPIC_SMALL_FAST_MODEL": "auto/best-free",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "auto/best-free",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "auto/best-free",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "auto/best-free",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12/59fe215c0ad6947fea90184bf7add084544567b927287592651fda3782e0e798/apache-maven-3.9.12/bin/mvn.cmd -version)",
+      "Bash(export *)",
+      "Bash(C:/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12/59fe215c0ad6947fea90184bf7add084544567b927287592651fda3782e0e798/bin/mvn -q compile -DskipTests)",
+      "Bash(docker version *)",
+      "Bash(docker compose *)",
+      "Bash(powershell.exe -Command \"Start-Process 'C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe'\")",
+      "Bash(powershell -Command \"Get-Process java -ErrorAction SilentlyContinue | Select-Object Id, StartTime | Format-Table -AutoSize\" 2>/dev/null)",
+      "Bash(powershell -Command \"Stop-Process -Id 12220,22500 -Force\" 2>/dev/null; sleep 2; powershell -Command \"Get-Process java -ErrorAction SilentlyContinue | Select-Object Id | Format-Table -AutoSize\" 2>/dev/null)",
+      "Bash(/c/Users/21628/.m2/wrapper/dists/apache-maven-3.9.12-bin/5nmfsn99br87k5d4ajlekdq10k/apache-maven-3.9.12/bin/mvn -o -q package -DskipTests)",
+      "Bash(powershell -Command \"Get-CimInstance Win32_Process -Filter \\\\\"Name='java.exe'\\\\\" | Where-Object { \\\\$_.CommandLine -like '*carlink*' } | ForEach-Object { Stop-Process -Id \\\\$_.ProcessId -Force }\" 2>/dev/null; sleep 1; echo \"app stopped\")",
+      "Bash(git config *)",
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

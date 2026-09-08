@@ -1,0 +1,32 @@
+# ============================================
+# CarLink — development profile
+# ============================================
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:carlink}
+    username: ${POSTGRES_USER:carlink}
+    password: ${POSTGRES_PASSWORD:carlink_dev_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:carlink_redis_password}
+      timeout: 2000ms
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.carlink: DEBUG
+    org.hibernate.SQL: DEBUG

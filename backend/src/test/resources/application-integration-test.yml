@@ -1,0 +1,46 @@
+# ============================================
+# CarLink — integration-test profile
+# Overrides build dynamic properties via
+# AbstractIntegrationTest (Testcontainers).
+# ============================================
+
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  mail:
+    host: localhost
+    port: 1025
+
+carlink:
+  jwt:
+    secret: integration-test-secret-key-at-least-32-characters-long!!
+    access-expiration-minutes: 15
+    refresh-secret: integration-test-refresh-secret-at-least-32-chars!!
+    refresh-expiration-days: 7
+
+  conversation:
+    expiry-hours: 24
+
+  qr:
+    token-bytes: 32
+
+  ratelimit:
+    ip-per-minute: 100
+    qr-per-hour: 100
+
+  contact:
+    provider: mock
+
+  security:
+    cors-allowed-origins: http://localhost:4200
+
+logging:
+  level:
+    com.carlink: INFO

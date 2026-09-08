@@ -1,0 +1,21 @@
+# ============================================
+# CarLink — Docker ignore rules
+# ============================================
+
+# Build artifacts
+target/
+*.jar
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Env / secrets — NEVER bake the .env into an image
+.env
+.env.*
+
+# Node (frontend images build separately)
+node_modules/
+frontend/dist/
