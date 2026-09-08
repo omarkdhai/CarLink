@@ -301,6 +301,27 @@ Integration test classes share one Postgres container, so email registration mus
 5. **JSON null omission** — global `non_null` dropped `conversation: null`. Fixed with `@JsonInclude(ALWAYS)`.
 6. **CSV header mismatch** — missing `details` column. Fixed header and body.
 
-## Phase 9 — Security hardening + tests ⬜
+## Phase 9 — Security hardening + tests ✅
+
+**Goal:** Add security HTTP headers to protect against common web vulnerabilities.
+
+### Changes
+
+| Path | Purpose |
+|------|---------|
+| `security/config/SecurityConfig.java` | Added security headers: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy |
+
+### Security headers added
+
+1. **HSTS** (`Strict-Transport-Security`): `includeSubDomains`, `maxAge=1 year`
+2. **CSP** (`Content-Security-Policy`): restrictive default, allows self + swagger/CDN
+3. **X-Frame-Options**: `DENY` — prevents clickjacking
+4. **X-Content-Type-Options**: `nosniff` — prevents MIME sniffing
+5. **Referrer-Policy**: `strict-origin-when-cross-origin`
+6. **Cache control**: disabled for sensitive endpoints
+
+### Verification results
+
+- Full suite: **119 tests green** (no regressions).
 
 ## Phase 10 — Production + CI/CD ⬜

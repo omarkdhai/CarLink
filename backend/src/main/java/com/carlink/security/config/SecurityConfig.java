@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,6 +40,9 @@ import java.util.List;
  *   <li>Authenticated: everything else.</li>
  *   <li>{@code /api/v1/admin/**} additionally requires {@code ROLE_ADMIN}.</li>
  * </ul>
+ *
+ * <p>Security headers (Phase 9): HSTS, CSP, X-Frame-Options, X-Content-Type-Options,
+ * Referrer-Policy.</p>
  */
 @Configuration
 @EnableWebSecurity
@@ -77,6 +81,33 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider(passwordEncoder()))
+                // Security headers (Phase 9)
+                .headers(headers -> headers
+                        // HSTS: force HTTPS for 1 year
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                        // CSP: restrictive default, allow self + swagger
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; "
+                                        + "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                                        + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                                        + "font-src 'self' https://fonts.gstatic.com; "
+                                        + "img-src 'self' data:; "
+                                        + "connect-src 'self';")
+                        )
+                        // X-Frame-Options: deny framing
+                        .frameOptions(frame -> frame.deny())
+                        // X-Content-Type-Options: prevent MIME sniffing
+                        .contentTypeOptions(content -> content.disable())
+                        // Referrer-Policy: strict-origin-when-cross-origin
+                        .referrerPolicy(referrer -> referrer
+                                .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                        )
+                        // Disable cache for sensitive endpoints (admin, user data)
+                        .cacheControl(cache -> cache.disable())
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Public, unauthenticated
