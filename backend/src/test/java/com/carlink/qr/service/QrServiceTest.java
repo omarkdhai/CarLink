@@ -70,10 +70,10 @@ class QrServiceTest {
 
         QrIssuedResponse response = qrService.issue(ownerId, vehicle.getId());
 
-        // Raw token shown once
+        // Raw token shown once; the QR points at the backend's own page host.
         assertThat(response.rawToken()).isNotBlank();
         assertThat(response.publicUrl())
-                .isEqualTo(properties.publicUrl() + "/c/" + response.rawToken());
+                .isEqualTo(properties.baseUrl() + "/c/" + response.rawToken());
         assertThat(response.imageDataUri()).startsWith("data:image/png;base64,");
 
         // Stored record hashes the token, never stores the raw value

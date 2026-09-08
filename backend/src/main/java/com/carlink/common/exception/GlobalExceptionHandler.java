@@ -34,6 +34,17 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(ex.getStatus(), ex.getCode(), ex.getMessage()));
     }
 
+    /**
+     * 429 does not name the offending key (IP or QR token) — just a retry
+     * window. Never leaks rate-limit subjects back to the client.
+     */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiError> handleTooManyRequests(TooManyRequestsException ex) {
+        return ResponseEntity.status(429)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(ApiError.of(429, ex.getCode(), ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
         List<ApiError.FieldError> errors = ex.getBindingResult().getFieldErrors().stream()

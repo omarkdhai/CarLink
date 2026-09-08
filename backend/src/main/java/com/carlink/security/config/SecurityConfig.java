@@ -34,7 +34,8 @@ import java.util.List;
  * <p>Route rules (Phase 2):</p>
  * <ul>
  *   <li>Public: auth endpoints, actuator health/info, Swagger UI.</li>
- *   <li>Public (Phase 5): {@code /api/v1/contact/**} and the QR page assets.</li>
+ *   <li>Public (Phase 5): the QR page {@code /c/**} and the JSON/contact
+ *       API under {@code /api/v1/public/**} (both rate-limited).</li>
  *   <li>Authenticated: everything else.</li>
  *   <li>{@code /api/v1/admin/**} additionally requires {@code ROLE_ADMIN}.</li>
  * </ul>
@@ -84,6 +85,8 @@ public class SecurityConfig {
                                 "/actuator/info").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
+                        // Public QR page + JSON behind a scan (rate-limited)
+                        .requestMatchers("/c/**", "/api/v1/public/**").permitAll()
                         // Admin only (Phase 8 adds the dashboard endpoints)
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

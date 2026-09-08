@@ -139,9 +139,44 @@ Integration test classes now share a **single long-lived Testcontainers instance
 - Full suite: **59 tests green** (9 QR unit + 3 QR integration, no regressions from 47).
 - Live `curl` + `psql`: generate → status (no token leak) → regenerate (old burned, history=2) → deactivate (status 404) → cross-owner generate → 404; DB holds only hashes.
 
-## Phase 4 — Secure QR generation ⬜
+## Phase 5 — Public QR contact page ✅
 
-## Phase 5 — Public QR page ⬜
+**Goal:** the page a scanned QR opens. Mobile-first HTML at `/c/{token}`, a safe public JSON view, and an unauthenticated contact submission that persists a conversation + message — all rate-limited, never exposing a phone number, license plate, or the raw token itself.
+
+### Files created
+
+| Path | Purpose |
+|------|---------|
+| `common/exception/TooManyRequestsException.java` | 429 exception carrying `retryAfterSeconds` |
+| `common/exception/GlobalExceptionHandler.java` | +429 handler with `Retry-After` header |
+| `conversation/model/Channel.java`, `ConversationStatus.java`, `Conversation.java`, `Message.java` | Conversation + message entities (`createdAt` set manually, no `updated_at`) |
+| `conversation/repository/ConversationRepository.java`, `MessageRepository.java` | Persistence |
+| `conversation/service/ConversationService.java` | `open(...)` with expiry from `carlink.conversation.expiry-hours`, `appendMessage(...)` |
+| `qr/dto/QrPublicView.java`, `VehicleSafe` | Safe public vehicle summary (nickname/brand/model/color) — **no phone, no plate** |
+| `qr/dto/ContactSubmitRequest.java`, `ContactSubmitResponse.java` | Channel + message (≤500 chars); generic success |
+| `qr/service/PublicQrService.java` | resolve + submit, both rate-limited **before** the SHA-256 token lookup; inner `RateLimits` record with hashed keys |
+| `qr/controller/PublicContactController.java` | `GET /api/v1/public/qr/{token}`, `POST /api/v1/public/qr/{token}/contact` (unauthenticated) |
+| `qr/controller/PublicPageController.java` | `GET /c/{token}` → mobile-first HTML; token derived from `location.pathname`, **never embedded** |
+| `security/config/SecurityConfig.java` | +`/c/**`, `/api/v1/public/**` permitAll |
+| Tests | `PublicQrServiceTest` (10), `PublicContactFlowIntegrationTest` (5) |
+
+### Design decisions
+
+- **The page opens end-to-end public, the data stays private.** `QrPublicView` simply has no phone/plate fields — nothing can leak them. The HTML renders a vehicle label assembled from nickname+brand/model/color and HTML-escapes it (a hostile nickname cannot inject markup).
+- **Raw token never re-embedded.** The served HTML derives the token from `decodeURIComponent(location.pathname…)`; the substring of the URL someone already scanned is all it needs, so the server never echoes the token into the page body.
+- **Hash-only lookup, hashed rate-limit keys.** `PublicQrService` resolves via `findByTokenHash(sha256(rawToken))`; IP and per-QR limiter keys are themselves SHA-256-hashed (`public-ip:<sha256(ip)>` / `public-qr:<sha256(token)>`) so Redis never holds a raw IP or raw token.
+- **Rate limit first, existence check second.** Both resolve and submit call `requireRate(...)` before the QR lookup, so probing an unknown token is throttled just like a valid one (unknown token after a warm window → 404; during the window → 429 + `Retry-After`).
+- **Generic success.** Submission replies `{conversationId, "Message sent to the owner."}` — no visitor-identifying echo at all.
+- **Conversation expiry.** Each submission opens a conversation expiring `carlink.conversation.expiry-hours` later (default hours), ready for Phase 7's owner dashboard.
+
+### Verification results
+
+- Full suite: **73 tests green** (10 public unit + 5 public integration, no regressions from 59).
+- Live `curl` + `psql` against the dev jar + compose stack: register → vehicle → QR `publicUrl` = `http://localhost:8080/c/{token}` → page 200 with form/WhatsApp/SMS/vehicle label and **0 occurrences** of the raw token, plate, or phone → JSON view returns only safe fields → contact POST persists `conversations` (WHATSAPP/SENT) + `messages` rows → unknown-token page 404 and API 429+`Retry-After` → `qr_codes` stores 64-char `token_hash` only.
+
+### Test-infrastructure lesson
+
+Integration test classes share one Postgres container, so email registration must be unique per class **and** per run: each class uses a distinct prefix (`pc`/`qr`/`owner`/`auth`) over a monotonic static counter. A per-test reset of that counter (as in an early draft of `PublicContactFlowIntegrationTest`) re-registers `pc1@example.com` in every test and collides with the DB the previous test populated.
 
 ## Phase 6 — WhatsApp + SMS ⬜
 
