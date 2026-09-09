@@ -35,6 +35,12 @@
     "name": "CarLink",
     "tagline": "QR contact between drivers"
   },
+  "navbar": {
+    "home": "Home",
+    "pricing": "Pricing",
+    "about": "About us",
+    "contact": "Contact"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "vehicles": "My vehicles",
@@ -374,7 +380,63 @@
     "privacyText": "Your phone number is never displayed. Messages are protected behind authentication.",
     "ctaTitle": "Done leaving paper notes under the wiper?",
     "ctaSubtitle": "Create your free account and generate your QR code in 2 minutes.",
-    "footerTagline": "QR contact between drivers."
+    "footerTagline": "QR contact between drivers.",
+    "pricingTitle": "Simple pricing",
+    "pricingSubtitle": "Start for free, no credit card required. Upgrade whenever you need more.",
+    "planPopular": "Popular",
+    "plans": [
+      {
+        "name": "Discovery",
+        "price": "$0",
+        "period": "/month",
+        "description": "Try CarLink with your first car.",
+        "cta": "Get started",
+        "features": [
+          "1 vehicle",
+          "1 active QR code",
+          "Unlimited messages",
+          "WhatsApp & SMS notice"
+        ]
+      },
+      {
+        "name": "Pro",
+        "price": "$4.99",
+        "period": "/month",
+        "description": "For multi-vehicle households.",
+        "cta": "Try Pro",
+        "features": [
+          "3 vehicles",
+          "QR code history",
+          "Priority notifications",
+          "Ad-free"
+        ]
+      },
+      {
+        "name": "Business",
+        "price": "Custom",
+        "period": "",
+        "description": "For fleets and professionals.",
+        "cta": "Contact us",
+        "features": [
+          "Unlimited vehicles",
+          "Multiple accounts",
+          "Admin space",
+          "Dedicated support"
+        ]
+      }
+    ],
+    "aboutTitle": "About CarLink",
+    "aboutText1": "CarLink was born from a simple observation: we've all parked a car and wanted to notify its owner — without leaving a paper note or hunting for a number.",
+    "aboutText2": "Our mission: make contact between drivers instant, anonymous and privacy-friendly. Your number is never shared, your inbox is protected.",
+    "aboutStats": [
+      { "value": "100%", "label": "anonymous contact" },
+      { "value": "24h", "label": "message visibility" },
+      { "value": "3", "label": "available languages" }
+    ],
+    "contactTitle": "Contact us",
+    "contactSubtitle": "A question, a suggestion or a technical issue? We reply within 24 hours.",
+    "contactEmailLabel": "Write to us at",
+    "contactResponse": "Reply within 24 business hours"
   },
   "routes": {
     "login": "Sign in",

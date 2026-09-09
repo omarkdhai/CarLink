@@ -35,6 +35,12 @@
     "name": "CarLink",
     "tagline": "Le contact QR entre automobilistes"
   },
+  "navbar": {
+    "home": "Accueil",
+    "pricing": "Tarifs",
+    "about": "À propos",
+    "contact": "Contact"
+  },
   "nav": {
     "dashboard": "Tableau de bord",
     "vehicles": "Mes véhicules",
@@ -374,7 +380,63 @@
     "privacyText": "Votre numéro de téléphone n'est jamais affiché. Vos messages sont chiffrés et protégés par authentification.",
     "ctaTitle": "Prêt à ne plus jamais laisser de mot sous l'essuie-glace ?",
     "ctaSubtitle": "Créez votre compte gratuitement et générez votre QR code en 2 minutes.",
-    "footerTagline": "Le contact QR entre automobilistes."
+    "footerTagline": "Le contact QR entre automobilistes.",
+    "pricingTitle": "Des tarifs simples",
+    "pricingSubtitle": "Commencez gratuitement, sans carte bancaire. Passez à un plan supérieur quand vous en avez besoin.",
+    "planPopular": "Populaire",
+    "plans": [
+      {
+        "name": "Découverte",
+        "price": "0 €",
+        "period": "/mois",
+        "description": "Pour tester CarLink avec votre première voiture.",
+        "cta": "Commencer",
+        "features": [
+          "1 véhicule",
+          "1 QR code actif",
+          "Messages illimités",
+          "Notice WhatsApp & SMS"
+        ]
+      },
+      {
+        "name": "Pro",
+        "price": "4,99 €",
+        "period": "/mois",
+        "description": "Pour les foyers multi-véhicules.",
+        "cta": "Essayer Pro",
+        "features": [
+          "3 véhicules",
+          "Historique des QR codes",
+          "Notifications prioritaires",
+          "Sans publicité"
+        ]
+      },
+      {
+        "name": "Business",
+        "price": "Sur mesure",
+        "period": "",
+        "description": "Pour les flottes et les professionnels.",
+        "cta": "Nous contacter",
+        "features": [
+          "Véhicules illimités",
+          "Plusieurs comptes",
+          "Espace d'administration",
+          "Support dédié"
+        ]
+      }
+    ],
+    "aboutTitle": "À propos de CarLink",
+    "aboutText1": "CarLink est né d'un constat simple : on a tous déjà garé une voiture et voulu prévenir son propriétaire — sans laisser une note papier ou chercher un numéro.",
+    "aboutText2": "Notre mission : rendre le contact entre automobilistes instantané, anonyme et respectueux de la vie privée. Votre numéro n'est jamais partagé, votre messagerie est protégée.",
+    "aboutStats": [
+      { "value": "100 %", "label": "de contact anonyme" },
+      { "value": "24 h", "label": "de visibilité des messages" },
+      { "value": "3", "label": "langues disponibles" }
+    ],
+    "contactTitle": "Contactez-nous",
+    "contactSubtitle": "Une question, une suggestion ou un souci technique ? Nous répondons sous 24 h.",
+    "contactEmailLabel": "Écrivez-nous à",
+    "contactResponse": "Réponse sous 24 h ouvrées"
   },
   "routes": {
     "login": "Connexion",
