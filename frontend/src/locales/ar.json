@@ -332,7 +332,24 @@
     "actor": "الفاعل",
     "details": "التفاصيل",
     "limit": "الحد",
-    "exportCsv": "تصدير CSV"
+    "exportCsv": "تصدير CSV",
+    "searchPlaceholder": "ابحث بالبريد أو الاسم…",
+    "noUsers": "لم يتم العثور على مستخدمين",
+    "noResults": "لا توجد نتائج",
+    "roles": {
+      "USER": "مستخدم",
+      "ADMIN": "مدير"
+    },
+    "reportsEmpty": "لا توجد بلاغات",
+    "reportDetail": "تفاصيل البلاغ",
+    "lastMessage": "الرسالة الأخيرة",
+    "messageCount": "الرسائل",
+    "deletedConversation": "تم حذف المحادثة",
+    "vehiclesNote": "لا تكشف واجهة API عن قائمة المركبات الكاملة. تظهر أدناه المؤشرات المجمعة.",
+    "qrNote": "لا تكشف واجهة API عن قائمة رموز QR الكاملة. تظهر أدناه المؤشرات المجمعة.",
+    "auditEmpty": "لا توجد سجلات تدقيق",
+    "exportSuccess": "بدأ تصدير CSV",
+    "backToList": "العودة إلى القائمة"
   },
   "landing": {
     "badge": "تواصل مجهول عبر رمز QR",

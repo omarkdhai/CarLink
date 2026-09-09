@@ -332,7 +332,24 @@
     "actor": "Acteur",
     "details": "Détails",
     "limit": "Limite",
-    "exportCsv": "Exporter en CSV"
+    "exportCsv": "Exporter en CSV",
+    "searchPlaceholder": "Rechercher par email ou nom…",
+    "noUsers": "Aucun utilisateur trouvé",
+    "noResults": "Aucun résultat",
+    "roles": {
+      "USER": "Utilisateur",
+      "ADMIN": "Administrateur"
+    },
+    "reportsEmpty": "Aucun signalement",
+    "reportDetail": "Détail du signalement",
+    "lastMessage": "Dernier message",
+    "messageCount": "Messages",
+    "deletedConversation": "Conversation supprimée",
+    "vehiclesNote": "La liste complète des véhicules n'est pas exposée par l'API. Vous trouverez ci-dessous les indicateurs agrégés.",
+    "qrNote": "La liste complète des QR codes n'est pas exposée par l'API. Vous trouverez ci-dessous les indicateurs agrégés.",
+    "auditEmpty": "Aucune entrée d'audit",
+    "exportSuccess": "Export CSV lancé",
+    "backToList": "Retour à la liste"
   },
   "landing": {
     "badge": "Contact anonyme par QR code",

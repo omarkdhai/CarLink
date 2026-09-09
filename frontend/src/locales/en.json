@@ -332,7 +332,24 @@
     "actor": "Actor",
     "details": "Details",
     "limit": "Limit",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "searchPlaceholder": "Search by email or name…",
+    "noUsers": "No users found",
+    "noResults": "No results",
+    "roles": {
+      "USER": "User",
+      "ADMIN": "Administrator"
+    },
+    "reportsEmpty": "No reports",
+    "reportDetail": "Report details",
+    "lastMessage": "Last message",
+    "messageCount": "Messages",
+    "deletedConversation": "Conversation deleted",
+    "vehiclesNote": "The full vehicle list is not exposed by the API. Aggregated metrics are shown below.",
+    "qrNote": "The full QR list is not exposed by the API. Aggregated metrics are shown below.",
+    "auditEmpty": "No audit entries",
+    "exportSuccess": "CSV export started",
+    "backToList": "Back to list"
   },
   "landing": {
     "badge": "Anonymous QR contact",
