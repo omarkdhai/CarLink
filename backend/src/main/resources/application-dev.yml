@@ -31,6 +31,9 @@ carlink:
   admin:
     bootstrap-email: admin@carlink.local
     bootstrap-password: ChangeMe123!
+  # The React SPA (Vite dev server) owns /c/*, /verify-email and /reset-password.
+  base-url: ${APP_BASE_URL:http://localhost:5173}
+  public-url: ${APP_PUBLIC_URL:http://localhost:5173}
 
 logging:
   level:

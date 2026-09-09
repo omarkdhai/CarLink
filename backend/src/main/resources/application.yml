@@ -123,8 +123,8 @@ carlink:
 
   # Security
   security:
-    # Allowed CORS origins
-    cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:8080}
+    # Allowed CORS origins (the Vite SPA dev server and the packaged app)
+    cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:4200,http://localhost:8080}
 
   # Initial ADMIN bootstrap (disabled by default; dev profile sets credentials)
   admin:
