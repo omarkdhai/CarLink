@@ -108,6 +108,9 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:m-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg">
+        Skip to content
+      </a>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed inset-y-0 start-0 w-64 border-e border-border bg-surface/70 backdrop-blur">
         <div className="flex flex-col flex-1">
@@ -163,7 +166,7 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
+        <main id="main-content" className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
           <Outlet />
         </main>
       </div>

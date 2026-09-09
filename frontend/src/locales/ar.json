@@ -247,7 +247,13 @@
     "emailNotVerified": "البريد الإلكتروني غير مُتحقق",
     "verificationHint": "تحقق من بريدك الإلكتروني لتأمين حسابك.",
     "role": "الدور",
-    "memberSince": "عضو منذ"
+    "memberSince": "عضو منذ",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "phone": "الهاتف",
+    "phoneOptional": "الهاتف (اختياري)",
+    "save": "حفظ التغييرات",
+    "deleteNotAvailable": "حذف الحساب ذاتيًا غير متاح بعد. تواصل مع الدعم لأي طلب."
   },
   "settings": {
     "title": "الإعدادات",

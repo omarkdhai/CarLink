@@ -247,7 +247,13 @@
     "emailNotVerified": "Email not verified",
     "verificationHint": "Verify your email to secure your account.",
     "role": "Role",
-    "memberSince": "Member since"
+    "memberSince": "Member since",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone",
+    "phoneOptional": "Phone (optional)",
+    "save": "Save changes",
+    "deleteNotAvailable": "Self-service account deletion is not available yet. Contact support for any request."
   },
   "settings": {
     "title": "Settings",

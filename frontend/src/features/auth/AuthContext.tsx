@@ -15,6 +15,8 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (data: { email: string; password: string; firstName: string; lastName: string; phone?: string }) => Promise<void>
   signOut: () => Promise<void>
+  /** Replace the in-memory + stored user (e.g. after a profile update). */
+  setUser: (next: UserResponse) => void
   /** Audit-friendly role check — never trusted for authorization. */
   isAdmin: boolean
 }
@@ -105,6 +107,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [logoutMutation])
 
+  const setUser = useCallback((next: UserResponse) => {
+    tokenStore.setUser(next)
+    setUserState(next)
+  }, [])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -113,9 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signOut,
+      setUser,
       isAdmin: user?.role === 'ADMIN',
     }),
-    [user, isRestoring, signIn, signUp, signOut],
+    [user, isRestoring, signIn, signUp, signOut, setUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

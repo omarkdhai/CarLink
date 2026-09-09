@@ -247,7 +247,13 @@
     "emailNotVerified": "E-mail non vérifié",
     "verificationHint": "Vérifiez votre e-mail pour sécuriser votre compte.",
     "role": "Rôle",
-    "memberSince": "Membre depuis"
+    "memberSince": "Membre depuis",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "phone": "Téléphone",
+    "phoneOptional": "Téléphone (facultatif)",
+    "save": "Enregistrer les modifications",
+    "deleteNotAvailable": "La suppression de compte en libre-service n'est pas encore disponible. Contactez le support pour toute demande."
   },
   "settings": {
     "title": "Paramètres",
