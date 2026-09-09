@@ -195,7 +195,21 @@
     "contactNotActiveHint": "This QR code is no longer active. Please try again later.",
     "sendAnother": "Send another message",
     "privacyNote": "Your number stays private. No personal data is shared.",
-    "welcome": "Hello 👋"
+    "welcome": "Hello 👋",
+    "reasonHint": "Pick a reason to pre-fill the message",
+    "reportTitle": "Report abuse",
+    "reportHint": "Does this message or QR seem abusive? Report it and our team will review it.",
+    "reportReasonLabel": "Reason for report",
+    "reportReasons": {
+      "SPAM": "Spam / advertising",
+      "ABUSE": "Abusive behaviour",
+      "OTHER": "Other"
+    },
+    "reportDetails": "Details (optional)",
+    "reportDetailsPlaceholder": "Tell us a bit more…",
+    "reportSubmit": "Submit report",
+    "reportSuccess": "Report submitted",
+    "reportSuccessHint": "Thank you. Our team will review your report."
   },
   "message": {
     "title": "Messages",

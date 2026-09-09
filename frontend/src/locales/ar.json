@@ -195,7 +195,21 @@
     "contactNotActiveHint": "لم يعد رمز QR هذا نشطًا. حاول مجددًا لاحقًا.",
     "sendAnother": "إرسال رسالة أخرى",
     "privacyNote": "يبقى رقمك خاصًا. لا تتم مشاركة أي بيانات شخصية.",
-    "welcome": "مرحبًا 👋"
+    "welcome": "مرحبًا 👋",
+    "reasonHint": "اختر سببًا لملء الرسالة مسبقًا",
+    "reportTitle": "الإبلاغ عن إساءة",
+    "reportHint": "هل تبدو هذه الرسالة أو رمز QR مسيئًا؟ أبلغ عنها وسيراجعها فريقنا.",
+    "reportReasonLabel": "سبب الإبلاغ",
+    "reportReasons": {
+      "SPAM": "رسائل مزعجة / إعلان",
+      "ABUSE": "سلوك مسيء",
+      "OTHER": "أخرى"
+    },
+    "reportDetails": "التفاصيل (اختياري)",
+    "reportDetailsPlaceholder": "أخبرنا بالمزيد…",
+    "reportSubmit": "إرسال الإبلاغ",
+    "reportSuccess": "تم إرسال الإبلاغ",
+    "reportSuccessHint": "شكرًا لك. سيراجع فريقنا بلاغك."
   },
   "message": {
     "title": "الرسائل",
