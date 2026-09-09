@@ -230,7 +230,8 @@
     "pending": "En attente",
     "sent": "Envoyé",
     "failed": "Échec",
-    "conversationExpiredHint": "Cette conversation a expiré. Le contact peut encore être uniquement consulté."
+    "conversationExpiredHint": "Cette conversation a expiré. Le contact peut encore être uniquement consulté.",
+    "anonymousHint": "Ce contact est anonyme : le visiteur vous joindra sur %{channel}. Répondez-y directement depuis l'application."
   },
   "notifications": {
     "title": "Notifications",

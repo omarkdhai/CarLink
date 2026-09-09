@@ -230,7 +230,8 @@
     "pending": "Pending",
     "sent": "Sent",
     "failed": "Failed",
-    "conversationExpiredHint": "This conversation has expired. It can still be viewed only."
+    "conversationExpiredHint": "This conversation has expired. It can still be viewed only.",
+    "anonymousHint": "This contact is anonymous: the visitor will reach you on %{channel}. Reply to them directly in that app."
   },
   "notifications": {
     "title": "Notifications",

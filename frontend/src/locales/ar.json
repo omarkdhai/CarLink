@@ -230,7 +230,8 @@
     "pending": "قيد الانتظار",
     "sent": "أُرسلت",
     "failed": "فشلت",
-    "conversationExpiredHint": "انتهت صلاحية هذه المحادثة. يمكن عرضها فقط."
+    "conversationExpiredHint": "انتهت صلاحية هذه المحادثة. يمكن عرضها فقط.",
+    "anonymousHint": "هذا التواصل مجهول: سيتواصل معك الزائر عبر %{channel}. رد عليه مباشرة داخل التطبيق."
   },
   "notifications": {
     "title": "الإشعارات",
