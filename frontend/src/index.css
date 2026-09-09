@@ -1,0 +1,104 @@
+@import 'tailwindcss';
+
+/*
+ * CarLink design system.
+ * Direction established with UI/UX Pro Max (Minimalism/Swiss + Flat, Mobile Touch-First).
+ * Primary: Trust Blue #2563EB · Accent/CTA: Orange #EA580C
+ * WhatsApp: Emerald green · SMS: Blue
+ */
+
+@theme {
+  /* Brand / primary */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+  --color-primary-soft: #eff6ff;
+  --color-primary-muted: #dbeafe;
+
+  /* Accent (CTAs, highlights) */
+  --color-accent: #ea580c;
+  --color-accent-hover: #c2410c;
+  --color-accent-soft: #fff7ed;
+
+  /* Communication channels */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-hover: #1ebe5d;
+  --color-sms: #3b82f6;
+
+  /* Neutral surfaces (SaaS palette) */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-foreground: #1e293b;
+  --color-heading: #0f172a;
+  --color-muted: #e9eff8;
+  --color-muted-fg: #475569;
+  --color-border: #e2e8f0;
+  --color-input-border: #cbd5e1;
+
+  /* Status */
+  --color-success: #10b981;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fffbeb;
+  --color-destructive: #dc2626;
+  --color-destructive-hover: #b91c1c;
+  --color-destructive-soft: #fef2f2;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+
+  /* Radii */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Elevation — minimal per Swiss/Flat direction */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-pop: 0 8px 24px -6px rgb(15 23 42 / 0.12), 0 4px 8px -4px rgb(15 23 42 / 0.06);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 16px; /* Accessible base */
+    line-height: 1.5;
+  }
+
+  /* Visible focus ring everywhere — Accessibility & Ethical */
+  :focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Touch targets ≥ 44px (mobile touch-first) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
