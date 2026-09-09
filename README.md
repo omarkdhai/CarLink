@@ -34,6 +34,7 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 ```
 .
 ├── backend/               # Spring Boot modular monolith
+│   ├── Dockerfile         # multi-stage production image
 │   └── src/main/java/com/carlink/
 │       ├── auth/          # registration, login, JWT, password reset
 │       ├── user/          # profile management
@@ -46,7 +47,8 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 │       ├── security/      # JWT filters, rate limiting, anti-spam
 │       └── common/        # shared DTOs, exceptions, config
 ├── frontend/              # Angular 16 app
-├── docker-compose.yml     # PostgreSQL + Redis + MailHog
+├── docker-compose.yml     # PostgreSQL + Redis + MailHog (dev)
+├── docker-compose.prod.yml # production stack (app + Postgres + Redis)
 ├── .env.example           # env template (never commit real values)
 └── .github/workflows/     # CI/CD
 ```
@@ -95,17 +97,33 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 - Passwords hashed with BCrypt (strength 12).
 - JWT access tokens are short-lived; refresh tokens are stored hashed and revocable.
 
+## Production deployment (Docker)
+
+```bash
+cp .env.example .env.prod            # then fill in real secrets
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+```
+
+- The app image is a **multi-stage build** (`backend/Dockerfile`): compile in
+  `maven:3.9-eclipse-temurin-17`, run on `eclipse-temurin:17-jre` as a **non-root** user.
+- `postgres` and `redis` use named volumes; the app `depends_on` each container's
+  healthcheck before starting.
+- The stack **fails fast** if required secrets are missing
+  (`${VAR:?}` interpolation): `POSTGRES_PASSWORD`, `REDIS_PASSWORD`,
+  `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`.
+- The container healthcheck curls `/actuator/health` (readiness group, `${APP_PORT}`).
+
 ## Implementation status
 
 - [x] **Phase 1 — Foundation** (project scaffolding, Docker, Postgres/Redis, Flyway)
-- [ ] Phase 2 — Authentication + JWT
-- [ ] Phase 3 — Vehicle management
-- [ ] Phase 4 — Secure QR generation
-- [ ] Phase 5 — Public QR contact page
-- [ ] Phase 6 — WhatsApp + SMS channels
-- [ ] Phase 7 — Conversations & owner dashboard
-- [ ] Phase 8 — Admin + reports
-- [ ] Phase 9 — Security hardening + tests
+- [x] **Phase 2 — Authentication + JWT**
+- [x] **Phase 3 — Vehicle management**
+- [x] **Phase 4 — Secure QR generation**
+- [x] **Phase 5 — Public QR contact page**
+- [x] **Phase 6 — WhatsApp + SMS channels**
+- [x] **Phase 7 — Conversations & owner dashboard**
+- [x] **Phase 8 — Admin + reports**
+- [x] **Phase 9 — Security hardening + tests**
 - [ ] Phase 10 — Production build + CI/CD + docs
 
 ## License

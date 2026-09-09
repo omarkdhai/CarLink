@@ -324,4 +324,31 @@ Integration test classes share one Postgres container, so email registration mus
 
 - Full suite: **119 tests green** (no regressions).
 
-## Phase 10 — Production + CI/CD ⬜
+## Phase 10 — Production + CI/CD ✅
+
+**Goal:** ship the backend as a hardened production Docker image and deploy it alongside Postgres + Redis with a single compose stack.
+
+### Files created / changed
+
+| Path | Purpose |
+|------|---------|
+| `backend/Dockerfile` | Multi-stage image: Maven build → JRE runtime as non-root user |
+| `docker-compose.prod.yml` | Production stack: app + Postgres + Redis with healthchecks and named volumes |
+| `.env.example` | + prod vars (MAIL_*, APP_PORT) and + `RATE_LIMIT_REPORT_IP_PER_MINUTE` (was missing from the Phase 8 docs) |
+| `README.md` | Production deployment section, updated status of Phases 2–9 |
+
+### Design decisions
+
+- **Multi-stage build** — `maven:3.9-eclipse-temurin-17` compiles (deps cached via `dependency:go-offline`); the runtime stage is only `eclipse-temurin:17-jre`, keeping the image small and free of build tooling.
+- **Non-root runtime** — dedicated `carlink` user; no shell, no build tools in the final image.
+- **Compose fails fast** — `${VAR:?}` interpolation stops the stack if any required secret (`POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`) is missing.
+- **Healthcheck-gated start** — the app `depends_on` Postgres (`pg_isready`) and Redis (`redis-cli ping`); its own healthcheck curls `/actuator/health`.
+- **`curl` installed in runtime** (Ubuntu-based temurin JRE ships neither curl nor wget by default) to power the healthcheck.
+
+### Verification results
+
+- `docker compose -f docker-compose.prod.yml config` → passes with dummy env; correctly errors (`:?`) without the required secrets.
+- Image build not run here — Docker Hub is unreachable in this dev environment; the build stage uses public images on a normal CI host.
+- Full suite (119 tests) unaffected — no Java changes in this phase.
+
+## Phase 11 — CI/CD pipeline ⬜
