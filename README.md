@@ -124,7 +124,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 - [x] **Phase 7 — Conversations & owner dashboard**
 - [x] **Phase 8 — Admin + reports**
 - [x] **Phase 9 — Security hardening + tests**
-- [ ] Phase 10 — Production build + CI/CD + docs
+- [x] **Phase 10 — Production Docker build + compose**
 
 ## License
 
