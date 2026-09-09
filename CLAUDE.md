@@ -48,7 +48,7 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`. MailHog UI: `http://localho
 ## Implementation phases
 
 1. ✅ Foundation (done: scaffolding, Docker, Flyway, health UP, tests green)
-2. Auth + JWT → 3. Vehicles → 4. QR → 5. Public page → 6. WhatsApp/SMS → 7. Conversations → 8. Admin → 9. Hardening/tests → 10. CI/CD.
+2. ✅ Auth + JWT → 3. ✅ Vehicles → 4. ✅ QR → 5. ✅ Public page → 6. ✅ WhatsApp/SMS → 7. ✅ Conversations → 8. ✅ Admin → 9. ✅ Hardening/tests → 10. ✅ Production Docker + GitHub Actions CI.
 
 ## Docs
 

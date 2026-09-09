@@ -334,6 +334,7 @@ Integration test classes share one Postgres container, so email registration mus
 |------|---------|
 | `backend/Dockerfile` | Multi-stage image: Maven build → JRE runtime as non-root user |
 | `docker-compose.prod.yml` | Production stack: app + Postgres + Redis with healthchecks and named volumes |
+| `.github/workflows/ci.yml` | GitHub Actions: `mvn verify` (Testcontainers) + Docker image build |
 | `.env.example` | + prod vars (MAIL_*, APP_PORT) and + `RATE_LIMIT_REPORT_IP_PER_MINUTE` (was missing from the Phase 8 docs) |
 | `README.md` | Production deployment section, updated status of Phases 2–9 |
 
@@ -348,6 +349,7 @@ Integration test classes share one Postgres container, so email registration mus
 ### Verification results
 
 - `docker compose -f docker-compose.prod.yml config` → passes with dummy env; correctly errors (`:?`) without the required secrets.
+- CI workflow (`ci.yml`) added on top: `mvn -B -ntp verify` on ubuntu-latest (Testcontainers pulls `postgres:15-alpine`/`redis:7-alpine` from Docker Hub, which works on hosted runners — no Ryuk disable needed), surefire reports uploaded as a build artifact, then a `docker-build` job compiles the multi-stage Dockerfile via Buildx with GHA layer caching.
 - Image build not run here — Docker Hub is unreachable in this dev environment; the build stage uses public images on a normal CI host.
 - Full suite (119 tests) unaffected — no Java changes in this phase.
 
