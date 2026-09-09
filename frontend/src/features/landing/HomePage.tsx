@@ -7,241 +7,492 @@ import {
   QrCode,
   ArrowRight,
   ScanLine,
-  BadgeEuro,
-  Gem,
-  Building2,
-  Mail,
+  Truck,
+  Lock,
+  AlertTriangle,
+  Lightbulb,
+  Zap,
+  ShoppingCart,
+  MessageCircleWarning,
+  Smartphone,
+  Check,
+  Users,
+  Bell,
+  RefreshCw,
+  Gauge,
   Clock,
-  Sparkles,
+  Star,
 } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
-import { cn } from '@/lib/cn'
-
-/** Pricing plan shape returned by `t('landing.plans', { returnObjects: true })`. */
-interface Plan {
-  name: string
-  price: string
-  period: string
-  description: string
-  cta: string
-  features: string[]
-}
-
-/** About stat shape returned by `t('landing.aboutStats', { returnObjects: true })`. */
-interface AboutStat {
-  value: string
-  label: string
-}
-
-const planIcons = [BadgeEuro, Gem, Building2] as const
 
 /**
  * Public landing page — the marketing face of CarLink.
  * Flat/minimal per design direction; no owner data exposed.
- * Sections are anchored by the public navbar (/#home #pricing #about #contact).
  */
 export default function HomePage() {
   const { t } = useTranslation()
 
-  const steps = [
-    {
-      icon: QrCode,
-      title: t('landing.how1Title'),
-      text: t('landing.how1Text'),
-    },
-    {
-      icon: MessageSquare,
-      title: t('landing.how2Title'),
-      text: t('landing.how2Text'),
-    },
-    {
-      icon: ScanLine,
-      title: t('landing.how3Title'),
-      text: t('landing.how3Text'),
-    },
-  ]
-
-  const plans = t('landing.plans', { returnObjects: true }) as unknown as Plan[]
-  const stats = t('landing.aboutStats', { returnObjects: true }) as unknown as AboutStat[]
-
   return (
     <div>
-      {/* Hero */}
-      <section id="home" className="scroll-mt-20 max-w-4xl mx-auto text-center pt-16 pb-20 px-4">
-        <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-6">
-          <ShieldCheck className="h-4 w-4" aria-hidden />
-          {t('landing.badge')}
-        </span>
-        <h1 className="text-4xl sm:text-5xl font-bold text-heading tracking-tight leading-tight max-w-3xl mx-auto">
-          {t('landing.heroTitle')}
-        </h1>
-        <p className="text-lg text-muted-fg mt-5 max-w-2xl mx-auto">{t('landing.heroSubtitle')}</p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-          <Link to="/register" className={buttonClasses({ size: 'lg' })}>
-            {t('landing.heroCta')}
-            <ArrowRight className="h-5 w-5" aria-hidden />
-          </Link>
-          <Link to="/login" className={buttonClasses({ variant: 'outline', size: 'lg' })}>
-            {t('landing.heroCtaSecondary')}
-          </Link>
-        </div>
+      {/* Hero - White split layout */}
+      <section id="home" className="scroll-mt-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left column - Content */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-2xl sm:text-3xl font-extrabold text-heading">
+                {t('landing.heroTitle')}
+              </h1>
+              <p className="text-lg text-muted-fg mt-5 max-w-xl">
+                {t('landing.heroSubtitle')}
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mt-8">
+                <Link to="/register" className={buttonClasses({ size: 'lg' })}>
+                  {t('landing.heroCta')}
+                  <ArrowRight className="h-5 w-5" aria-hidden />
+                </Link>
+                <Link to="/#how" className={buttonClasses({ variant: 'outline', size: 'lg' })}>
+                  {t('landing.heroCtaSecondary')}
+                </Link>
+              </div>
 
-        {/* Hero mock — a simple QR card */}
-        <div className="mt-14 mx-auto max-w-xs">
-          <div className="bg-surface border border-border rounded-2xl shadow-pop p-6 text-center">
-            <div className="h-40 w-40 bg-white mx-auto rounded-xl border border-border p-3 flex items-center justify-center">
-              <div className="grid grid-cols-4 gap-1">
-                {Array.from({ length: 16 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-4 w-4 ${i % 3 === 0 ? 'bg-heading' : i % 5 === 0 ? 'bg-primary' : 'bg-heading/80'}`}
-                  />
-                ))}
+              {/* Trust indicators */}
+              <div className="grid grid-cols-3 gap-4 mt-10 pt-8 border-t border-border">
+                <div className="text-center lg:text-left">
+                  <div className="flex items-center justify-center lg:justify-start gap-2 text-foreground">
+                    <Lock className="h-4 w-4 text-primary" aria-hidden />
+                    <span className="text-sm font-medium">{t('landing.trust1')}</span>
+                  </div>
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="flex items-center justify-center lg:justify-start gap-2 text-foreground">
+                    <ShieldCheck className="h-4 w-4 text-primary" aria-hidden />
+                    <span className="text-sm font-medium">{t('landing.trust2')}</span>
+                  </div>
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="flex items-center justify-center lg:justify-start gap-2 text-foreground">
+                    <Clock className="h-4 w-4 text-primary" aria-hidden />
+                    <span className="text-sm font-medium">{t('landing.trust3')}</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <p className="mt-4 font-semibold text-heading">CarLink</p>
-            <p className="text-xs text-muted-fg mt-1">{t('app.tagline')}</p>
+
+            {/* Right column - Car with QR visual */}
+            <div className="relative">
+              {/* Car silhouette with windshield */}
+              <div className="relative mx-auto max-w-sm">
+                {/* Car body */}
+                <div className="bg-gradient-to-b from-primary to-primary/80 rounded-3xl p-8 pb-16 relative">
+                  {/* Windshield area */}
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 border border-white/30">
+                    <div className="flex items-center justify-center">
+                      {/* QR Code mockup */}
+                      <div className="bg-white rounded-xl p-4 shadow-lg">
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {Array.from({ length: 25 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className={`h-3 w-3 ${[0,4,6,8,12,14,18,20,22,24].includes(i) ? 'bg-heading' : [1,2,3,5,9,10,15,16,17,19,21,23].includes(i) ? 'bg-primary' : 'bg-heading/60'}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-center text-white text-sm mt-4 font-medium">
+                      {t('landing.qrScanText')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Floating card overlay */}
+                <div className="absolute -bottom-6 -right-2 sm:right-8 bg-white rounded-xl shadow-xl p-4 border border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center">
+                      <QrCode className="h-5 w-5" aria-hidden />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-heading text-sm">CarLink</p>
+                      <p className="text-xs text-muted-fg">{t('app.tagline')}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Car icon accent */}
+                <div className="absolute -top-4 -left-4 sm:-left-8">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Truck className="h-6 w-6 text-primary" aria-hidden />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Problems Section */}
+      <section className="bg-surface border-y border-border py-16 sm:py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Header */}
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 text-accent text-sm font-semibold px-3 py-1 mb-4">
+              <AlertTriangle className="h-4 w-4" aria-hidden />
+              {t('landing.problemsBadge')}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
+              {t('landing.problemsTitle')}
+            </h2>
+            <p className="text-muted-fg mt-3">
+              {t('landing.problemsSubtitle')}
+            </p>
+          </div>
+
+          {/* Problem cards */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Card 1: Parking */}
+            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                  <CarFront className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-heading">{t('landing.problem1Title')}</h3>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem1Text')}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Damage */}
+            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                  <MessageCircleWarning className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-heading">{t('landing.problem2Title')}</h3>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem2Text')}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Headlights */}
+            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                  <Lightbulb className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-heading">{t('landing.problem3Title')}</h3>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem3Text')}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Window */}
+            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                  <AlertTriangle className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-heading">{t('landing.problem4Title')}</h3>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem4Text')}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Purchase */}
+            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                  <ShoppingCart className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-heading">{t('landing.problem5Title')}</h3>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem5Text')}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 6: EV Charging */}
+            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                  <Zap className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-heading">{t('landing.problem6Title')}</h3>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem6Text')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="text-center mt-10">
+            <p className="text-muted-fg text-sm mb-4">{t('landing.problemsCtaText')}</p>
+            <Link to="/register" className={buttonClasses({ size: 'lg' })}>
+              {t('landing.problemsCta')}
+              <ArrowRight className="h-5 w-5" aria-hidden />
+            </Link>
           </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section className="bg-surface border-y border-border py-16">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-heading text-center mb-12">{t('landing.howTitle')}</h2>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {steps.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="bg-background rounded-xl border border-border p-6">
-                <div className="h-12 w-12 rounded-lg bg-primary-soft text-primary flex items-center justify-center mb-4">
-                  <Icon className="h-6 w-6" aria-hidden />
-                </div>
-                <h3 className="font-bold text-heading mb-1.5">{title}</h3>
-                <p className="text-sm text-muted-fg leading-relaxed">{text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="scroll-mt-20 py-20">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-heading text-center">{t('landing.pricingTitle')}</h2>
-          <p className="text-muted-fg mt-3 text-center max-w-xl mx-auto">{t('landing.pricingSubtitle')}</p>
-
-          <div className="grid gap-6 md:grid-cols-3 mt-12 items-stretch">
-            {plans.map((plan, i) => {
-              const Icon = planIcons[i] ?? BadgeEuro
-              const isPopular = i === 1
-              return (
-                <div
-                  key={plan.name}
-                  className={cn(
-                    'relative flex flex-col bg-surface border rounded-2xl p-6 shadow-card',
-                    isPopular ? 'border-accent ring-1 ring-accent' : 'border-border',
-                  )}
-                >
-                  {isPopular && (
-                    <span className="absolute -top-3 start-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-accent text-white text-xs font-semibold px-3 py-1">
-                      <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                      {t('landing.planPopular')}
-                    </span>
-                  )}
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center">
-                      <Icon className="h-5 w-5" aria-hidden />
-                    </div>
-                    <h3 className="font-bold text-heading">{plan.name}</h3>
-                  </div>
-                  <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-3xl font-bold text-heading">{plan.price}</span>
-                    {plan.period && <span className="text-sm text-muted-fg">{plan.period}</span>}
-                  </div>
-                  <p className="text-sm text-muted-fg mb-5">{plan.description}</p>
-                  <ul className="space-y-2.5 mb-6 text-sm">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-foreground">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" aria-hidden />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-auto">
-                    <Link
-                      to={i === 0 ? '/register' : i === 2 ? '#contact' : '/register'}
-                      className={buttonClasses({ variant: isPopular ? 'primary' : 'outline', fullWidth: true })}
-                    >
-                      {plan.cta}
-                    </Link>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* About */}
-      <section id="about" className="scroll-mt-20 bg-surface border-y border-border py-20">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-heading text-center">{t('landing.aboutTitle')}</h2>
-          <p className="text-muted-fg mt-5 leading-relaxed text-center max-w-2xl mx-auto">{t('landing.aboutText1')}</p>
-          <p className="text-muted-fg mt-3 leading-relaxed text-center max-w-2xl mx-auto">{t('landing.aboutText2')}</p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
-            {stats.map((stat) => (
-              <div key={stat.label} className="bg-background rounded-xl border border-border p-6 text-center">
-                <p className="text-3xl font-bold text-primary">{stat.value}</p>
-                <p className="text-sm text-muted-fg mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact */}
-      <section id="contact" className="scroll-mt-20 py-20">
-        <div className="max-w-2xl mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-heading text-center">{t('landing.contactTitle')}</h2>
-          <p className="text-muted-fg mt-3 text-center">{t('landing.contactSubtitle')}</p>
-
-          <div className="mt-10 bg-surface border border-border rounded-2xl shadow-card p-8 text-center">
-            <div className="h-14 w-14 rounded-2xl bg-primary-soft text-primary flex items-center justify-center mx-auto mb-4">
-              <Mail className="h-7 w-7" aria-hidden />
-            </div>
-            <p className="text-sm text-muted-fg">{t('landing.contactEmailLabel')}</p>
-            <a
-              href="mailto:contact@carlink.app"
-              className="block text-lg font-bold text-primary hover:text-primary-hover mt-1"
-            >
-              contact@carlink.app
-            </a>
-            <p className="inline-flex items-center gap-1.5 text-sm text-muted-fg mt-4">
-              <Clock className="h-4 w-4" aria-hidden />
-              {t('landing.contactResponse')}
+      <section id="how" className="scroll-mt-20 py-16 sm:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Header */}
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
+              <Smartphone className="h-4 w-4" aria-hidden />
+              {t('landing.howBadge')}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
+              {t('landing.howTitle')}
+            </h2>
+            <p className="text-muted-fg mt-3">
+              {t('landing.howSubtitle')}
             </p>
           </div>
+
+          {/* Steps with visual flow */}
+          <div className="relative">
+            <div className="grid gap-8 lg:gap-12 lg:grid-cols-3">
+              {/* Step 1 */}
+              <div className="relative text-center">
+                {/* Step number */}
+                <div className="relative inline-flex mb-6">
+                  <div className="h-16 w-16 rounded-2xl bg-primary text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-primary/25">
+                    1
+                  </div>
+                  <div className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border-2 border-primary flex items-center justify-center">
+                    <QrCode className="h-3 w-3 text-primary" aria-hidden />
+                  </div>
+                </div>
+
+                {/* Content card */}
+                <div className="bg-surface rounded-2xl border border-border p-6 shadow-card">
+                  <div className="h-14 w-14 rounded-xl bg-primary-soft text-primary flex items-center justify-center mx-auto mb-4">
+                    <QrCode className="h-7 w-7" aria-hidden />
+                  </div>
+                  <h3 className="font-bold text-heading text-lg mb-2">{t('landing.how1Title')}</h3>
+                  <p className="text-sm text-muted-fg leading-relaxed">{t('landing.how1Text')}</p>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative text-center">
+                {/* Step number */}
+                <div className="relative inline-flex mb-6">
+                  <div className="h-16 w-16 rounded-2xl bg-primary text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-primary/25">
+                    2
+                  </div>
+                  <div className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border-2 border-primary flex items-center justify-center">
+                    <Smartphone className="h-3 w-3 text-primary" aria-hidden />
+                  </div>
+                </div>
+
+                {/* Content card */}
+                <div className="bg-surface rounded-2xl border border-border p-6 shadow-card">
+                  <div className="h-14 w-14 rounded-xl bg-primary-soft text-primary flex items-center justify-center mx-auto mb-4">
+                    <ScanLine className="h-7 w-7" aria-hidden />
+                  </div>
+                  <h3 className="font-bold text-heading text-lg mb-2">{t('landing.how2Title')}</h3>
+                  <p className="text-sm text-muted-fg leading-relaxed">{t('landing.how2Text')}</p>
+                </div> 
+              </div>
+
+              {/* Step 3 */}
+              <div className="relative text-center">
+                {/* Step number */}
+                <div className="relative inline-flex mb-6">
+                  <div className="h-16 w-16 rounded-2xl bg-primary text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-primary/25">
+                    3
+                  </div>
+                  <div className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border-2 border-primary flex items-center justify-center">
+                    <MessageSquare className="h-3 w-3 text-primary" aria-hidden />
+                  </div>
+                </div>
+
+                {/* Content card */}
+                <div className="bg-surface rounded-2xl border border-border p-6 shadow-card">
+                  <div className="h-14 w-14 rounded-xl bg-primary-soft text-primary flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="h-7 w-7" aria-hidden />
+                  </div>
+                  <h3 className="font-bold text-heading text-lg mb-2">{t('landing.how3Title')}</h3>
+                  <p className="text-sm text-muted-fg leading-relaxed">{t('landing.how3Text')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust bar */}
+          <div className="mt-16 bg-primary-soft/50 rounded-2xl p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-primary text-white flex items-center justify-center shrink-0">
+                  <Check className="h-6 w-6" aria-hidden />
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="font-semibold text-heading">{t('landing.howTrustTitle')}</p>
+                  <p className="text-sm text-muted-fg">{t('landing.howTrustText')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6 text-sm text-muted-fg">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" aria-hidden />
+                  <span>{t('landing.howEasyText')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" aria-hidden />
+                  <span>{t('landing.howTimeText')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Privacy */}
-      <section className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <div className="bg-primary-soft/60 border border-primary/20 rounded-2xl p-8">
-          <ShieldCheck className="h-10 w-10 text-primary mx-auto mb-4" aria-hidden />
-          <h2 className="text-2xl font-bold text-heading">{t('landing.privacyTitle')}</h2>
-          <p className="text-muted-fg mt-3 max-w-xl mx-auto">{t('landing.privacyText')}</p>
+      {/* Advantages Section */}
+      <section className="bg-surface border-y border-border py-16 sm:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Header */}
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
+              <Gauge className="h-4 w-4" aria-hidden />
+              {t('landing.advBadge')}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
+              {t('landing.advTitle')}
+            </h2>
+            <p className="text-muted-fg mt-3">
+              {t('landing.advSubtitle')}
+            </p>
+          </div>
+
+          {/* Advantages grid */}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Advantage 1: Privacy */}
+            <div className="group bg-background rounded-2xl border border-border p-6 hover:border-primary/40 hover:shadow-card transition-all">
+              <div className="h-12 w-12 rounded-xl bg-primary-soft text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+                <Lock className="h-6 w-6" aria-hidden />
+              </div>
+              <h3 className="font-bold text-heading text-lg mb-1.5">{t('landing.adv1Title')}</h3>
+              <p className="text-sm text-muted-fg leading-relaxed">{t('landing.adv1Text')}</p>
+            </div>
+
+            {/* Advantage 2: Instant alert */}
+            <div className="group bg-background rounded-2xl border border-border p-6 hover:border-primary/40 hover:shadow-card transition-all">
+              <div className="h-12 w-12 rounded-xl bg-primary-soft text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+                <Bell className="h-6 w-6" aria-hidden />
+              </div>
+              <h3 className="font-bold text-heading text-lg mb-1.5">{t('landing.adv2Title')}</h3>
+              <p className="text-sm text-muted-fg leading-relaxed">{t('landing.adv2Text')}</p>
+            </div>
+
+            {/* Advantage 3: No app for visitors */}
+            <div className="group bg-background rounded-2xl border border-border p-6 hover:border-primary/40 hover:shadow-card transition-all">
+              <div className="h-12 w-12 rounded-xl bg-primary-soft text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+                <Smartphone className="h-6 w-6" aria-hidden />
+              </div>
+              <h3 className="font-bold text-heading text-lg mb-1.5">{t('landing.adv3Title')}</h3>
+              <p className="text-sm text-muted-fg leading-relaxed">{t('landing.adv3Text')}</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="px-4 pb-20">
-        <div className="max-w-3xl mx-auto bg-heading rounded-2xl text-white text-center p-10">
-          <CarFront className="h-10 w-10 mx-auto mb-4 text-primary-muted" aria-hidden />
-          <h2 className="text-2xl sm:text-3xl font-bold">{t('landing.ctaTitle')}</h2>
-          <p className="text-white/80 mt-3">{t('landing.ctaSubtitle')}</p>
-          <Link to="/register" className={buttonClasses({ variant: 'primary', size: 'lg' }) + ' mt-6'}>
-            {t('landing.heroCta')}
-          </Link>
+      {/* Reviews Carousel */}
+      <section className="py-16 sm:py-20 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 text-accent text-sm font-semibold px-3 py-1 mb-4">
+              <Star className="h-4 w-4" aria-hidden />
+              {t('landing.reviewsBadge')}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
+              {t('landing.reviewsTitle')}
+            </h2>
+          </div>
+
+          {/* Auto-scrolling carousel */}
+          <div className="relative">
+            <div className="flex gap-6 animate-scroll" style={{ width: 'max-content' }}>
+              {/* First set + duplicate for seamless loop */}
+              {[1,2,3,4,5,6,1,2,3,4,5,6].map((i, idx) => (
+                <div
+                  key={idx}
+                  className="flex-none w-80 bg-background rounded-xl border border-border p-6"
+                >
+                  <div className="flex gap-1 mb-3">
+                    {[1,2,3,4,5].map((s) => (
+                      <Star
+                        key={s}
+                        className="h-4 w-4 fill-accent text-accent"
+                        aria-hidden
+                      />
+                    ))}
+                  </div>
+                  <p className="text-sm text-heading leading-relaxed mb-4">
+                    {t(`landing.review${i}Text`)}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary-soft text-primary flex items-center justify-center font-semibold">
+                      {t(`landing.review${i}Author`)}
+                    </div>
+                    <div>
+                      <p className="font-medium text-heading text-sm">
+                        {t(`landing.review${i}Name`)}
+                      </p>
+                      <p className="text-xs text-muted-fg">
+                        {t(`landing.review${i}Role`)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA — yellow banner */}
+      <section className="px-4 pt-25 pb-20">
+        <div className="max-w-5xl mx-auto bg-primary-soft rounded-3xl p-8 sm:p-10 md:p-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Left: heading + subtitle + CTA */}
+            <div className="text-center md:text-left">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
+                {t('landing.finalSectionTitle')}
+              </h2>
+              <p className="text-sm sm:text-base text-heading/70 mt-3 max-w-md mx-auto md:mx-0">
+                {t('landing.finalSectionSubtitle')}
+              </p>
+              <Link
+                to="/register"
+                className={buttonClasses({ variant: 'primary', size: 'lg' }) + ' mt-6 inline-flex items-center gap-2 bg-heading text-white hover:bg-heading/90'}
+              >
+                {t('landing.finalSectionCta')}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+
+            {/* Right: pricing info card */}
+            <div className="bg-white rounded-2xl border-2 border-gray-900 p-6 sm:p-7 text-center">
+              <p className="text-sm text-muted-fg">
+                {t('landing.finalSectionPriceLabel')}
+              </p>
+              <p className="text-2xl sm:text-3xl font-bold text-heading mt-1">
+                {t('landing.finalSectionPriceValue')}
+                <span className="text-base font-normal">{t('landing.finalSectionPricePer')}</span>
+              </p>
+              <p className="text-xs font-medium text-heading mt-4">
+                {t('landing.finalSectionNote')}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </div>

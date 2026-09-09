@@ -6,26 +6,17 @@ import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 /** Centered anchor links for the public marketing navbar. */
 function LandingNav() {
   const { t } = useTranslation()
-  const links = [
-    { href: '/#home', key: 'navbar.home' },
-    { href: '/#pricing', key: 'navbar.pricing' },
-    { href: '/#about', key: 'navbar.about' },
-    { href: '/#contact', key: 'navbar.contact' },
-  ]
   return (
     <nav
       aria-label="Main"
       className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6"
     >
-      {links.map(({ href, key }) => (
-        <a
-          key={key}
-          href={href}
-          className="text-sm font-medium text-muted-fg hover:text-primary transition-colors"
-        >
-          {t(key)}
-        </a>
-      ))}
+      <a
+        href="/"
+        className="text-sm font-medium text-muted-fg hover:text-primary transition-colors"
+      >
+        {t('navbar.home')}
+      </a>
     </nav>
   )
 }
