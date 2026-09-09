@@ -158,7 +158,16 @@
     "showOnceHint": "Copy this link once. It will never be shown again.",
     "copyLink": "Copy link",
     "publicUrl": "Public link",
-    "token": "Token"
+    "token": "Token",
+    "noActive": "No active QR code",
+    "noActiveHint": "Generate a QR code so passers-by can contact you.",
+    "generateSuccess": "QR code generated",
+    "deactivateSuccess": "QR code deactivated",
+    "savedIt": "I've saved it",
+    "activeSince": "Active since",
+    "deactivatedAt": "Deactivated on",
+    "history": "History",
+    "historyEmpty": "No QR code generated"
   },
   "contact": {
     "publicTitle": "Contact the owner",

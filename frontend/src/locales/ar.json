@@ -158,7 +158,16 @@
     "showOnceHint": "انسخ هذا الرابط مرة واحدة. لن يُعرض مجددًا.",
     "copyLink": "نسخ الرابط",
     "publicUrl": "الرابط العام",
-    "token": "الرمز"
+    "token": "الرمز",
+    "noActive": "لا يوجد رمز QR نشط",
+    "noActiveHint": "أنشئ رمز QR ليتمكن المارة من التواصل معك.",
+    "generateSuccess": "تم إنشاء رمز QR",
+    "deactivateSuccess": "تم إيقاف رمز QR",
+    "savedIt": "لقد حفظته",
+    "activeSince": "نشط منذ",
+    "deactivatedAt": "تم إيقافه في",
+    "history": "السجل",
+    "historyEmpty": "لم يتم إنشاء أي رمز QR"
   },
   "contact": {
     "publicTitle": "تواصل مع المالك",

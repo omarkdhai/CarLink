@@ -158,7 +158,16 @@
     "showOnceHint": "Copiez ce lien une seule fois. Il ne sera plus jamais affiché.",
     "copyLink": "Copier le lien",
     "publicUrl": "Lien public",
-    "token": "Jeton"
+    "token": "Jeton",
+    "noActive": "Aucun QR code actif",
+    "noActiveHint": "Générez un QR code pour permettre aux passants de vous contacter.",
+    "generateSuccess": "QR code généré",
+    "deactivateSuccess": "QR code désactivé",
+    "savedIt": "J'ai bien enregistré",
+    "activeSince": "Actif depuis",
+    "deactivatedAt": "Désactivé le",
+    "history": "Historique",
+    "historyEmpty": "Aucun QR code généré"
   },
   "contact": {
     "publicTitle": "Contacter le propriétaire",
