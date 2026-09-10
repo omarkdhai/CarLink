@@ -135,7 +135,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 text-accent text-sm font-semibold px-3 py-1 mb-4">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
               <AlertTriangle className="h-4 w-4" aria-hidden />
               {t('landing.problemsBadge')}
             </span>
@@ -152,7 +152,7 @@ export default function HomePage() {
             {/* Card 1: Parking */}
             <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <CarFront className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function HomePage() {
             {/* Card 2: Damage */}
             <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <MessageCircleWarning className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
@@ -178,7 +178,7 @@ export default function HomePage() {
             {/* Card 3: Headlights */}
             <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <Lightbulb className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
@@ -191,7 +191,7 @@ export default function HomePage() {
             {/* Card 4: Window */}
             <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <AlertTriangle className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
@@ -204,7 +204,7 @@ export default function HomePage() {
             {/* Card 5: Purchase */}
             <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <ShoppingCart className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
@@ -217,7 +217,7 @@ export default function HomePage() {
             {/* Card 6: EV Charging */}
             <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <Zap className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
@@ -407,7 +407,7 @@ export default function HomePage() {
       <section className="py-16 sm:py-20 overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 text-accent text-sm font-semibold px-3 py-1 mb-4">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
               <Star className="h-4 w-4" aria-hidden />
               {t('landing.reviewsBadge')}
             </span>

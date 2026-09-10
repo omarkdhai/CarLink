@@ -8,6 +8,7 @@ import {
   Target,
   Handshake,
   Eye,
+  BookOpen,
 } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
 import { Link } from 'react-router-dom'
@@ -84,8 +85,8 @@ export default function AboutPage() {
       <section className="py-16 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 text-accent text-sm font-semibold px-3 py-1 mb-4">
-              <Lightbulb className="h-4 w-4" aria-hidden />
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
+              <BookOpen className="h-4 w-4" aria-hidden />
               {t('about.originBadge')}
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">

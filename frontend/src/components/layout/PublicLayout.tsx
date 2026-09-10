@@ -79,7 +79,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <header className="sticky top-0 z-40 navbar-glass border-b border-border/60">
-        <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-9 sm:px-10">
           <Logo />
           <LandingNav />
           <div className="flex items-center gap-3">
