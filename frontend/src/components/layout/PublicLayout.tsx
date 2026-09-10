@@ -94,7 +94,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main id="main-content" ref={mainRef} className="reveal-host flex-1 flex flex-col px-4 py-8">
+      <main id="main-content" ref={mainRef} className="reveal-host flex-1 flex flex-col bg-transparent">
         {children}
       </main>
       <footer className="py-4 text-center text-xs text-muted-fg">

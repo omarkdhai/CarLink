@@ -69,7 +69,7 @@ export default function ContactPage() {
   return (
     <div>
       {/* Header */}
-      <section className="bg-white border-b border-border mt-[-40px] py-16 sm:py-20">
+      <section className="mt-[-40px] py-16 sm:py-20">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
             <Mail className="h-4 w-4" aria-hidden />

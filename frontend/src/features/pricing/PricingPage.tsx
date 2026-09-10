@@ -35,7 +35,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen mt-[-40px]">
       {/* Header */}
-      <section className="bg-white border-b border-border py-16 sm:py-20">
+      <section className="py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
             <DollarSign className="h-4 w-4" aria-hidden />
@@ -108,7 +108,7 @@ export default function PricingPage() {
       </section>
 
       {/* Advantages Section — same as homepage */}
-      <section className="bg-white border-y border-border py-16 sm:py-24">
+      <section className="py-16 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-14">

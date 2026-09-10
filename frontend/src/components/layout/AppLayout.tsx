@@ -138,7 +138,7 @@ export function AppLayout() {
       {/* Main column */}
       <div className="lg:ps-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 px-4 sm:px-6 h-16 border-b border-border bg-surface/80 backdrop-blur">
+        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 px-4 sm:px-6 h-16 border-b border-border/60 navbar-glass">
           <div className="flex items-center gap-2">
             <button
               className="lg:hidden h-11 w-11 rounded-lg text-muted-fg hover:bg-muted flex items-center justify-center"

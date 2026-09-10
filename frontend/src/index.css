@@ -69,16 +69,16 @@
     @apply text-foreground font-sans antialiased;
     font-size: 16px; /* Accessible base */
     line-height: 1.5;
-    /* Soft app-wide gradient: soft blue tint → white */
-    background: linear-gradient(
-      165deg,
-      rgba(183, 216, 249, 0.78) 0%,
-      rgba(213, 231, 250, 0.55) 40%,
-      rgba(255, 255, 255, 1) 100%
-    );
+    /* White base with soft irregular sky-blue blob patterns */
+    background-color: #ffffff;
+    background-image:
+      radial-gradient(ellipse 600px 500px at 8%  10%, rgba(183, 216, 249, 0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 85% 18%, rgba(200, 228, 255, 0.45) 0%, transparent 65%),
+      radial-gradient(ellipse 400px 350px at 35% 55%, rgba(191, 219, 254, 0.40) 0%, transparent 70%),
+      radial-gradient(ellipse 550px 450px at 70% 75%, rgba(183, 216, 249, 0.35) 0%, transparent 65%),
+      radial-gradient(ellipse 350px 300px at 15% 90%, rgba(213, 231, 250, 0.30) 0%, transparent 60%),
+      radial-gradient(ellipse 300px 280px at 92% 50%, rgba(200, 228, 255, 0.25) 0%, transparent 60%);
     background-attachment: fixed;
-    background-repeat: no-repeat;
-    background-size: cover;
   }
 
   /* Visible focus ring everywhere — Accessibility & Ethical */
@@ -112,13 +112,9 @@
     min-width: 44px;
   }
 
-  /* Liquid-glass navbar: gray-tinted translucent gradient + heavy blur/saturation */
+  /* Liquid-glass navbar: frosted translucent with a soft blue tint + heavy blur/saturation */
   .navbar-glass {
-    background: linear-gradient(
-      to bottom,
-      rgba(183, 216, 249, 0.78),
-      rgba(251, 251, 251, 0.52)
-    );
+    background: rgba(255, 255, 255, 0.65);
     -webkit-backdrop-filter: blur(18px) saturate(180%);
     backdrop-filter: blur(18px) saturate(180%);
   }
