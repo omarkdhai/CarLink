@@ -116,6 +116,12 @@ carlink:
   contact:
     provider: ${CONTACT_PROVIDER:mock}
 
+  # Public "Contact us" form → business mailbox
+  contact-form:
+    to-email: ${CONTACT_TO_EMAIL:hello@carlink.app}
+    # Per-IP per-minute submissions (guarded before the SMTP send)
+    ip-per-minute: ${RATE_LIMIT_CONTACT_IP_PER_MINUTE:3}
+
   # Email: mock (logs the message — dev, MailHog substitute) or smtp
   email:
     provider: ${EMAIL_PROVIDER:mock}

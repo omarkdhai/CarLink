@@ -23,6 +23,7 @@ public final class TestProperties {
                 new CarLinkProperties.Qr(32),
                 new CarLinkProperties.RateLimit(5, 20, "https://captcha.invalid", 5, 15, 10),
                 new CarLinkProperties.Contact("mock"),
+                new CarLinkProperties.ContactForm("hello@carlink.app", 1000),
                 new CarLinkProperties.Email("mock", 60),
                 new CarLinkProperties.Security("http://localhost:4200"),
                 new CarLinkProperties.Admin(null, null));

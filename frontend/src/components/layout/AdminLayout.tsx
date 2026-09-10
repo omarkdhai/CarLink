@@ -69,7 +69,7 @@ export function AdminLayout() {
   const initials = user ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase() : '?'
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed inset-y-0 start-0 w-64 border-e border-border bg-surface/70 backdrop-blur">
         <div className="flex flex-col flex-1">

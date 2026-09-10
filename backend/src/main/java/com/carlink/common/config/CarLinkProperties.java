@@ -14,6 +14,7 @@ public record CarLinkProperties(
         Qr qr,
         RateLimit ratelimit,
         Contact contact,
+        ContactForm contactForm,
         Email email,
         Security security,
         Admin admin
@@ -40,6 +41,12 @@ public record CarLinkProperties(
     ) {}
 
     public record Contact(String provider) {}
+
+    /**
+     * Public "Contact us" form: the mailbox the form messages are delivered to
+     * and the per-IP per-minute rate limit (guarded before any send).
+     */
+    public record ContactForm(String toEmail, int ipPerMinute) {}
 
     /** Email sending strategy: {@code mock} (logs, dev) or {@code smtp}. */
     public record Email(String provider, long tokenExpiryMinutes) {}

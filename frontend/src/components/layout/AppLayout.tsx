@@ -107,7 +107,7 @@ export function AppLayout() {
   const initials = user ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase() : '?'
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:m-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg">
         Skip to content
       </a>

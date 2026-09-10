@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Languages } from 'lucide-react'
+import { Globe, ChevronDown } from 'lucide-react'
 import i18n, { SUPPORTED_LANGUAGES, type LanguageCode } from '@/lib/i18n'
 
 /** Compact language dropdown. RTL-ready: Arabic flips the whole document. */
@@ -29,12 +29,13 @@ export function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium text-muted-fg hover:bg-muted hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-2 h-10 px-3.5 rounded-xl border border-border bg-surface text-sm font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-colors"
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <Languages className="h-4 w-4" aria-hidden />
-        <span>{current.label}</span>
+        <Globe className="h-4 w-4" aria-hidden />
+        <span>{current.short}</span>
+        <ChevronDown className={`h-3.5 w-3.5 text-muted-fg transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden />
       </button>
       {open && (
         <div

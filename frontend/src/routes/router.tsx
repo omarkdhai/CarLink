@@ -8,6 +8,9 @@ import { RequireAuth, RequireAdmin, RedirectIfAuthed } from '@/routes/guards'
 
 // ---- Public (no auth) ----
 const HomePage = lazy(() => import('@/features/landing/HomePage'))
+const PricingPage = lazy(() => import('@/features/pricing/PricingPage'))
+const AboutPage = lazy(() => import('@/features/about/AboutPage'))
+const ContactPage = lazy(() => import('@/features/contact/ContactPage'))
 
 // ---- Auth ----
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
@@ -55,6 +58,36 @@ export function AppRouter() {
           <Suspense fallback={<PageLoader />}>
             <PublicLayout>
               <HomePage />
+            </PublicLayout>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/pricing"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <PricingPage />
+            </PublicLayout>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <AboutPage />
+            </PublicLayout>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <ContactPage />
             </PublicLayout>
           </Suspense>
         }

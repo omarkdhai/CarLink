@@ -18,7 +18,6 @@ import {
   Check,
   Users,
   Bell,
-  RefreshCw,
   Gauge,
   Clock,
   Star,
@@ -35,7 +34,7 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero - White split layout */}
-      <section id="home" className="scroll-mt-20 bg-white">
+      <section id="home" className="scroll-mt-20 mt-[-40px] bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left column - Content */}
