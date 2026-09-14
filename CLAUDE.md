@@ -11,7 +11,7 @@ Anonymous QR-based contact with vehicle owners. Modular monolith (Spring Boot 3.
   ```
 - **Java 17** is on PATH (`java -version` → 17.0.8).
 - **Docker Desktop** must be running for Testcontainers and `docker compose`.
-- **Docker Hub is unreachable** (registry-1.docker.io times out). Local images are pulled from a hubproxy; the ones needed already exist locally.
+- **Docker Hub is unreachable** (registry-1.docker.io times out). Local images are pulled from a hubproxy; the ones needed already exist locally. Consequently `backend/Dockerfile` and `docker-compose.prod.yml` (which need `maven:3.9-eclipse-temurin-17` and `eclipse-temurin:17-jre`) **cannot be built here** — validate them with `docker compose -f docker-compose.prod.yml config --quiet` and rely on a CI/online host for the actual image build.
 - **Testcontainers** integration tests must run with:
   ```bash
   TESTCONTAINERS_RYUK_DISABLED=true "$MAVEN_HOME/bin/mvn" test
@@ -48,7 +48,7 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`. MailHog UI: `http://localho
 ## Implementation phases
 
 1. ✅ Foundation (done: scaffolding, Docker, Flyway, health UP, tests green)
-2. Auth + JWT → 3. Vehicles → 4. QR → 5. Public page → 6. WhatsApp/SMS → 7. Conversations → 8. Admin → 9. Hardening/tests → 10. CI/CD.
+2. ✅ Auth + JWT → 3. ✅ Vehicles → 4. ✅ QR → 5. ✅ Public page → 6. ✅ WhatsApp/SMS → 7. ✅ Conversations → 8. ✅ Admin → 9. ✅ Hardening/tests → 10. ✅ Production Docker + GitHub Actions CI.
 
 ## Docs
 

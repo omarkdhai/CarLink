@@ -1,0 +1,204 @@
+@import 'tailwindcss';
+
+/*
+ * CarLink design system.
+ * Direction established with UI/UX Pro Max (Minimalism/Swiss + Flat, Mobile Touch-First).
+ * Primary: Trust Blue #2563EB · Accent/CTA: Orange #EA580C
+ * WhatsApp: Emerald green · SMS: Blue
+ */
+
+@theme {
+  /* Brand / primary */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+  --color-primary-soft: #eff6ff;
+  --color-primary-muted: #dbeafe;
+
+  /* Accent (CTAs, highlights) */
+  --color-accent: #ea580c;
+  --color-accent-hover: #c2410c;
+  --color-accent-soft: #fff7ed;
+
+  /* Communication channels */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-hover: #1ebe5d;
+  --color-sms: #3b82f6;
+
+  /* Neutral surfaces (SaaS palette) */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-foreground: #1e293b;
+  --color-heading: #0f172a;
+  --color-muted: #e9eff8;
+  --color-muted-fg: #475569;
+  --color-border: #f1f5f9;
+  --color-input-border: #cbd5e1;
+
+  /* Status */
+  --color-success: #10b981;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fffbeb;
+  --color-destructive: #dc2626;
+  --color-destructive-hover: #b91c1c;
+  --color-destructive-soft: #fef2f2;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+
+  /* Radii */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Elevation — minimal per Swiss/Flat direction */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-pop: 0 8px 24px -6px rgb(15 23 42 / 0.12), 0 4px 8px -4px rgb(15 23 42 / 0.06);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply text-foreground font-sans antialiased;
+    font-size: 16px; /* Accessible base */
+    line-height: 1.5;
+    /* White base with soft irregular sky-blue blob patterns */
+    background-color: #ffffff;
+    background-image:
+      radial-gradient(ellipse 600px 500px at 8%  10%, rgba(183, 216, 249, 0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 400px at 85% 18%, rgba(200, 228, 255, 0.45) 0%, transparent 65%),
+      radial-gradient(ellipse 400px 350px at 35% 55%, rgba(191, 219, 254, 0.40) 0%, transparent 70%),
+      radial-gradient(ellipse 550px 450px at 70% 75%, rgba(183, 216, 249, 0.35) 0%, transparent 65%),
+      radial-gradient(ellipse 350px 300px at 15% 90%, rgba(213, 231, 250, 0.30) 0%, transparent 60%),
+      radial-gradient(ellipse 300px 280px at 92% 50%, rgba(200, 228, 255, 0.25) 0%, transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* Visible focus ring everywhere — Accessibility & Ethical */
+  :focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Touch targets ≥ 44px (mobile touch-first) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Liquid-glass navbar: frosted translucent with a soft blue tint + heavy blur/saturation */
+  .navbar-glass {
+    background: rgba(245, 249, 255, 0.65);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+  }
+
+  }
+
+/* Scroll-reveal: sections fade + de-blur as they enter the viewport.
+   Driven from PublicLayout's IntersectionObserver (adds .is-revealed).
+   Skipped entirely for users who prefer reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  main.reveal-host section {
+    opacity: 0;
+    filter: blur(24px);
+    transform: translateY(24px);
+    transition:
+      opacity 0.7s ease,
+      filter 0.7s ease,
+      transform 0.7s ease;
+    will-change: opacity, filter, transform;
+  }
+
+  main.reveal-host section.is-revealed {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* Auto-scrolling carousel animation */
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* Pulsing dots loader (from Uiverse.io by adamgiebl) */
+.dots-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.dot {
+  height: 20px;
+  width: 20px;
+  margin-right: 10px;
+  border-radius: 10px;
+  background-color: #b3d4fc;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.dot:last-child {
+  margin-right: 0;
+}
+
+.dot:nth-child(1) { animation-delay: -0.3s; }
+.dot:nth-child(2) { animation-delay: -0.1s; }
+.dot:nth-child(3) { animation-delay: 0.1s; }
+.dot:nth-child(4) { animation-delay: 0.3s; }
+.dot:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    background-color: #b3d4fc;
+    box-shadow: 0 0 0 0 rgba(178, 212, 252, 0.7);
+  }
+  50% {
+    transform: scale(1.2);
+    background-color: #6793fb;
+    box-shadow: 0 0 0 10px rgba(178, 212, 252, 0);
+  }
+  100% {
+    transform: scale(0.8);
+    background-color: #b3d4fc;
+    box-shadow: 0 0 0 0 rgba(178, 212, 252, 0.7);
+  }
+}

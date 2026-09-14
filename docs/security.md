@@ -48,3 +48,23 @@ with a `Retry-After` header.
 - Passwords: BCrypt strength 12.
 - Qr / refresh / reset / verification tokens: SHA-256 **hashed**.
 - Licence plates are stored but never returned in public payloads.
+
+## Admin-only data access
+
+The following endpoints return message content only to authenticated users with `ROLE_ADMIN`:
+
+- `GET /api/v1/admin/reports/{id}` — returns `conversation.lastMessageContent` for moderation judgment.
+- `GET /api/v1/conversations/{id}` — returns full message history for the owning owner.
+
+Both are the only exceptions to "message content never returned by public/unauthenticated APIs". Regular visitors and unauthenticated callers receive only metadata (conversation ID, channel, timestamp, unread flag, truncated preview).
+
+## Audit trail
+
+All admin mutations (user activation/deactivation, role changes, report status transitions) are logged to `audit_logs` with:
+
+- Action type (`USER_ACTIVATE`, `USER_DEACTIVATE`, `USER_ROLE_CHANGE`, `REPORT_STATUS_CHANGE`)
+- Entity type and ID
+- Actor admin ID, IP address, User-Agent
+- Details as JSON (`{"from":"X","to":"Y"}` for role/status changes)
+
+The audit service runs in `REQUIRES_NEW` so a logging failure never rolls back the primary action.

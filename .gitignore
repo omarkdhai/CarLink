@@ -53,3 +53,6 @@ reports/
 
 # Docker
 docker-compose.override.yml
+# Local MCP config (contains API keys)
+.mcp.json
+.claude/settings.local.json

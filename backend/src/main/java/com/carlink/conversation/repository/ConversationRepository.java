@@ -23,4 +23,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     /** Finds stale conversations whose expiry has passed and are still in a transitional state. */
     List<Conversation> findByExpiresAtBeforeAndStatusIn(
             Instant expiresAtBefore, List<ConversationStatus> statuses);
+
+    /** Admin analytics: conversations currently in a given state. */
+    long countByStatus(ConversationStatus status);
 }
