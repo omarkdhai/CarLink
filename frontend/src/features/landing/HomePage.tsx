@@ -39,7 +39,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left column - Content */}
             <div className="text-center lg:text-left">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-2xl sm:text-3xl font-extrabold text-heading">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-heading leading-tight tracking-tight">
                 {t('landing.heroTitle')}
               </h1>
               <p className="text-lg text-muted-fg mt-5 max-w-xl">
@@ -56,7 +56,7 @@ export default function HomePage() {
               </div>
 
               {/* Trust indicators */}
-              <div className="grid grid-cols-3 gap-4 mt-10 pt-8 border-t border-border">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 pt-8 border-t border-border">
                 <div className="text-center lg:text-left">
                   <div className="flex items-center justify-center lg:justify-start gap-2 text-foreground">
                     <Lock className="h-4 w-4 text-primary" aria-hidden />
@@ -106,7 +106,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Floating card overlay */}
-                <div className="absolute -bottom-6 -right-2 sm:right-8 bg-white rounded-xl shadow-xl p-4 border border-border">
+                <div className="absolute -bottom-6 right-2 sm:right-8 bg-white rounded-xl shadow-xl p-4 border border-border">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center">
                       <QrCode className="h-5 w-5" aria-hidden />
@@ -119,7 +119,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Car icon accent */}
-                <div className="absolute -top-4 -left-4 sm:-left-8">
+                <div className="absolute -top-4 start-0 sm:-start-8">
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <Truck className="h-6 w-6 text-primary" aria-hidden />
                   </div>
