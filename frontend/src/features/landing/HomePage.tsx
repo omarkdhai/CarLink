@@ -56,24 +56,18 @@ export default function HomePage() {
               </div>
 
               {/* Trust indicators */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 pt-8 border-t border-border">
-                <div className="text-center lg:text-left">
-                  <div className="flex items-center justify-center lg:justify-start gap-2 text-foreground">
-                    <Lock className="h-4 w-4 text-primary" aria-hidden />
-                    <span className="text-sm font-medium">{t('landing.trust1')}</span>
-                  </div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-10 pt-8 border-t border-border">
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-center sm:text-left lg:justify-start">
+                  <Lock className="h-4 w-4 text-primary shrink-0" aria-hidden />
+                  <span className="text-xs sm:text-sm font-medium leading-tight">{t('landing.trust1')}</span>
                 </div>
-                <div className="text-center lg:text-left">
-                  <div className="flex items-center justify-center lg:justify-start gap-2 text-foreground">
-                    <ShieldCheck className="h-4 w-4 text-primary" aria-hidden />
-                    <span className="text-sm font-medium">{t('landing.trust2')}</span>
-                  </div>
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-center sm:text-left lg:justify-start">
+                  <ShieldCheck className="h-4 w-4 text-primary shrink-0" aria-hidden />
+                  <span className="text-xs sm:text-sm font-medium leading-tight">{t('landing.trust2')}</span>
                 </div>
-                <div className="text-center lg:text-left">
-                  <div className="flex items-center justify-center lg:justify-start gap-2 text-foreground">
-                    <Clock className="h-4 w-4 text-primary" aria-hidden />
-                    <span className="text-sm font-medium">{t('landing.trust3')}</span>
-                  </div>
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-center sm:text-left lg:justify-start">
+                  <Clock className="h-4 w-4 text-primary shrink-0" aria-hidden />
+                  <span className="text-xs sm:text-sm font-medium leading-tight">{t('landing.trust3')}</span>
                 </div>
               </div>
             </div>
