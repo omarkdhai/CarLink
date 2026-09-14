@@ -144,79 +144,79 @@ export default function HomePage() {
           {/* Problem cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {/* Card 1: Parking */}
-            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <CarFront className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
                   <h3 className="font-semibold text-heading">{t('landing.problem1Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem1Text')}</p>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem1Text')}</p>
                 </div>
               </div>
             </div>
 
             {/* Card 2: Damage */}
-            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <MessageCircleWarning className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
                   <h3 className="font-semibold text-heading">{t('landing.problem2Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem2Text')}</p>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem2Text')}</p>
                 </div>
               </div>
             </div>
 
             {/* Card 3: Headlights */}
-            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <Lightbulb className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
                   <h3 className="font-semibold text-heading">{t('landing.problem3Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem3Text')}</p>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem3Text')}</p>
                 </div>
               </div>
             </div>
 
             {/* Card 4: Window */}
-            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <AlertTriangle className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
                   <h3 className="font-semibold text-heading">{t('landing.problem4Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem4Text')}</p>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem4Text')}</p>
                 </div>
               </div>
             </div>
 
             {/* Card 5: Purchase */}
-            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <ShoppingCart className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
                   <h3 className="font-semibold text-heading">{t('landing.problem5Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem5Text')}</p>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem5Text')}</p>
                 </div>
               </div>
             </div>
 
             {/* Card 6: EV Charging */}
-            <div className="bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
+            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                   <Zap className="h-5 w-5" aria-hidden />
                 </div>
                 <div>
                   <h3 className="font-semibold text-heading">{t('landing.problem6Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('landing.problem6Text')}</p>
+                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem6Text')}</p>
                 </div>
               </div>
             </div>
