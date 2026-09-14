@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LogIn, Menu, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
@@ -51,10 +51,12 @@ function LandingNav() {
 /** Minimal chrome for non-app pages (landing, auth). */
 export function PublicLayout({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
+  const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     const main = mainRef.current
     if (!main) return
     const sections = Array.from(main.querySelectorAll('section'))
@@ -63,6 +65,9 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       sections.forEach((s) => s.classList.add('is-revealed'))
       return
     }
+    // Observe the newly rendered page's sections. On client-side navigation
+    // (e.g. the mobile drawer <Link>) the layout stays mounted, so re-run on
+    // every route change — otherwise the next page's sections stay hidden.
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -76,7 +81,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     )
     sections.forEach((s) => io.observe(s))
     return () => io.disconnect()
-  }, [])
+  }, [location.key])
 
   return (
     <div className="min-h-screen flex flex-col">
