@@ -146,8 +146,84 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <main id="main-content" ref={mainRef} className="reveal-host flex-1 flex flex-col bg-transparent">
         {children}
       </main>
-      <footer className="py-4 text-center text-xs text-muted-fg">
-        © {new Date().getFullYear()} CarLink · {t('landing.footerTagline')}
+      <footer className="border-t border-border bg-white/40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Brand column */}
+            <div>
+              <Logo link={false} />
+              <p className="text-sm text-muted-fg mt-3 leading-relaxed max-w-xs">
+                {t('landing.footerTagline')}
+              </p>
+            </div>
+
+            {/* Pages column */}
+            <div>
+              <h4 className="font-semibold text-heading text-sm mb-3">{t('footer.pagesTitle')}</h4>
+              <nav className="space-y-2">
+                {[
+                  { to: '/', label: t('navbar.home') },
+                  { to: '/pricing', label: t('navbar.pricing') },
+                  { to: '/about', label: t('navbar.about') },
+                  { to: '/contact', label: t('navbar.contact') },
+                ].map(({ to, label }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="block text-sm text-muted-fg hover:text-primary transition-colors"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {/* Legal column */}
+            <div>
+              <h4 className="font-semibold text-heading text-sm mb-3">{t('footer.legalTitle')}</h4>
+              <nav className="space-y-2">
+                {[
+                  { to: '/privacy', label: t('footer.privacyLink') },
+                  { to: '/terms', label: t('footer.termsLink') },
+                  { to: '/communication', label: t('footer.commsLink') },
+                ].map(({ to, label }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="block text-sm text-muted-fg hover:text-primary transition-colors"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {/* Account column */}
+            <div>
+              <h4 className="font-semibold text-heading text-sm mb-3">{t('footer.accountTitle')}</h4>
+              <div className="flex flex-col gap-2">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center justify-center h-10 px-4 rounded-xl border border-border bg-surface text-sm font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  {t('navbar.login')}
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+                >
+                  {t('auth.createAccount')}
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-fg">
+            <p>&copy; {new Date().getFullYear()} CarLink. {t('footer.rightsReserved')}</p>
+            
+          </div>
+        </div>
       </footer>
     </div>
   )

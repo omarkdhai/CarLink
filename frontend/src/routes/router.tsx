@@ -11,6 +11,9 @@ const HomePage = lazy(() => import('@/features/landing/HomePage'))
 const PricingPage = lazy(() => import('@/features/pricing/PricingPage'))
 const AboutPage = lazy(() => import('@/features/about/AboutPage'))
 const ContactPage = lazy(() => import('@/features/contact/ContactPage'))
+const PrivacyPage = lazy(() => import('@/features/legal/PrivacyPage'))
+const TermsPage = lazy(() => import('@/features/legal/TermsPage'))
+const CommunicationPage = lazy(() => import('@/features/legal/CommunicationPage'))
 
 // ---- Auth ----
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
@@ -136,6 +139,37 @@ export function AppRouter() {
               <VerifyEmailPage />
             </Suspense>
           </RedirectIfAuthed>
+        }
+      />
+
+      <Route
+        path="/privacy"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <PrivacyPage />
+            </PublicLayout>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <TermsPage />
+            </PublicLayout>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/communication"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <CommunicationPage />
+            </PublicLayout>
+          </Suspense>
         }
       />
 

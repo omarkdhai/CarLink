@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -22,6 +22,11 @@ import {
   Gauge,
   Clock,
   Star,
+  Signal,
+  Wifi,
+  PhoneCall,
+  ChevronDown,
+  HelpCircle,
 } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
 
@@ -34,23 +39,18 @@ const problems = [
   { icon: Zap, title: 'landing.problem6Title', text: 'landing.problem6Text' },
 ] as const
 
+const faqs = ['faq1', 'faq2', 'faq3', 'faq4', 'faq5'] as const
+
 /**
  * Public landing page — the marketing face of CarLink.
  * Flat/minimal per design direction; no owner data exposed.
  */
 export default function HomePage() {
   const { t } = useTranslation()
-  // Touch devices can't hover, so auto-cycle the problem-card descriptions.
-  // Desktop keeps the manual group-hover reveal.
+  // Only used on touch devices: a tap toggles a card's details (tap = hover).
   const [activeProblem, setActiveProblem] = useState<number | null>(null)
-  useEffect(() => {
-    if (!window.matchMedia('(hover: none)').matches) return
-    setActiveProblem(0)
-    const id = setInterval(() => {
-      setActiveProblem((cur) => ((cur ?? -1) + 1) % problems.length)
-    }, 2600)
-    return () => clearInterval(id)
-  }, [])
+  // FAQ accordion: which question is open (one at a time).
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
     <div>
@@ -167,7 +167,13 @@ export default function HomePage() {
             {problems.map(({ icon: Icon, title, text }, i) => (
               <div
                 key={title}
-                className={`group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow ${
+                onClick={() => {
+                  // On touch there is no hover, so a tap toggles the details.
+                  if (window.matchMedia('(hover: none)').matches) {
+                    setActiveProblem(activeProblem === i ? null : i)
+                  }
+                }}
+                className={`group cursor-pointer select-none bg-background rounded-xl border border-border p-5 hover:shadow-card transition-all duration-900 ${
                   activeProblem === i ? 'shadow-card border-primary/40' : ''
                 }`}
               >
@@ -178,7 +184,7 @@ export default function HomePage() {
                   <div>
                     <h3 className="font-semibold text-heading">{t(title)}</h3>
                     <p
-                      className={`text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 transition-all duration-300 ${
+                      className={`text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 transition-all duration-700 ease-in-out ${
                         activeProblem === i ? 'max-h-40 opacity-100' : ''
                       } group-hover:max-h-40 group-hover:opacity-100`}
                     >
@@ -365,6 +371,50 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Ways to reach the owner */}
+      <section className="py-16 sm:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
+              <Bell className="h-4 w-4" aria-hidden />
+              {t('landing.reachBadge')}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
+              {t('landing.reachTitle')}
+            </h2>
+            <p className="text-muted-fg mt-3">{t('landing.reachSubtitle')}</p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 max-w-4xl mx-auto">
+            {/* SMS message */}
+            <div className="group relative bg-white rounded-2xl border border-border p-7 hover:border-primary/40 hover:shadow-card transition-all">
+              <span className="inline-block rounded-full bg-primary text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
+                {t('landing.reachSmsName')}
+              </span>
+              
+              <p className="flex items-center mt-4 gap-2 text-sm font-medium text-heading">
+                <Signal className="h-4 w-4 text-primary" aria-hidden />
+                {t('landing.reachSmsSignal')}
+              </p>
+              <p className="text-sm text-muted-fg leading-relaxed mt-1">{t('landing.reachSmsText')}</p>
+            </div>
+
+            {/* Anonymous alert call */}
+            <div className="group relative bg-white rounded-2xl border border-border p-7 hover:border-primary/40 hover:shadow-card transition-all">
+              <span className="inline-block rounded-full bg-primary text-white text-xs font-semibold px-3 py-1 uppercase tracking-wide">
+                {t('landing.reachCallName')}
+              </span>
+              
+              <p className="flex items-center mt-4 gap-2 text-sm font-medium text-heading">
+                <Wifi className="h-4 w-4 text-primary" aria-hidden />
+                {t('landing.reachCallSignal')}
+              </p>
+              <p className="text-sm text-muted-fg leading-relaxed mt-1">{t('landing.reachCallText')}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Reviews Carousel */}
       <section className="py-16 sm:py-20 overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -453,6 +503,66 @@ export default function HomePage() {
                 {t('landing.finalSectionNote')}
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-16 sm:py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
+              <HelpCircle className="h-4 w-4" aria-hidden />
+              {t('landing.faqBadge')}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
+              {t('landing.faqTitle')}
+            </h2>
+            <p className="text-muted-fg mt-3">
+              {t('landing.faqSubtitle')}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((key, i) => {
+              const open = openFaq === i
+              return (
+                <div
+                  key={key}
+                  className={`bg-white rounded-2xl border transition-colors duration-300 ${
+                    open ? 'border-primary/40' : 'border-border'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(open ? null : i)}
+                    aria-expanded={open}
+                    className="w-full flex items-center justify-between gap-4 px-5 sm:px-6 py-4 text-left cursor-pointer"
+                  >
+                    <span className="font-semibold text-heading text-sm sm:text-base">
+                      {t(`landing.${key}Q`)}
+                    </span>
+                    <ChevronDown
+                      className={`h-5 w-5 text-muted-fg shrink-0 transition-transform duration-300 ${
+                        open ? 'rotate-180' : ''
+                      }`}
+                      aria-hidden
+                    />
+                  </button>
+                  <div
+                    className={`grid transition-all duration-500 ease-in-out ${
+                      open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                    }`}
+                  >
+                    <div className="overflow-hidden min-h-0">
+                      <p className="px-5 sm:px-6 pb-5 text-sm text-muted-fg leading-relaxed">
+                        {t(`landing.${key}A`)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
