@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -24,12 +25,32 @@ import {
 } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
 
+const problems = [
+  { icon: CarFront, title: 'landing.problem1Title', text: 'landing.problem1Text' },
+  { icon: MessageCircleWarning, title: 'landing.problem2Title', text: 'landing.problem2Text' },
+  { icon: Lightbulb, title: 'landing.problem3Title', text: 'landing.problem3Text' },
+  { icon: AlertTriangle, title: 'landing.problem4Title', text: 'landing.problem4Text' },
+  { icon: ShoppingCart, title: 'landing.problem5Title', text: 'landing.problem5Text' },
+  { icon: Zap, title: 'landing.problem6Title', text: 'landing.problem6Text' },
+] as const
+
 /**
  * Public landing page — the marketing face of CarLink.
  * Flat/minimal per design direction; no owner data exposed.
  */
 export default function HomePage() {
   const { t } = useTranslation()
+  // Touch devices can't hover, so auto-cycle the problem-card descriptions.
+  // Desktop keeps the manual group-hover reveal.
+  const [activeProblem, setActiveProblem] = useState<number | null>(null)
+  useEffect(() => {
+    if (!window.matchMedia('(hover: none)').matches) return
+    setActiveProblem(0)
+    const id = setInterval(() => {
+      setActiveProblem((cur) => ((cur ?? -1) + 1) % problems.length)
+    }, 2600)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <div>
@@ -143,83 +164,30 @@ export default function HomePage() {
 
           {/* Problem cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Card 1: Parking */}
-            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  <CarFront className="h-5 w-5" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-heading">{t('landing.problem1Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem1Text')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Damage */}
-            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  <MessageCircleWarning className="h-5 w-5" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-heading">{t('landing.problem2Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem2Text')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3: Headlights */}
-            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  <Lightbulb className="h-5 w-5" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-heading">{t('landing.problem3Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem3Text')}</p>
+            {problems.map(({ icon: Icon, title, text }, i) => (
+              <div
+                key={title}
+                className={`group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow ${
+                  activeProblem === i ? 'shadow-card border-primary/40' : ''
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-heading">{t(title)}</h3>
+                    <p
+                      className={`text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 transition-all duration-300 ${
+                        activeProblem === i ? 'max-h-40 opacity-100' : ''
+                      } group-hover:max-h-40 group-hover:opacity-100`}
+                    >
+                      {t(text)}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Card 4: Window */}
-            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  <AlertTriangle className="h-5 w-5" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-heading">{t('landing.problem4Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem4Text')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 5: Purchase */}
-            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  <ShoppingCart className="h-5 w-5" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-heading">{t('landing.problem5Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem5Text')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 6: EV Charging */}
-            <div className="group bg-background rounded-xl border border-border p-5 hover:shadow-card transition-shadow">
-              <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                  <Zap className="h-5 w-5" aria-hidden />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-heading">{t('landing.problem6Title')}</h3>
-                  <p className="text-sm text-muted-fg mt-1 leading-relaxed max-h-0 overflow-hidden opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-all duration-300">{t('landing.problem6Text')}</p>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Bottom CTA */}
