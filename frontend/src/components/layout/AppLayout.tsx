@@ -8,6 +8,7 @@ import {
   UserRound,
   Settings,
   ShieldCheck,
+  ScanLine,
   Menu,
   X,
   LogOut,
@@ -20,6 +21,7 @@ import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 
 const ownerNav = [
   { to: '/dashboard', key: 'nav.dashboard', icon: LayoutDashboard },
+  { to: '/stickers', key: 'nav.stickers', icon: ScanLine },
   { to: '/vehicles', key: 'nav.vehicles', icon: Car },
   { to: '/messages', key: 'nav.messages', icon: MessageSquare },
   { to: '/notifications', key: 'nav.notifications', icon: Bell },

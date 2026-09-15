@@ -47,7 +47,12 @@ with a `Retry-After` header.
 
 - Passwords: BCrypt strength 12.
 - Qr / refresh / reset / verification tokens: SHA-256 **hashed**.
+- Sticker tokens: stored as SHA-256 hashes only; the raw token is returned **exactly once** on the order creation response.
 - Licence plates are stored but never returned in public payloads.
+
+## Sticker token one-time exception
+
+The guest order endpoint (`POST /api/v1/public/orders`) returns the raw sticker token(s) in its response (`StickerIssuedResponse.rawToken`) **exactly once**. This is a deliberate exception to "raw tokens are never persisted or returned" — the raw value exists only in this HTTP response and is never stored, logged, or re-sent. The same response includes the QR `imageDataUri` so the buyer can save/download their codes immediately. After this, only the SHA-256 hash exists in the `stickers` table and the only way to resolve the sticker is through the authenticated activation flow.
 
 ## Admin-only data access
 

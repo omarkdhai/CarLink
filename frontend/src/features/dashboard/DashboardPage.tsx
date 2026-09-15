@@ -88,7 +88,7 @@ export default function DashboardPage() {
             icon={<Car className="h-5 w-5" aria-hidden />}
             title={t('dashboard.addVehicle')}
           />
-          <QuickAction to="/vehicles" icon={<QrCode className="h-5 w-5" aria-hidden />} title={t('dashboard.generateQr')} />
+          <QuickAction to="/stickers" icon={<QrCode className="h-5 w-5" aria-hidden />} title={t('stickers.title')} />
           <QuickAction to="/messages" icon={<Inbox className="h-5 w-5" aria-hidden />} title={t('dashboard.viewMessages')} />
         </div>
       </section>

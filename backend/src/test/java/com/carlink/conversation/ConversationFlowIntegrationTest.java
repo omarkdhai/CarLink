@@ -45,10 +45,10 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
         // Submit two contacts on different channels
         mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json(Map.of("channel", "WHATSAPP", "message", "Hello!"))));
+                .content(json(Map.of("channel", "WHATSAPP", "message", "Hello!", "reason", "BLOCKING"))));
         mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json(Map.of("channel", "SMS", "message", "Is this car still for sale?"))));
+                .content(json(Map.of("channel", "SMS", "message", "Is this car still for sale?", "reason", "BLOCKING"))));
 
         mockMvc.perform(get("/api/v1/conversations")
                         .header("Authorization", bearer(auth)))
@@ -248,7 +248,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
             throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("channel", channel, "message", message))))
+                        .content(json(Map.of("channel", channel, "message", message, "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());

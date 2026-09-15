@@ -79,7 +79,8 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         MvcResult result = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "WHATSAPP",
-                                "message", "Hi, is this car still available?"))))
+                                "message", "Hi, is this car still available?",
+                                "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("owner")))
                 .andReturn();
@@ -134,7 +135,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "SMS",
-                                "message", "x".repeat(501)))))
+                                "message", "x".repeat(501), "reason", "BLOCKING"))))
                 .andExpect(status().isBadRequest());
         // Nothing persisted by the rejected submission.
         assertThat(messageRepository.count()).isEqualTo(before);
@@ -147,7 +148,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("channel", "FAX", "message", "hi"))))
+                        .content(json(Map.of("channel", "FAX", "message", "hi", "reason", "BLOCKING"))))
                 .andExpect(status().isBadRequest());
     }
 

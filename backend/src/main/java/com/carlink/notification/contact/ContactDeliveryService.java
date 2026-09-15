@@ -24,13 +24,17 @@ import java.util.UUID;
 public class ContactDeliveryService {
 
     private final ContactChannelSender sender;
+    private final AnonymousCallService anonymousCallService;
     private final ConversationService conversationService;
 
     public void deliver(UUID conversationId, Channel channel,
-                        String ownerPhone, String message) {
+                        String ownerPhone, String message, String reason) {
         boolean delivered;
         try {
-            delivered = sender.send(new ContactDelivery(channel, ownerPhone, message));
+            // Owner gets the alert as an SMS (reason + message relayed).
+            delivered = sender.send(new ContactDelivery(channel, ownerPhone, message, reason));
+            // …and as an anonymous masked call — the passenger's number is never revealed.
+            anonymousCallService.initiateCall(ownerPhone, reason, message, conversationId.toString());
         } catch (RuntimeException e) {
             log.warn("Contact relay failed for conversation {} ({})",
                     conversationId, channel);

@@ -6,6 +6,8 @@ interface FieldProps {
   error?: string
   /** Optional-marker text (e.g. "facultatif"), rendered after the label. */
   optional?: string
+  /** Renders a red `*` after the label to mark the field as required. */
+  required?: boolean
   children: ReactNode
 }
 
@@ -14,12 +16,17 @@ interface FieldProps {
  * implicitly associated with the input — correct for screen readers without
  * relying on id wiring, which react-hook-form inputs don't expose directly.
  */
-export function Field({ label, hint, error, optional, children }: FieldProps) {
+export function Field({ label, hint, error, optional, required, children }: FieldProps) {
   return (
     <div className="space-y-1.5">
       <label className="flex flex-col gap-1.5 cursor-text">
         <span className="text-sm font-semibold text-heading">
           {label}
+          {required && (
+            <span className="ms-0.5 text-destructive" aria-hidden="true">
+              *
+            </span>
+          )}
           {optional && (
             <span className="ms-1 font-normal text-muted-fg text-xs" aria-hidden="true">
               · {optional}

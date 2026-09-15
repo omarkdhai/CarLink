@@ -7,5 +7,5 @@ import com.carlink.conversation.model.Channel;
  * channel. Internal only — never serialized to a REST DTO, and the owner
  * phone is passed straight to the sender and never logged or echoed.
  */
-public record ContactDelivery(Channel channel, String ownerPhone, String message) {
+public record ContactDelivery(Channel channel, String ownerPhone, String message, String reason) {
 }

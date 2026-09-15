@@ -46,7 +46,7 @@ export default function AboutPage() {
             {t('about.heroSubtitle')}
           </p>
           <Link
-            to="/register"
+            to="/order?plan=single"
             className={buttonClasses({ size: 'lg' }) + ' mt-8 inline-flex'}
           >
             {t('about.heroCta')}

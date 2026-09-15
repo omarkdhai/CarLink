@@ -11,6 +11,7 @@ const HomePage = lazy(() => import('@/features/landing/HomePage'))
 const PricingPage = lazy(() => import('@/features/pricing/PricingPage'))
 const AboutPage = lazy(() => import('@/features/about/AboutPage'))
 const ContactPage = lazy(() => import('@/features/contact/ContactPage'))
+const OrderPage = lazy(() => import('@/features/order/OrderPage'))
 const PrivacyPage = lazy(() => import('@/features/legal/PrivacyPage'))
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'))
 const CommunicationPage = lazy(() => import('@/features/legal/CommunicationPage'))
@@ -28,7 +29,7 @@ const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'))
 const VehiclesPage = lazy(() => import('@/features/vehicles/VehiclesPage'))
 const VehicleFormPage = lazy(() => import('@/features/vehicles/VehicleFormPage'))
 const VehicleDetailPage = lazy(() => import('@/features/vehicles/VehicleDetailPage'))
-const QrManagementPage = lazy(() => import('@/features/qr/QrManagementPage'))
+const StickersPage = lazy(() => import('@/features/stickers/StickersPage'))
 const MessagesPage = lazy(() => import('@/features/conversations/MessagesPage'))
 const ConversationDetailPage = lazy(() => import('@/features/conversations/ConversationDetailPage'))
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'))
@@ -91,6 +92,16 @@ export function AppRouter() {
           <Suspense fallback={<PageLoader />}>
             <PublicLayout>
               <ContactPage />
+            </PublicLayout>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/order"
+        element={
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <OrderPage />
             </PublicLayout>
           </Suspense>
         }
@@ -192,11 +203,11 @@ export function AppRouter() {
         }
       >
         <Route path="/dashboard" element={withLoader(<DashboardPage />)} />
+        <Route path="/stickers" element={withLoader(<StickersPage />)} />
         <Route path="/vehicles" element={withLoader(<VehiclesPage />)} />
         <Route path="/vehicles/new" element={withLoader(<VehicleFormPage />)} />
         <Route path="/vehicles/:id/edit" element={withLoader(<VehicleFormPage />)} />
         <Route path="/vehicles/:id" element={withLoader(<VehicleDetailPage />)} />
-        <Route path="/vehicles/:id/qr" element={withLoader(<QrManagementPage />)} />
         <Route path="/messages" element={withLoader(<MessagesPage />)} />
         <Route path="/messages/:id" element={withLoader(<ConversationDetailPage />)} />
         <Route path="/notifications" element={withLoader(<NotificationsPage />)} />

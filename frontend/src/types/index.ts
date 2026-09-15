@@ -121,24 +121,146 @@ export interface QrIssuedResponse {
   qr: QrStatusResponse
 }
 
+// ---------- Orders ----------
+
+/** Server-side pricing: SINGLE 20 TND / 1 sticker, DOUBLE 35 / 2, BUSINESS 350 / 20. */
+export type StickerPackage = 'SINGLE' | 'DOUBLE' | 'BUSINESS'
+export const STICKER_PACKAGES: StickerPackage[] = ['SINGLE', 'DOUBLE', 'BUSINESS']
+
+export type OrderStatus = 'PLACED' | 'DELIVERED' | 'CANCELLED'
+
+export type Governorate =
+  | 'TUNIS'
+  | 'ARIANA'
+  | 'BEN_AROUS'
+  | 'MANOUBA'
+  | 'NABEUL'
+  | 'ZAGHOUAN'
+  | 'BIZERTE'
+  | 'BEJA'
+  | 'JENDOUBA'
+  | 'LE_KEF'
+  | 'SILIANA'
+  | 'SOUSSE'
+  | 'MONASTIR'
+  | 'MAHDIA'
+  | 'SFAX'
+  | 'KAIROUAN'
+  | 'KASSERINE'
+  | 'SIDI_BOUZID'
+  | 'GABES'
+  | 'MEDENINE'
+  | 'TATAOUINE'
+  | 'GAFSA'
+  | 'TOZEUR'
+  | 'KEBILI'
+export const GOVERNORATES: Governorate[] = [
+  'TUNIS', 'ARIANA', 'BEN_AROUS', 'MANOUBA', 'NABEUL', 'ZAGHOUAN',
+  'BIZERTE', 'BEJA', 'JENDOUBA', 'LE_KEF', 'SILIANA', 'SOUSSE',
+  'MONASTIR', 'MAHDIA', 'SFAX', 'KAIROUAN', 'KASSERINE', 'SIDI_BOUZID',
+  'GABES', 'MEDENINE', 'TATAOUINE', 'GAFSA', 'TOZEUR', 'KEBILI',
+]
+
+export interface OrderItemRequest {
+  stickerPackage: StickerPackage
+  quantity: number
+}
+
+export interface OrderCreateRequest {
+  items: OrderItemRequest[]
+  customerName: string
+  mobile: string
+  email: string
+  governorate: Governorate
+  deliveryAddress: string
+  deliveryNotes?: string
+}
+
+/** Single sticker minted by an order — the raw token is shown exactly once. */
+export interface StickerIssuedResponse {
+  rawToken: string
+  publicUrl: string
+  /** base64 PNG data URI of the QR image. */
+  imageDataUri: string
+}
+
+export interface OrderItemResponse {
+  stickerPackage: StickerPackage
+  quantity: number
+  unitPrice: string
+  stickersPerPack: number
+  subtotal: string
+}
+
+export interface OrderResponse {
+  reference: string
+  status: OrderStatus
+  totalAmount: string
+  currency: string
+  createdAt: ISOInstant
+  items: OrderItemResponse[]
+  stickers: StickerIssuedResponse[]
+}
+
+/** Token-free, PII-free order summary used for status checks. */
+export interface OrderSummaryResponse {
+  reference: string
+  status: OrderStatus
+  totalAmount: string
+  currency: string
+  stickerCount: number
+  createdAt: ISOInstant
+}
+
+// ---------- Stickers ----------
+
+export type StickerStatus = 'UNBOUND' | 'BOUND' | 'DEACTIVATED'
+
+export interface ActivateStickerRequest {
+  birthDate: string
+  licensePlate: string
+  nickname?: string
+  brand?: string
+  model?: string
+  color?: string
+}
+
+export interface StickerView {
+  id: UUID
+  status: StickerStatus
+  boundAt: ISOInstant | null
+  deactivatedAt: ISOInstant | null
+  /** The owner's own car — absent when the sticker isn't bound. */
+  vehicle: VehicleResponse | null
+  orderReference: string | null
+}
+
 // ---------- Public / contact ----------
 
 export type ContactChannel = 'WHATSAPP' | 'SMS'
 
+/** Lifecycle state of the resolved token (physical sticker or legacy QR). */
+export type QrPublicState = 'BOUND' | 'UNBOUND' | 'DEACTIVATED'
+
 export interface QrPublicView {
+  state: QrPublicState
+  /** Null while the sticker is UNBOUND / DEACTIVATED — no data can leak. */
   vehicle: {
     nickname: string | null
     brand: string | null
     model: string | null
     color: string | null
-  }
-  /** e.g. ['WHATSAPP', 'SMS'] — never a phone number. */
+  } | null
+  /** e.g. ['WHATSAPP', 'SMS'] — empty when the sticker isn't BOUND. */
   channels: ContactChannel[]
 }
+
+export type ContactReason = 'BLOCKING' | 'LIGHTS' | 'LEFT_OPEN' | 'HIT_CAR' | 'WINDOWS_OPEN' | 'EV_CHARGE'
 
 export interface ContactSubmitRequest {
   channel: ContactChannel
   message: string
+  reason: ContactReason
 }
 
 export interface ContactSubmitResponse {
@@ -173,6 +295,7 @@ export interface ConversationSummaryResponse {
 export interface ConversationMessageResponse {
   id: UUID
   content: string
+  reason: string
   createdAt: ISOInstant
 }
 

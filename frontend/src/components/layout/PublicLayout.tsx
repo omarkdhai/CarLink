@@ -59,28 +59,49 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     window.scrollTo(0, 0)
     const main = mainRef.current
     if (!main) return
-    const sections = Array.from(main.querySelectorAll('section'))
     if (typeof IntersectionObserver === 'undefined') {
       // Ancient browsers: never hide content.
-      sections.forEach((s) => s.classList.add('is-revealed'))
+      main.querySelectorAll('section').forEach((s) => s.classList.add('is-revealed'))
       return
     }
-    // Observe the newly rendered page's sections. On client-side navigation
+    // Observe the rendered page's sections. On client-side navigation
     // (e.g. the mobile drawer <Link>) the layout stays mounted, so re-run on
     // every route change — otherwise the next page's sections stay hidden.
+    const reveal = (el: Element) => {
+      if (!el.classList.contains('is-revealed')) el.classList.add('is-revealed')
+    }
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            entry.target.classList.add('is-revealed')
+            reveal(entry.target)
             io.unobserve(entry.target)
           }
         }
       },
       { threshold: 0.08, rootMargin: '0px 0px -60px 0px' },
     )
-    sections.forEach((s) => io.observe(s))
-    return () => io.disconnect()
+    main.querySelectorAll('section').forEach((s) => io.observe(s))
+    // Follow DOM mutations too: internal state swaps (e.g. the order stepper
+    // mounting step 2's <section> without a route change) would otherwise leave
+    // the new section unobserved — and invisible under `opacity: 0`.
+    const mo = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (!(node instanceof Element)) continue
+          const sections =
+            node.tagName === 'SECTION' ? [node] : Array.from(node.querySelectorAll('section'))
+          sections
+            .filter((s) => !s.classList.contains('is-revealed'))
+            .forEach((s) => io.observe(s))
+        }
+      }
+    })
+    mo.observe(main, { childList: true, subtree: true })
+    return () => {
+      io.disconnect()
+      mo.disconnect()
+    }
   }, [location.key])
 
   return (

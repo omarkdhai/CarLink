@@ -40,14 +40,18 @@ public class Message {
     @Column(nullable = false)
     private String content;
 
+    @Column(name = "reason", nullable = false)
+    private String reason;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    public static Message of(Conversation conversation, String content) {
+    public static Message of(Conversation conversation, String content, String reason) {
         return Message.builder()
                 .id(UUID.randomUUID())
                 .conversation(conversation)
                 .content(content)
+                .reason(reason)
                 .createdAt(Instant.now())
                 .build();
     }

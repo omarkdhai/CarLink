@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { registerSchema, type RegisterValues } from '@/features/auth/authSchemas'
 import { http } from '@/services/apiClient'
+import { takeNextAfterAuth } from '@/services/nextTarget'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -37,7 +38,7 @@ export default function RegisterPage() {
         lastName: values.lastName,
         phone: values.phone?.trim() || undefined,
       })
-      navigate('/dashboard', { replace: true })
+      navigate(takeNextAfterAuth() ?? '/dashboard', { replace: true })
     } catch (err) {
       setSubmissionError(http.humanizeError(err))
     }

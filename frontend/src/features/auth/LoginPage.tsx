@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { loginSchema, type LoginValues } from '@/features/auth/authSchemas'
 import { http } from '@/services/apiClient'
+import { takeNextAfterAuth } from '@/services/nextTarget'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -36,8 +37,10 @@ export default function LoginPage() {
     setSubmissionError(null)
     try {
       await signIn(values.email, values.password)
+      // A pending sticker activation outranks the generic "from" redirect.
+      const target = takeNextAfterAuth()
       const from = (location.state as LocationState | null)?.from?.pathname
-      navigate(from ?? '/dashboard', { replace: true })
+      navigate(target ?? from ?? '/dashboard', { replace: true })
     } catch (err) {
       setSubmissionError(http.humanizeError(err))
     }

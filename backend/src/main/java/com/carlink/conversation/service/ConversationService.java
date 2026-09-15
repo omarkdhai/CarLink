@@ -50,11 +50,11 @@ public class ConversationService {
         return conversationRepository.save(conversation).getId();
     }
 
-    public void appendMessage(UUID conversationId, String content) {
+    public void appendMessage(UUID conversationId, String content, String reason) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new IllegalStateException(
                         "Conversation not found: " + conversationId));
-        messageRepository.save(Message.of(conversation, content));
+        messageRepository.save(Message.of(conversation, content, reason));
     }
 
     public void updateStatus(UUID conversationId, ConversationStatus status) {

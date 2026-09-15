@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -59,6 +60,10 @@ public class User extends BaseEntity {
 
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
+
+    /** Optional date of birth, collected when the user activates a sticker. */
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     public static User newUser(String email, String passwordHash, String firstName,
                                String lastName, Role role) {

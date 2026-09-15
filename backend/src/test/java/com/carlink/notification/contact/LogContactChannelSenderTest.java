@@ -25,6 +25,7 @@ class LogContactChannelSenderTest {
 
     private final String ownerPhone = "+21655123456";
     private final String message = "Hi, is this car still available?";
+    private final String reason = "BLOCKING";
 
     @BeforeEach
     void setUp() {
@@ -43,17 +44,18 @@ class LogContactChannelSenderTest {
 
     @Test
     void sendReturnsTrueAndLogsChannelAndMessage() {
-        boolean delivered = sender.send(new ContactDelivery(Channel.WHATSAPP, ownerPhone, message));
+        boolean delivered = sender.send(new ContactDelivery(Channel.WHATSAPP, ownerPhone, message, reason));
 
         assertThat(delivered).isTrue();
         String log = appender.list.get(0).getFormattedMessage();
         assertThat(log).contains("WHATSAPP");
+        assertThat(log).contains(reason);
         assertThat(log).contains(message);
     }
 
     @Test
     void logNeverContainsTheRawPhoneOnlyItsHash() {
-        sender.send(new ContactDelivery(Channel.SMS, ownerPhone, message));
+        sender.send(new ContactDelivery(Channel.SMS, ownerPhone, message, reason));
 
         String log = appender.list.get(0).getFormattedMessage();
         assertThat(log).doesNotContain(ownerPhone);

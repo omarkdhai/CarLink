@@ -111,6 +111,9 @@ carlink:
     login-lock-minutes: ${RATE_LIMIT_LOGIN_LOCK_MINUTES:15}
     # Anonymous report filings, per IP per minute
     report-ip-per-minute: ${RATE_LIMIT_REPORT_IP_PER_MINUTE:10}
+    # Guest ordering (COD): raw sticker tokens + QR images are returned once,
+    # so the mint is rate-limited per IP per minute.
+    order-ip-per-minute: ${RATE_LIMIT_ORDER_IP_PER_MINUTE:5}
 
   # Contact channel provider
   contact:

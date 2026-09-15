@@ -11,15 +11,20 @@ import com.carlink.notification.contact.ContactDeliveryService;
 import com.carlink.qr.dto.ContactSubmitRequest;
 import com.carlink.qr.dto.ContactSubmitResponse;
 import com.carlink.qr.dto.QrPublicView;
+import com.carlink.qr.model.ContactReason;
 import com.carlink.qr.model.QrCode;
 import com.carlink.qr.repository.QrCodeRepository;
 import com.carlink.security.ratelimit.RateLimiter;
+import com.carlink.sticker.model.Sticker;
+import com.carlink.sticker.model.StickerStatus;
+import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.vehicle.model.Vehicle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -35,6 +40,11 @@ import java.util.UUID;
  *   <li>Redis-backed rate limiting by hashed IP and hashed token sends 429
  *       with a {@code Retry-After} header.</li>
  * </ul>
+ *
+ * <p>Resolution order: the {@code stickers} table (physical stickers) is
+ * checked first. If a matching hash is found, the sticker's status governs
+ * the response. If no sticker matches, the legacy {@code qr_codes} table
+ * is checked as a fallback so already-printed QR codes keep working.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -44,6 +54,7 @@ public class PublicQrService {
     private static final int WINDOW_TOKEN_SECONDS = 3600;
 
     private final QrCodeRepository qrCodeRepository;
+    private final StickerRepository stickerRepository;
     private final ConversationService conversationService;
     private final ContactDeliveryService contactDeliveryService;
     private final TokenGenerator tokenGenerator;
@@ -55,12 +66,18 @@ public class PublicQrService {
     public QrPublicView resolve(String rawToken, String clientIp) {
         requireRate(new RateLimits(
                 rateLimiter, tokenGenerator, properties, clientIp, rawToken));
-        QrCode qr = activeQr(rawToken);
-        Vehicle v = qr.getVehicle();
-        return new QrPublicView(
-                new QrPublicView.VehicleSafe(
-                        v.getNickname(), v.getBrand(), v.getModel(), v.getColor()),
-                List.of("WHATSAPP", "SMS"));
+
+        String tokenHash = tokenGenerator.sha256(rawToken);
+
+        // Sticker-first: physical stickers table
+        Optional<Sticker> sticker = stickerRepository.findByTokenHash(tokenHash);
+        if (sticker.isPresent()) {
+            return viewFromSticker(sticker.get());
+        }
+
+        // Fallback: legacy qr_codes table (already-printed QRs keep resolving)
+        QrCode qr = activeQrByHash(tokenHash);
+        return viewFromLegacy(qr);
     }
 
     /** Persists a visitor's contact request and relays it to the owner. */
@@ -69,25 +86,71 @@ public class PublicQrService {
                                         ContactSubmitRequest request) {
         requireRate(new RateLimits(
                 rateLimiter, tokenGenerator, properties, clientIp, rawToken));
-        QrCode qr = activeQr(rawToken);
-        Channel channel = Channel.valueOf(request.channel());
 
-        UUID conversationId = conversationService.open(qr.getVehicle(),
+        String tokenHash = tokenGenerator.sha256(rawToken);
+
+        // Sticker-first
+        Optional<Sticker> sticker = stickerRepository.findByTokenHash(tokenHash);
+        if (sticker.isPresent()) {
+            Sticker s = sticker.get();
+            if (s.getStatus() != StickerStatus.BOUND || s.getVehicle() == null) {
+                throw new NotFoundException("QR code not found");
+            }
+            return doSubmit(s.getVehicle(), request);
+        }
+
+        // Fallback: legacy qr_codes
+        QrCode qr = activeQrByHash(tokenHash);
+        return doSubmit(qr.getVehicle(), request);
+    }
+
+    // ————————— internal —————————
+
+    private ContactSubmitResponse doSubmit(Vehicle vehicle, ContactSubmitRequest request) {
+        Channel channel = Channel.valueOf(request.channel());
+        // The note is optional — when absent, the reason label alone is the content.
+        String content = request.message() == null || request.message().isBlank()
+                ? ContactReason.from(request.reason()).label()
+                : request.message().trim();
+        UUID conversationId = conversationService.open(vehicle,
                 channel, ConversationStatus.PENDING);
-        conversationService.appendMessage(conversationId, request.message());
+        conversationService.appendMessage(conversationId, content, request.reason());
 
         // Owner phone stays server-side: passed to the relay, never exposed.
         contactDeliveryService.deliver(conversationId, channel,
-                qr.getVehicle().getOwner().getPhone(), request.message());
+                vehicle.getOwner().getPhone(), request.message(), request.reason());
 
         return new ContactSubmitResponse(conversationId, "Message sent to the owner.");
     }
 
+    private QrPublicView viewFromSticker(Sticker sticker) {
+        StickerStatus status = sticker.getStatus();
+        if (status == StickerStatus.BOUND && sticker.getVehicle() != null) {
+            Vehicle v = sticker.getVehicle();
+            return new QrPublicView(
+                    "BOUND",
+                    new QrPublicView.VehicleSafe(
+                            v.getNickname(), v.getBrand(), v.getModel(), v.getColor()),
+                    List.of("WHATSAPP", "SMS"));
+        }
+        // UNBOUND or DEACTIVATED: no vehicle, no channels
+        return new QrPublicView(status.name(), null, List.of());
+    }
+
+    private QrPublicView viewFromLegacy(QrCode qr) {
+        Vehicle v = qr.getVehicle();
+        return new QrPublicView(
+                "BOUND",
+                new QrPublicView.VehicleSafe(
+                        v.getNickname(), v.getBrand(), v.getModel(), v.getColor()),
+                List.of("WHATSAPP", "SMS"));
+    }
+
     /** Verifies the token maps to an ACTIVE QR. Missing/inactive → 404. */
-    private QrCode activeQr(String rawToken) {
+    private QrCode activeQrByHash(String tokenHash) {
         return qrCodeRepository
-                .findByTokenHash(tokenGenerator.sha256(rawToken))
-                .filter(found -> found.isActive())
+                .findByTokenHash(tokenHash)
+                .filter(QrCode::isActive)
                 .orElseThrow(() -> new NotFoundException("QR code not found"));
     }
 
