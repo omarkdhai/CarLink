@@ -12,8 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 /**
- * Owner profile management. Returns {@link UserResponse} which never
- * contains the private phone number.
+ * Owner profile management. Returns {@link UserResponse}, which serializes
+ * the owner's own {@code phone} so they can verify the SMS/call relay number.
+ * The number is never exposed to anyone but the owner (see security model).
  */
 @Service
 @RequiredArgsConstructor

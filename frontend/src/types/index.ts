@@ -35,6 +35,8 @@ export interface UserResponse {
   role: Role
   emailVerified: boolean
   createdAt: ISOInstant
+  /** Owner's own number; serialized only to the authenticated owner. */
+  phone?: string | null
 }
 
 export interface AuthResponse {

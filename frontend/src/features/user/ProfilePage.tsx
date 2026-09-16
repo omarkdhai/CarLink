@@ -10,22 +10,23 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
+import { PhoneFields } from '@/components/ui/PhoneFields'
 import { Badge } from '@/components/ui/Badge'
 import { Alert } from '@/components/ui/Alert'
 import { userApi, userQueryKeys } from '@/services/userApi'
 import { useAuth } from '@/features/auth/AuthContext'
 import { http } from '@/services/apiClient'
 import { formatDateTime } from '@/lib/format'
+import { joinPhone, splitPhone, DEFAULT_PHONE_CODE } from '@/lib/phone'
 
-const E164 = /^\+[1-9]\d{1,14}$/
+const phoneCodeRegex = /^\+[1-9][0-9]{0,3}$/
+const nationalRegex = /^[0-9]{6,14}$/
 
 const profileSchema = z.object({
   firstName: z.string().trim().min(1, '').max(100),
   lastName: z.string().trim().min(1, '').max(100),
-  phone: z
-    .string()
-    .optional()
-    .refine((v) => !v || v.trim() === '' || E164.test(v.trim()), ''),
+  phoneCode: z.string().refine((v) => v.trim() === '' || phoneCodeRegex.test(v.trim()), ''),
+  phoneNumber: z.string().optional().refine((v) => !v || v.trim() === '' || nationalRegex.test(v.trim()), ''),
 })
 
 type ProfileValues = z.infer<typeof profileSchema>
@@ -48,15 +49,17 @@ export default function ProfilePage() {
     formState: { errors },
   } = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { firstName: '', lastName: '', phone: '' },
+    defaultValues: { firstName: '', lastName: '', phoneCode: DEFAULT_PHONE_CODE, phoneNumber: '' },
   })
 
   useEffect(() => {
     if (me.data) {
+      const { code, national } = splitPhone(me.data.phone)
       reset({
         firstName: me.data.firstName,
         lastName: me.data.lastName,
-        phone: '',
+        phoneCode: code,
+        phoneNumber: national,
       })
     }
   }, [me.data, reset])
@@ -66,7 +69,7 @@ export default function ProfilePage() {
       userApi.updateProfile({
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
-        phone: values.phone?.trim() || undefined,
+        phone: joinPhone(values.phoneCode, values.phoneNumber) || undefined,
       }),
     onSuccess: (updated) => {
       setUser(updated)
@@ -117,8 +120,15 @@ export default function ProfilePage() {
                     <Input maxLength={100} error={Boolean(errors.lastName)} {...register('lastName')} />
                   </Field>
                 </div>
-                <Field label={t('profile.phoneOptional')} hint="+33 6 12 34 56 78" error={errors.phone?.message}>
-                  <Input inputMode="tel" placeholder="+33…" error={Boolean(errors.phone)} {...register('phone')} />
+                <Field label={t('profile.phoneOptional')} error={errors.phoneCode?.message || errors.phoneNumber?.message}>
+                  <PhoneFields
+                    register={register}
+                    codeName="phoneCode"
+                    nationalName="phoneNumber"
+                    codeError={errors.phoneCode?.message}
+                    nationalError={errors.phoneNumber?.message}
+                    nationalPlaceholder={t('profile.phoneNumberPlaceholder')}
+                  />
                 </Field>
                 <div className="flex justify-end pt-2">
                   <Button type="submit" loading={save.isPending}>

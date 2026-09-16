@@ -5,19 +5,21 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { registerSchema, type RegisterValues } from '@/features/auth/authSchemas'
-import { http } from '@/services/apiClient'
+import { ApiRequestError, toApiError } from '@/services/errors'
 import { takeNextAfterAuth } from '@/services/nextTarget'
+import { joinPhone } from '@/lib/phone'
 import { Alert } from '@/components/ui/Alert'
-import { Button } from '@/components/ui/Button'
+import { Button, buttonClasses } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
+import { PhoneFields } from '@/components/ui/PhoneFields'
 import { Logo } from '@/components/layout/Logo'
 
 export default function RegisterPage() {
   const { t } = useTranslation()
   const { signUp } = useAuth()
   const navigate = useNavigate()
-  const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const [submissionError, setSubmissionError] = useState<ApiRequestError | null>(null)
 
   const {
     register,
@@ -25,7 +27,7 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: '', password: '', firstName: '', lastName: '', phone: '' },
+    defaultValues: { email: '', password: '', firstName: '', lastName: '', phoneCode: '+216', phoneNumber: '' },
   })
 
   async function onSubmit(values: RegisterValues) {
@@ -36,11 +38,11 @@ export default function RegisterPage() {
         password: values.password,
         firstName: values.firstName,
         lastName: values.lastName,
-        phone: values.phone?.trim() || undefined,
+        phone: joinPhone(values.phoneCode, values.phoneNumber) || undefined,
       })
       navigate(takeNextAfterAuth() ?? '/dashboard', { replace: true })
     } catch (err) {
-      setSubmissionError(http.humanizeError(err))
+      setSubmissionError(toApiError(err))
     }
   }
 
@@ -52,7 +54,19 @@ export default function RegisterPage() {
         <p className="text-sm text-muted-fg mt-1">{t('auth.registerSubtitle')}</p>
       </div>
 
-      {submissionError && <Alert tone="error">{submissionError}</Alert>}
+      {submissionError?.code === 'EMAIL_ALREADY_REGISTERED' ? (
+        <Alert tone="error" title={t('auth.emailAlreadyRegistered')}>
+          <Link
+            to="/login"
+            className={buttonClasses({ variant: 'outline', size: 'sm' }) + ' mt-2'}
+            data-cy="sign-in-instead"
+          >
+            {t('auth.signInInstead')}
+          </Link>
+        </Alert>
+      ) : (
+        submissionError && <Alert tone="error">{submissionError.message}</Alert>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-surface border border-border rounded-xl p-6 shadow-card" noValidate>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -91,14 +105,14 @@ export default function RegisterPage() {
             {...register('password')}
           />
         </Field>
-        <Field label={t('auth.phone')} optional={t('common.optional')} hint={t('auth.phoneHint')} error={errors.phone?.message}>
-          <Input
-            type="tel"
-            autoComplete="tel"
-            placeholder={t('auth.phonePlaceholder')}
-            inputMode="tel"
-            error={Boolean(errors.phone)}
-            {...register('phone')}
+        <Field label={t('auth.phone')} optional={t('common.optional')} hint={t('auth.phoneHint')} error={errors.phoneCode?.message || errors.phoneNumber?.message}>
+          <PhoneFields
+            register={register}
+            codeName="phoneCode"
+            nationalName="phoneNumber"
+            codeError={errors.phoneCode?.message}
+            nationalError={errors.phoneNumber?.message}
+            nationalPlaceholder={t('auth.phoneNumberPlaceholder')}
           />
         </Field>
 

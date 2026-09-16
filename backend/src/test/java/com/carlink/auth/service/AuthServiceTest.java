@@ -108,7 +108,8 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.register(
                 new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "")))
-                .isInstanceOf(BadRequestException.class);
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("already registered");
         verify(userRepository, never()).save(any(User.class));
     }
 

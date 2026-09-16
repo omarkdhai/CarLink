@@ -10,7 +10,8 @@ import i18n from '@/lib/i18n'
 const t = (key: string) => i18n.t(key)
 
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).+$/
-const e164 = /^\+[1-9][0-9]{6,14}$/
+const phoneCode = /^\+[1-9][0-9]{0,3}$/
+const nationalNumber = /^[0-9]{6,14}$/
 
 export const loginSchema = z.object({
   email: z.string().min(1, t('validation.emailRequired')).email(t('validation.email')),
@@ -27,10 +28,13 @@ export const registerSchema = z.object({
     .refine((v) => passwordRegex.test(v), t('auth.passwordNeedsLetterDigit')),
   firstName: z.string().min(1, t('validation.firstNameRequired')).max(100),
   lastName: z.string().min(1, t('validation.lastNameRequired')).max(100),
-  phone: z
+  phoneCode: z
+    .string()
+    .refine((v) => v.trim() === '' || phoneCode.test(v.trim()), t('validation.phoneCodeInvalid')),
+  phoneNumber: z
     .string()
     .optional()
-    .refine((v) => !v || v.trim() === '' || e164.test(v.trim()), t('validation.phoneInvalid')),
+    .refine((v) => !v || v.trim() === '' || nationalNumber.test(v.trim()), t('validation.phoneNumberInvalid')),
 })
 
 export type RegisterValues = z.infer<typeof registerSchema>

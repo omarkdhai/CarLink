@@ -71,8 +71,9 @@
     "firstName": "First name",
     "lastName": "Last name",
     "phone": "Phone (private)",
-    "phonePlaceholder": "+14155552671",
-    "phoneHint": "Used only for two-step verification and recovery. Never shown publicly.",
+    "phonePlaceholder": "+216 22 001 122",
+    "phoneHint": "Used only for SMS and anonymous call relay. Never shown publicly.",
+    "phoneNumberPlaceholder": "22 001 122",
     "firstNamePlaceholder": "Jane",
     "lastNamePlaceholder": "Doe",
     "login": "Sign in",
@@ -102,6 +103,8 @@
     "passwordTooShort": "Password must be at least 8 characters",
     "passwordNeedsLetterDigit": "Password must contain a letter and a digit",
     "invalidCredentials": "Invalid email or password",
+    "emailAlreadyRegistered": "This email is already registered.",
+    "signInInstead": "Sign in instead",
     "sessionExpired": "Your session has expired. Please sign in again."
   },
   "vehicle": {
@@ -372,6 +375,7 @@
     "lastName": "Last name",
     "phone": "Phone",
     "phoneOptional": "Phone (optional)",
+    "phoneNumberPlaceholder": "22 001 122",
     "save": "Save changes",
     "deleteNotAvailable": "Self-service account deletion is not available yet. Contact support for any request."
   },
@@ -751,6 +755,8 @@
     "methodRequired": "Choose a contact method",
     "messageTooLong": "The message cannot exceed 500 characters",
     "phoneInvalid": "Invalid number (E.164 format, e.g. +14155552671)",
+    "phoneCodeInvalid": "Invalid country code (e.g. +216)",
+    "phoneNumberInvalid": "Enter the number without the country code",
     "nameRequired": "The full name is required",
     "mobileRequired": "The mobile number is required",
     "mobileDigits": "Enter 8 digits (e.g. 22 001 122)",

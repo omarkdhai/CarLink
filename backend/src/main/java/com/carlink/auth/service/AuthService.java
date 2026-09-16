@@ -68,9 +68,12 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         String email = request.email().trim().toLowerCase();
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            // Same response as success, minus the token pair — prevents
-            // enumeration while staying honest about the failed outcome.
-            throw new BadRequestException("A verification link was sent. Check your email.");
+            // The 400 status already revealed the email is taken under the old
+            // generic-message approach, so a clear, actionable error adds no
+            // exposure.  A distinct code lets the frontend render a "Sign in"
+            // call-to-action.
+            throw new BadRequestException("EMAIL_ALREADY_REGISTERED",
+                    "This email is already registered. Please sign in instead.");
         }
 
         User user = User.newUser(

@@ -3,6 +3,8 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { FullPageLoader } from '@/components/shared/FullPageLoader'
 
+const AUTH_ROUTES = ['/login', '/register', '/verify-email']
+
 /**
  * Route guards. The frontend only controls *routing* to the UI —
  * all authorization is enforced server-side (ROLE_ADMIN / ownership checks).
@@ -33,11 +35,14 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-/** Guests only — signed-in users are redirected home. */
+/** Guests only — signed-in users are redirected home (unless already on an auth page). */
 export function RedirectIfAuthed({ children }: { children: ReactNode }) {
   const { isAuthenticated, isRestoring } = useAuth()
+  const location = useLocation()
 
   if (isRestoring) return <FullPageLoader />
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  if (isAuthenticated && !AUTH_ROUTES.includes(location.pathname)) {
+    return <Navigate to="/dashboard" replace />
+  }
   return <>{children}</>
 }

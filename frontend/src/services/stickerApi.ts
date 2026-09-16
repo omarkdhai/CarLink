@@ -16,7 +16,7 @@ export const stickerApi = {
 
   /** List all stickers owned by the current user. */
   listMine(): Promise<StickerView[]> {
-    return apiClient.get<StickerView[]>('/me/stickers').then((r) => r.data)
+    return apiClient.get<StickerView[]>('/stickers/me').then((r) => r.data)
   },
 }
 

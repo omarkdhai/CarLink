@@ -4,7 +4,7 @@
 
 Assets to protect:
 
-1. **Owner phone numbers** — the crown jewel. Never leaves the server.
+1. **Owner phone numbers** — the crown jewel. Never leaves the server except back to the owner themselves (see the narrow exception below).
 2. **Account credentials** — hashed, never logged.
 3. **QR tokens** — the public interface; must be unguessable and rate-limited.
 4. **Message content** — the payload of an SMS/WhatsApp relay.
@@ -14,12 +14,22 @@ Primary threats:
 | Threat | Mitigation |
 |--------|-----------|
 | QR token enumeration | 32-byte CSPRNG tokens; SHA-256 stored only |
-| Phone number leakage | Phone filtered from every DTO, never added to QR/URL/HTML/logs |
+| Phone number leakage | Phone serialized only to the owner who holds the account JWT (login / refresh / `/users/me`); never in QR/URL/HTML/logs or any third-party/public DTO |
 | Spam / abuse on `/c/{token}` | Redis rate limit per IP + per token, CAPTCHA abstraction, message length cap |
 | Credential stuffing | BCrypt(12), account lockout/backoff, generic error messages |
 | Token theft | Short-lived access JWT; refresh token rotation + revocation; hashed at rest |
-| Enumeration via registration | Generic "we sent you a link" response |
+| Enumeration via registration | 400 `EMAIL_ALREADY_REGISTERED` with a clear "already registered" message — the 400 status already leaked existence under the old generic-message design; this trades enumeration theatre for honest UX |
 | JWT secret leakage | Secret injected via env, never in source |
+
+## Owner-only profile exception (phone)
+
+The account's own phone number IS returned to the authenticated owner in
+`UserResponse` (login, refresh, `GET /users/me`, and the register response —
+which only echoes back the number the caller just submitted). This is how the
+owner verifies the SMS / anonymous-call relay number in their profile. It is a
+**narrow** exception: the phone is never in any third-party view, public scan
+response, HTML, QR, URL, RedIS/DB export, or log. Admin DTOs (`AdminUserResponse`)
+still omit it.
 
 ## Logging rules
 
