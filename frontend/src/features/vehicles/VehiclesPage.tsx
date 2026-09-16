@@ -109,14 +109,15 @@ export default function VehiclesPage() {
 
       {!loading && !error && vehicles.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {vehicles.map((vehicle) => (
-            <VehicleCard
-              key={vehicle.id}
-              vehicle={vehicle}
-              conversationCount={counts.get(vehicle.id)?.total}
-              unreadCount={counts.get(vehicle.id)?.unread}
-              onError={(m) => setToast(m)}
-            />
+          {vehicles.map((vehicle, i) => (
+            <div key={vehicle.id} className="stagger-delay" style={{ '--stagger': i } as React.CSSProperties}>
+              <VehicleCard
+                vehicle={vehicle}
+                conversationCount={counts.get(vehicle.id)?.total}
+                unreadCount={counts.get(vehicle.id)?.unread}
+                onError={(m) => setToast(m)}
+              />
+            </div>
           ))}
         </div>
       )}

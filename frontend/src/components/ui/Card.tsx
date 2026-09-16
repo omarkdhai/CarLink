@@ -20,7 +20,7 @@ const Card = function Card({ variant = 'default', className, children, ...props 
         variant === 'default' && 'border border-border shadow-card',
         variant === 'flat' && 'border border-border',
         variant === 'interactive' &&
-          'border border-border shadow-card hover:shadow-pop hover:border-primary/30 transition-shadow cursor-pointer',
+          'border border-border shadow-card hover:shadow-pop hover:border-primary/30 transition-all duration-200 cursor-pointer',
         className,
       )}
       {...props}

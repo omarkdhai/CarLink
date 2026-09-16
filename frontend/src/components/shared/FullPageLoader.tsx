@@ -1,5 +1,5 @@
 import Spinner from '@/components/shared/Spinner'
 
 export function FullPageLoader() {
-  return <Spinner />
+  return <Spinner className="loader-enter" />
 }

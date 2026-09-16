@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Car,
@@ -18,6 +18,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { Logo } from '@/components/layout/Logo'
 import { cn } from '@/lib/cn'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
+import { PageTransition } from '@/components/shared/PageTransition'
 
 const ownerNav = [
   { to: '/dashboard', key: 'nav.dashboard', icon: LayoutDashboard },
@@ -99,7 +100,12 @@ export function AppLayout() {
   const { t } = useTranslation()
   const { user, isAdmin, signOut } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.key])
 
   async function handleSignOut() {
     await signOut()
@@ -123,8 +129,8 @@ export function AppLayout() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-heading/40 backdrop-blur-[1px]" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute inset-y-0 start-0 w-72 bg-surface shadow-pop flex flex-col">
+          <div className="absolute inset-0 bg-heading/40 backdrop-blur-[1px] drawer-backdrop-enter" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute inset-y-0 start-0 w-72 bg-surface shadow-pop flex flex-col drawer-panel-enter">
             <button
               className="absolute end-3 top-4 h-9 w-9 rounded-lg text-muted-fg hover:bg-muted flex items-center justify-center"
               onClick={() => setMobileOpen(false)}
@@ -169,7 +175,9 @@ export function AppLayout() {
         </header>
 
         <main id="main-content" className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
-          <Outlet />
+          <PageTransition key={location.pathname}>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
     </div>

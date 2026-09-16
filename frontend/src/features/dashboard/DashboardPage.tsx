@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { SkeletonGrid } from '@/components/shared/SkeletonGrid'
 import { vehicleApi, vehicleQueryKeys } from '@/services/vehicleApi'
 import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
+import { cn } from '@/lib/cn'
 import type { ConversationStatus, ContactChannel } from '@/types'
 
 const STATUS_TONE: Record<ConversationStatus, 'success' | 'warning' | 'danger' | 'neutral'> = {
@@ -57,6 +58,8 @@ export default function DashboardPage() {
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-3 mb-8">
         <StatCard
+          className="stagger-delay"
+          style={{ '--stagger': 0 } as React.CSSProperties}
           icon={<Car className="h-5 w-5" aria-hidden />}
           tone="bg-primary-soft text-primary"
           label={t('dashboard.totalVehicles')}
@@ -64,6 +67,8 @@ export default function DashboardPage() {
           loading={loading}
         />
         <StatCard
+          className="stagger-delay"
+          style={{ '--stagger': 1 } as React.CSSProperties}
           icon={<MessageSquare className="h-5 w-5" aria-hidden />}
           tone="bg-success-soft text-success"
           label={t('dashboard.messages')}
@@ -71,6 +76,8 @@ export default function DashboardPage() {
           loading={loading}
         />
         <StatCard
+          className="stagger-delay"
+          style={{ '--stagger': 2 } as React.CSSProperties}
           icon={<MailOpen className="h-5 w-5" aria-hidden />}
           tone="bg-warning-soft text-warning"
           label={t('dashboard.unread')}
@@ -84,12 +91,26 @@ export default function DashboardPage() {
         <h2 className="text-lg font-bold text-heading mb-3">{t('dashboard.quickActions')}</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <QuickAction
+            className="stagger-delay"
+            style={{ '--stagger': 0 } as React.CSSProperties}
             to="/vehicles"
             icon={<Car className="h-5 w-5" aria-hidden />}
             title={t('dashboard.addVehicle')}
           />
-          <QuickAction to="/stickers" icon={<QrCode className="h-5 w-5" aria-hidden />} title={t('stickers.title')} />
-          <QuickAction to="/messages" icon={<Inbox className="h-5 w-5" aria-hidden />} title={t('dashboard.viewMessages')} />
+          <QuickAction
+            className="stagger-delay"
+            style={{ '--stagger': 1 } as React.CSSProperties}
+            to="/stickers"
+            icon={<QrCode className="h-5 w-5" aria-hidden />}
+            title={t('stickers.title')}
+          />
+          <QuickAction
+            className="stagger-delay"
+            style={{ '--stagger': 2 } as React.CSSProperties}
+            to="/messages"
+            icon={<Inbox className="h-5 w-5" aria-hidden />}
+            title={t('dashboard.viewMessages')}
+          />
         </div>
       </section>
 
@@ -159,15 +180,19 @@ function StatCard({
   label,
   value,
   loading,
+  className,
+  style,
 }: {
   icon: React.ReactNode
   tone: string
   label: string
   value: number
   loading: boolean
+  className?: string
+  style?: React.CSSProperties
 }) {
   return (
-    <div className="bg-surface border border-border rounded-lg p-5">
+    <div className={cn('bg-surface border border-border rounded-lg p-5', className)} style={style}>
       <div className={`h-11 w-11 rounded-lg flex items-center justify-center mb-4 ${tone}`}>{icon}</div>
       {loading ? (
         <div className="h-8 w-16 rounded bg-muted animate-pulse" />
@@ -179,11 +204,27 @@ function StatCard({
   )
 }
 
-function QuickAction({ to, icon, title }: { to: string; icon: React.ReactNode; title: string }) {
+function QuickAction({
+  to,
+  icon,
+  title,
+  className,
+  style,
+}: {
+  to: string
+  icon: React.ReactNode
+  title: string
+  className?: string
+  style?: React.CSSProperties
+}) {
   return (
     <Link
       to={to}
-      className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 hover:border-primary hover:shadow-card transition-all"
+      className={cn(
+        'group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 hover:border-primary hover:shadow-card transition-all',
+        className,
+      )}
+      style={style}
     >
       <span className="h-11 w-11 rounded-lg bg-primary-soft text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
         {icon}

@@ -160,7 +160,7 @@ export default function OrderPage() {
   // ---------- Success screen (in-memory order, raw tokens shown once) ----------
   if (placed) {
     return (
-      <div className="max-w-2xl mx-auto w-full py-10 px-4 sm:px-6">
+      <div className="max-w-2xl mx-auto w-full py-10 px-4 sm:px-6 page-enter">
         <SuccessCard
           title={t('order.success')}
           hint={t('order.successHint')}
@@ -262,7 +262,7 @@ export default function OrderPage() {
 
         {/* ---------------------- Step 1: package ---------------------- */}
         {step === 1 && (
-          <section>
+          <section className="page-enter">
             <header className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-heading">{t('order.title')}</h1>
               <p className="text-muted-fg mt-1 text-sm">{t('order.subtitle')}</p>
@@ -386,7 +386,7 @@ export default function OrderPage() {
 
         {/* ---------------------- Step 3: confirm ---------------------- */}
         {step === 3 && details && (
-          <section>
+          <section className="page-enter">
             <header className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-heading">{t('order.summary')}</h1>
               <p className="text-muted-fg mt-1 text-sm">{t('order.summaryHint')}</p>
@@ -549,7 +549,7 @@ function DetailsForm({
   const labelCls = 'text-[11px] sm:text-xs font-semibold text-muted-fg uppercase tracking-wider'
 
   return (
-    <section>
+    <section className="page-enter">
       <header className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-heading">{t('order.details')}</h1>
         <p className="text-muted-fg mt-1 text-sm">{t('order.detailsHint')}</p>

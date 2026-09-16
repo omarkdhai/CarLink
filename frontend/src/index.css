@@ -202,3 +202,65 @@
     box-shadow: 0 0 0 0 rgba(178, 212, 252, 0.7);
   }
 }
+
+/* ---- Motion: page / drawer / dialog / alert / loader / stagger ----
+   Enter-only animations (no exit) — reduced-motion is handled by the
+   global 0.01ms override above, so `both` fill still resolves to the final
+   (fully visible) state for users who prefer reduced motion. Drawers sit at
+   the logical "start" edge, so the slide direction flips for RTL below. */
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes drawer-panel-enter {
+  from { transform: translateX(var(--drawer-x, -100%)); }
+  to { transform: translateX(0); }
+}
+
+@keyframes drawer-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-panel-enter {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes alert-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loader-enter {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.page-enter { animation: page-enter 300ms ease-out both; }
+
+.drawer-panel-enter { animation: drawer-panel-enter 250ms ease-out both; }
+.drawer-backdrop-enter { animation: drawer-backdrop-enter 200ms ease-out both; }
+
+.dialog-backdrop-enter { animation: dialog-backdrop-enter 200ms ease-out both; }
+.dialog-panel-enter { animation: dialog-panel-enter 250ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.alert-enter { animation: alert-enter 250ms ease-out both; }
+
+.loader-enter { animation: loader-enter 250ms ease-out both; }
+
+/* Staggered entrance: child sets --stagger (0-indexed) → delay = index * 100ms */
+.stagger-delay {
+  animation: page-enter 400ms ease-out both;
+  animation-delay: calc(var(--stagger, 0) * 100ms);
+}
+
+/* RTL: drawers sit at the "start" edge → slide from the correct side */
+[dir='rtl'] .drawer-panel-enter { --drawer-x: 100%; }

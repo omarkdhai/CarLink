@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { LogIn, Menu, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
+import { PageTransition } from '@/components/shared/PageTransition'
 
 const NAV_LINKS = [
   { to: '/', key: 'home' },
@@ -140,7 +141,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
         {/* Mobile drawer */}
         {menuOpen && (
-          <div className="lg:hidden absolute top-full start-0 end-0 navbar-glass border-b border-border/60 shadow-pop px-4 py-3 pb-4">
+          <div className="lg:hidden absolute top-full start-0 end-0 navbar-glass border-b border-border/60 shadow-pop px-4 py-3 pb-4 page-enter">
             <nav aria-label="Main" className="flex flex-col gap-1">
               {NAV_LINKS.map(({ to, key }) => (
                 <Link
@@ -165,7 +166,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         )}
       </header>
       <main id="main-content" ref={mainRef} className="reveal-host flex-1 flex flex-col bg-transparent">
-        {children}
+        <PageTransition key={location.pathname} className="flex-1 flex flex-col">{children}</PageTransition>
       </main>
       <footer className="border-t border-border bg-white/40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">

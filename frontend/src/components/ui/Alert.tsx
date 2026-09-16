@@ -21,7 +21,7 @@ export interface AlertProps {
 export function Alert({ tone = 'info', title, children, className }: AlertProps) {
   const { icon: Icon, classes, iconClasses } = config[tone]
   return (
-    <div className={clsx('flex gap-3 rounded-lg border px-4 py-3', classes, className)} role={tone === 'error' ? 'alert' : 'status'}>
+    <div className={clsx('flex gap-3 rounded-lg border px-4 py-3 alert-enter', classes, className)} role={tone === 'error' ? 'alert' : 'status'}>
       <Icon className={clsx('h-5 w-5 shrink-0 mt-0.5', iconClasses)} aria-hidden />
       <div className="text-sm">
         {title && <p className="font-semibold text-heading">{title}</p>}

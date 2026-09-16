@@ -8,8 +8,9 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 
 const baseClasses =
   'inline-flex items-center justify-center gap-2 font-semibold rounded-lg ' +
-  'touch-target transition-colors duration-150 focus-visible:outline-none ' +
-  'disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] whitespace-nowrap'
+  'touch-target transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ' +
+  'focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed ' +
+  'active:translate-y-0 active:scale-[0.98] whitespace-nowrap'
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-hover active:bg-primary-active',

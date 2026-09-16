@@ -42,8 +42,10 @@ export default function StickersPage() {
         <SkeletonGrid count={4} />
       ) : mine.data && mine.data.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {mine.data.map((s: StickerView) => (
-            <StickerCard key={s.id} sticker={s} />
+          {mine.data.map((s: StickerView, i) => (
+            <div key={s.id} className="stagger-delay" style={{ '--stagger': i } as React.CSSProperties}>
+              <StickerCard sticker={s} />
+            </div>
           ))}
         </div>
       ) : (
