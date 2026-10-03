@@ -23,10 +23,10 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 | Cache/Rate-limit | Redis 7                                             |
 | QR         | ZXing                                                     |
 | Auth       | JWT (access + refresh tokens)                             |
-| Frontend   | Angular 16, TypeScript, RxJS                              |
+| Frontend   | React 19, TypeScript, Vite, React Router 7                |
 | Styling    | Tailwind CSS (mobile-first)                               |
 | Email (dev) | MailHog                                                  |
-| Test       | JUnit 5, Mockito, Testcontainers                          |
+| Test       | JUnit 5, Mockito, Testcontainers, Vitest                  |
 | CI         | GitHub Actions                                            |
 
 ## Repository layout
@@ -46,14 +46,18 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 │       ├── admin/         # admin dashboard
 │       ├── security/      # JWT filters, rate limiting, anti-spam
 │       └── common/        # shared DTOs, exceptions, config
-├── frontend/              # Angular 16 app
-├── docker-compose.yml     # PostgreSQL + Redis + MailHog (dev)
-├── docker-compose.prod.yml # production stack (app + Postgres + Redis)
+├── frontend/              # React 19 + Vite web application
+│   ├── Dockerfile         # multi-stage build (Node.js -> Nginx)
+│   └── nginx.conf         # Nginx SPA router + API proxy configuration
+├── docker-compose.yml     # Full stack (Frontend + Backend + Postgres + Redis + MailHog)
+├── docker-compose.prod.yml # Production stack (Frontend + Backend + Postgres + Redis)
 ├── .env.example           # env template (never commit real values)
 └── .github/workflows/     # CI/CD
 ```
 
-## Getting started (development)
+## Quick Start (Run Whole Project with Docker)
+
+To start the entire application (Frontend, Backend API, PostgreSQL database, and Redis cache) with a single command:
 
 1. **Copy environment template**
 
@@ -61,31 +65,47 @@ scans the code and sends a WhatsApp or SMS message through the platform.
    cp .env.example .env
    ```
 
-2. **Start infrastructure**
+2. **Run the full stack**
 
    ```bash
-   docker compose up -d
+   docker-compose up -d --build
    ```
 
-3. **Run the backend**
+   - **Frontend App**: `http://localhost`
+   - **Backend API**: `http://localhost:8080`
+   - **Swagger UI**: `http://localhost:8080/swagger-ui.html` or `http://localhost/swagger-ui/`
+   - **Actuator Health**: `http://localhost:8080/actuator/health`
+
+3. **Stop the full stack**
+
+   ```bash
+   docker-compose down
+   ```
+
+## Development (Run Locally without Docker for Backend/Frontend)
+
+If you prefer to run services individually during development:
+
+1. **Start infrastructure (Postgres + Redis)**
+
+   ```bash
+   docker-compose up -d postgres redis
+   ```
+
+2. **Run the backend**
 
    ```bash
    cd backend
    mvn spring-boot:run -Dspring-boot.run.profiles=dev
    ```
 
-   The API is available at `http://localhost:8080`.
-   Swagger UI: `http://localhost:8080/swagger-ui.html`
-   MailHog UI: `http://localhost:8025`
-
-4. **Run tests**
+3. **Run the frontend**
 
    ```bash
-   cd backend
-   mvn test
+   cd frontend
+   npm install
+   npm run dev
    ```
-
-   Integration tests use Testcontainers and require **Docker Desktop** running.
 
 ## Security invariants
 
@@ -104,27 +124,9 @@ cp .env.example .env.prod            # then fill in real secrets
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 ```
 
-- The app image is a **multi-stage build** (`backend/Dockerfile`): compile in
-  `maven:3.9-eclipse-temurin-17`, run on `eclipse-temurin:17-jre` as a **non-root** user.
-- `postgres` and `redis` use named volumes; the app `depends_on` each container's
-  healthcheck before starting.
-- The stack **fails fast** if required secrets are missing
-  (`${VAR:?}` interpolation): `POSTGRES_PASSWORD`, `REDIS_PASSWORD`,
-  `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`.
-- The container healthcheck curls `/actuator/health` (readiness group, `${APP_PORT}`).
-
-## Implementation status
-
-- [x] **Phase 1 — Foundation** (project scaffolding, Docker, Postgres/Redis, Flyway)
-- [x] **Phase 2 — Authentication + JWT**
-- [x] **Phase 3 — Vehicle management**
-- [x] **Phase 4 — Secure QR generation**
-- [x] **Phase 5 — Public QR contact page**
-- [x] **Phase 6 — WhatsApp + SMS channels**
-- [x] **Phase 7 — Conversations & owner dashboard**
-- [x] **Phase 8 — Admin + reports**
-- [x] **Phase 9 — Security hardening + tests**
-- [x] **Phase 10 — Production Docker build + compose**
+- The app container runs a **multi-stage build** (`backend/Dockerfile`).
+- The frontend container runs a **multi-stage build** (`frontend/Dockerfile`) serving static assets via Nginx.
+- All containers depend on healthchecks before starting.
 
 ## License
 
