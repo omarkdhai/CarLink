@@ -4,7 +4,6 @@ import com.carlink.common.config.CarLinkProperties;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

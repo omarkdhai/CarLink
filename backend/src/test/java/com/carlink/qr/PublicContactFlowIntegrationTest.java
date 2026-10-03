@@ -5,7 +5,6 @@ import com.carlink.conversation.model.Conversation;
 import com.carlink.conversation.model.Message;
 import com.carlink.conversation.repository.ConversationRepository;
 import com.carlink.conversation.repository.MessageRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

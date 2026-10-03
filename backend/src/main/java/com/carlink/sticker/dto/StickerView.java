@@ -1,7 +1,6 @@
 package com.carlink.sticker.dto;
 
 import com.carlink.sticker.model.Sticker;
-import com.carlink.sticker.model.StickerStatus;
 import com.carlink.vehicle.dto.VehicleResponse;
 
 import java.time.Instant;
