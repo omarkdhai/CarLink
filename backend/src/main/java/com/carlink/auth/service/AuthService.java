@@ -13,7 +13,6 @@ import com.carlink.auth.repository.PasswordResetTokenRepository;
 import com.carlink.auth.repository.RefreshTokenRepository;
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.exception.BadRequestException;
-import com.carlink.common.exception.NotFoundException;
 import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.notification.email.EmailSender;
