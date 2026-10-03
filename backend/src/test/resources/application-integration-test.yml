@@ -43,7 +43,7 @@ carlink:
     provider: mock
 
   security:
-    cors-allowed-origins: http://localhost:4200
+    cors-allowed-origins: http://localhost:5173
 
 logging:
   level:

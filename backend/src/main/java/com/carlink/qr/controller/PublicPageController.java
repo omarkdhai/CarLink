@@ -2,6 +2,7 @@ package com.carlink.qr.controller;
 
 import com.carlink.common.exception.NotFoundException;
 import com.carlink.qr.dto.QrPublicView;
+import com.carlink.qr.model.ContactReason;
 import com.carlink.qr.service.PublicQrService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +39,9 @@ public class PublicPageController {
                 return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
             }
             String vehicleLabel = vehicleLabel(view.vehicle());
-            String page = PAGE_TEMPLATE.replace("@VEHICLE@", escaped(vehicleLabel));
+            String page = PAGE_TEMPLATE
+                    .replace("@VEHICLE@", escaped(vehicleLabel))
+                    .replace("@REASONS@", reasonChips());
             return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
         } catch (NotFoundException e) {
             return ResponseEntity.status(404).body(NOT_FOUND_PAGE);
@@ -63,6 +66,22 @@ public class PublicPageController {
         return a + separator + b;
     }
 
+    /**
+     * Renders one chip per {@link ContactReason}, so this fallback page can never
+     * drift from the enum the API validates against.
+     */
+    private String reasonChips() {
+        StringBuilder sb = new StringBuilder();
+        for (ContactReason reason : ContactReason.values()) {
+            sb.append("<button type=\"button\" class=\"chip\" data-reason=\"")
+                    .append(reason.name())
+                    .append("\">")
+                    .append(escaped(reason.label()))
+                    .append("</button>");
+        }
+        return sb.toString();
+    }
+
     /** Minimal HTML escaping so a nickname cannot inject markup into the page. */
     private String escaped(String value) {
         if (value == null) {
@@ -84,16 +103,21 @@ public class PublicPageController {
                   width:100%;box-shadow:0 10px 30px rgba(2,6,23,.08);text-align:center}
             h1{font-size:20px;margin:0 0 8px}
             .vehicle{color:#475569;font-size:15px;margin:0 0 24px}
-            textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:12px;
-                     padding:14px;font-size:15px;resize:vertical;min-height:96px;margin-bottom:12px}
-            textarea:focus{outline:2px solid #2563eb;border-color:transparent}
-            .channels{display:flex;gap:10px;margin-bottom:16px}
-            button{flex:1;border:none;border-radius:12px;padding:14px 0;font-size:15px;
-                   font-weight:600;cursor:pointer;color:#fff;transition:filter .15s}
-            button:active{filter:brightness(.92)}
-            .whatsapp{background:#25D366}.sms{background:#2563eb}
-            .send{width:100%;background:#0f172a}
-            .sel{border:3px solid gold !important;box-shadow:0 0 0 2px gold}
+textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:12px;
+                      padding:14px;font-size:15px;resize:vertical;min-height:96px;margin-bottom:16px}
+             textarea:focus{outline:2px solid #2563eb;border-color:transparent}
+             .reasons{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+             .chip{background:#e2e8f0;color:#0f172a;border:2px solid transparent;
+                   border-radius:999px;padding:9px 14px;font-size:14px;font-weight:500;cursor:pointer}
+             .chip.sel{background:#dbeafe;border-color:#2563eb}
+             .channels{display:flex;gap:10px;margin-bottom:16px}
+             button{flex:1;border:none;border-radius:12px;padding:14px 0;font-size:15px;
+                    font-weight:600;cursor:pointer;color:#fff;transition:filter .15s}
+             button:active{filter:brightness(.92)}
+             .whatsapp{background:#25D366}.sms{background:#2563eb}
+             .send{width:100%;background:#0f172a}
+             .hint{font-size:13px;color:#64748b;margin:0 0 8px}
+             .sel{border:3px solid gold !important;box-shadow:0 0 0 2px gold}
             .status{margin-top:14px;font-size:14px;min-height:20px}
             .ok{color:#16a34a}.err{color:#dc2626}.dim{color:#64748b}
             a{color:#2563eb;text-decoration:none}
@@ -137,8 +161,10 @@ public class PublicPageController {
               <h1>Contact this owner</h1>
               <p class="vehicle">@VEHICLE@</p>
               <form id="f" autocomplete="off">
-                <textarea id="msg" maxlength="500" required
-                  placeholder="Leave a short message (max 500 characters)..."></textarea>
+                <p class="hint" id="reason-hint">Why are you contacting the owner?</p>
+                <div class="reasons" id="reasons" role="group" aria-labelledby="reason-hint">@REASONS@</div>
+                <textarea id="msg" maxlength="500"
+                  placeholder="Add a note (optional, max 500 characters)..."></textarea>
                 <div class="channels">
                   <button type="button" id="wa" class="whatsapp">WhatsApp</button>
                   <button type="button" id="sms" class="sms">SMS</button>
@@ -156,16 +182,26 @@ public class PublicPageController {
             document.getElementById("wa").onclick=()=>setCh("WHATSAPP");
             document.getElementById("sms").onclick=()=>setCh("SMS");
             setCh(channel);
+            // reason is required by the API; message stays optional so the owner
+            // can be told what happened even when the visitor writes nothing.
+            let reason="";
+            const chips=[...document.querySelectorAll("#reasons .chip")];
+            const setReason=r=>{reason=(reason===r?"":r);
+              chips.forEach(b=>b.classList.toggle("sel",b.dataset.reason===reason));
+              document.getElementById("reason-hint").style.color=""};
+            chips.forEach(b=>b.onclick=()=>setReason(b.dataset.reason));
             document.getElementById("f").onsubmit=async e=>{
               e.preventDefault();
               const st=document.getElementById("st");
+              if(!reason){
+                st.className="status err";st.textContent="Please choose a reason.";
+                document.getElementById("reason-hint").style.color="#dc2626";return;}
               const msg=document.getElementById("msg").value.trim();
-              if(!msg){st.className="status err";st.textContent="Please write a message.";return;}
               st.className="status dim";st.textContent="Sending…";
               try{
                 const r=await fetch("/api/v1/public/qr/"+encodeURIComponent(token)+"/contact",{
                   method:"POST",headers:{"Content-Type":"application/json"},
-                  body:JSON.stringify({channel,message:msg})});
+                  body:JSON.stringify({channel,reason,message:msg||null})});
                 if(r.status===429){const wait=r.headers.get("Retry-After")||"60";
                   st.className="status err";
                   st.textContent="Too many requests. Please wait "+wait+" seconds.";return;}

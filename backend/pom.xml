@@ -65,6 +65,14 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Prometheus registry. Without it actuator has no /prometheus endpoint,
+             so management.endpoints.web.exposure.include=prometheus names a path
+             that 404s. Version is managed by the Spring Boot parent. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- PostgreSQL driver -->
         <dependency>
             <groupId>org.postgresql</groupId>

@@ -42,6 +42,20 @@ carlink:
   jwt:
     secret: ${JWT_SECRET:}
     refresh-secret: ${JWT_REFRESH_SECRET:}
+  security:
+    # Enable only once TLS is actually terminated in front of the app.
+    # Browsers ignore HSTS over plain HTTP, and includeSubDomains cannot be
+    # withdrawn once a browser has cached it.
+    hsts-enabled: ${HSTS_ENABLED:false}
+
+# Do not publish the API surface in production. /v3/api-docs and /swagger-ui
+# are permitAll, so leaving them on hands anonymous visitors every endpoint,
+# DTO shape and validation constraint.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 logging:
   level:
