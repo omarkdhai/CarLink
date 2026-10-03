@@ -6,6 +6,7 @@ import com.carlink.common.dto.ApiError;
 import com.carlink.security.filter.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -49,6 +50,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    /**
+     * HSTS is opt-in. Browsers ignore the header over plain HTTP, so sending it
+     * before TLS is in place is noise, and {@code includeSubDomains} is a
+     * commitment that cannot be withdrawn once a browser has seen it. Enabled in
+     * the prod profile only.
+     */
+    @Value("${carlink.security.hsts-enabled:false}")
+    private boolean hstsEnabled;
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
     private final CarLinkProperties properties;
@@ -81,32 +91,41 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider(passwordEncoder()))
                 // Security headers (Phase 9)
-                .headers(headers -> headers
-                        // HSTS: force HTTPS for 1 year
-                        .httpStrictTransportSecurity(hsts -> hsts
+                .headers(headers -> {
+                    headers
+                            // CSP: restrictive default, allow self + swagger
+                            .contentSecurityPolicy(csp -> csp
+                                    .policyDirectives("default-src 'self'; "
+                                            + "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                                            + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                                            + "font-src 'self' https://fonts.gstatic.com; "
+                                            + "img-src 'self' data:; "
+                                            + "connect-src 'self';")
+                            )
+                            // X-Frame-Options: deny framing
+                            .frameOptions(frame -> frame.deny())
+                            // Referrer-Policy: strict-origin-when-cross-origin
+                            .referrerPolicy(referrer -> referrer
+                                    .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                            );
+                    // Cache-Control is likewise left at the Spring default, which
+                    // writes "no-cache, no-store, max-age=0, must-revalidate".
+                    // Calling cacheControl.disable() here did not switch caching
+                    // off — it removed the writer, so the header was absent
+                    // entirely and any shared cache was free to store the
+                    // response.
+                    if (hstsEnabled) {
+                        // Only meaningful once TLS is terminated in front of the
+                        // app. Sending it over plain HTTP is ignored by browsers,
+                        // and includeSubDomains cannot be withdrawn later.
+                        headers.httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31536000)
-                        )
-                        // CSP: restrictive default, allow self + swagger
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; "
-                                        + "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-                                        + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                                        + "font-src 'self' https://fonts.gstatic.com; "
-                                        + "img-src 'self' data:; "
-                                        + "connect-src 'self';")
-                        )
-                        // X-Frame-Options: deny framing
-                        .frameOptions(frame -> frame.deny())
-                        // X-Content-Type-Options: prevent MIME sniffing
-                        .contentTypeOptions(content -> content.disable())
-                        // Referrer-Policy: strict-origin-when-cross-origin
-                        .referrerPolicy(referrer -> referrer
-                                .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-                        )
-                        // Disable cache for sensitive endpoints (admin, user data)
-                        .cacheControl(cache -> cache.disable())
-                )
+                        );
+                    } else {
+                        headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+                    }
+                })
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Public, unauthenticated
