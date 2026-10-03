@@ -52,7 +52,7 @@ class ConversationControllerTest {
                 id, VEHICLE_ID, "My Car", "WHATSAPP", "SENT",
                 true, Instant.now(), Instant.now(),
                 List.of(new ConversationMessageResponse(
-                        UUID.randomUUID(), "Hello!", Instant.now())));
+                        UUID.randomUUID(), "Hello!", "BLOCKING", Instant.now())));
     }
 
     // ---------- list ----------

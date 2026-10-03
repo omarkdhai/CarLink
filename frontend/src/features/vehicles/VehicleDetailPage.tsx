@@ -52,6 +52,8 @@ export default function VehicleDetailPage() {
     },
   })
 
+  const color = useCarColor(vehicle.data?.color ?? null)
+
   if (vehicle.isPending) {
     return (
       <div className="max-w-3xl mx-auto">
@@ -69,7 +71,6 @@ export default function VehicleDetailPage() {
   }
 
   const v = vehicle.data!
-  const color = useCarColor(v.color)
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -111,9 +112,9 @@ export default function VehicleDetailPage() {
               <Pencil className="h-4 w-4" aria-hidden />
               {t('vehicle.edit')}
             </Link>
-            <Link to={`/vehicles/${v.id}/qr`} className={buttonClasses({ size: 'sm' })}>
+            <Link to="/stickers" className={buttonClasses({ size: 'sm' })}>
               <QrCode className="h-4 w-4" aria-hidden />
-              {t('vehicle.qr')}
+              {t('stickers.title')}
             </Link>
           </div>
         </div>

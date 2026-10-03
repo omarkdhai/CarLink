@@ -11,9 +11,10 @@ import { useCarColor } from '@/hooks/useCarColor'
 import { publicQrApi, publicQrQueryKeys } from '@/services/publicQrApi'
 import { toApiError } from '@/services/errors'
 import { http } from '@/services/apiClient'
+import StickerActivation from '@/features/stickers/StickerActivation'
 import type { ContactChannel, ReportReason } from '@/types'
 
-const REASONS = ['BLOCKING', 'LIGHTS', 'OPEN_WINDOW', 'PARKING', 'OTHER'] as const
+const REASONS = ['BLOCKING', 'LIGHTS', 'LEFT_OPEN', 'HIT_CAR', 'WINDOWS_OPEN', 'EV_CHARGE'] as const
 type ReasonKey = (typeof REASONS)[number]
 
 const REPORT_REASONS: ReportReason[] = ['SPAM', 'ABUSE', 'OTHER']
@@ -48,7 +49,12 @@ export default function PublicContactPage() {
   const [reportDone, setReportDone] = useState(false)
 
   const contactMutation = useMutation({
-    mutationFn: () => publicQrApi.submit(token, { channel, message: message.trim() }),
+    mutationFn: () =>
+      publicQrApi.submit(token, {
+        channel,
+        message: message.trim(),
+        reason: selectedReason!,
+      }),
     onSuccess: (data) => setDone({ conversationId: data.conversationId, method: channel }),
     onError: (err) => setFieldError(http.humanizeError(err)),
   })
@@ -69,13 +75,12 @@ export default function PublicContactPage() {
 
   function pickReason(reason: ReasonKey) {
     setSelectedReason((prev) => (prev === reason ? null : reason))
-    setMessage(t(`contact.reasons.${reason}`))
   }
 
   function handleSubmit() {
     setFieldError(null)
-    if (!message.trim()) {
-      setFieldError(t('contact.messageRequired'))
+    if (!selectedReason) {
+      setFieldError(t('contact.reasonRequired'))
       return
     }
     contactMutation.mutate()
@@ -123,6 +128,11 @@ export default function PublicContactPage() {
         </Card>
       </Shell>
     )
+  }
+
+  // ---- Virgin / deactivated sticker → activation instead of a contact form ----
+  if (view.data && view.data.state !== 'BOUND') {
+    return <StickerActivation token={token} />
   }
 
   // ---- Success ----
@@ -208,21 +218,15 @@ export default function PublicContactPage() {
 
         <div className="mt-4">
           <label className="block text-sm font-bold text-heading mb-2" htmlFor="pub-msg">
-            {t('contact.message')}
+            {t('contact.note')}
           </label>
           <Textarea
             id="pub-msg"
             value={message}
-            onChange={(e) => {
-              setMessage(e.target.value)
-              if (selectedReason && e.target.value !== t(`contact.reasons.${selectedReason}`)) {
-                setSelectedReason(null)
-              }
-            }}
-            placeholder={t('contact.messagePlaceholder')}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder={t('contact.notePlaceholder')}
             maxLength={500}
             rows={3}
-            aria-invalid={Boolean(fieldError)}
           />
         </div>
 
@@ -421,7 +425,7 @@ function ReportPanel({
   )
 }
 
-function vehicleLabel(vehicle: { nickname: string | null; brand: string | null; model: string | null; color: string | null } | undefined) {
+function vehicleLabel(vehicle: { nickname: string | null; brand: string | null; model: string | null; color: string | null } | null | undefined) {
   if (!vehicle) return ''
   const brandModel = [vehicle.brand, vehicle.model].filter(Boolean).join(' ')
   return [brandModel, vehicle.color].filter(Boolean).join(' · ')

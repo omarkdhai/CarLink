@@ -38,11 +38,11 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`. MailHog UI: `http://localho
 
 ## Conventions
 
-- Backend modules: `auth`, `user`, `vehicle`, `qr`, `contact`, `conversation`, `notification`, `admin`, `security`, `common`.
+- Backend modules: `auth`, `user`, `vehicle`, `qr`, `contact`, `conversation`, `notification`, `admin`, `security`, `common`, `order`, `sticker`.
 - Each module: Controller → Service → Repository, with DTO/Mapper/Entity/Exception layers. **Never expose JPA entities through REST.**
 - Schema is Flyway-only (`ddl-auto: validate`). Migrations in `backend/src/main/resources/db/migration/V*.sql`.
-- Owner phone numbers, QR tokens, passwords, and message content must NEVER be logged, returned by public/unauthenticated APIs, or embedded in URLs/QR/HTML. The one exception is the owner-facing conversation dashboard (`/api/v1/conversations`), which returns message content behind JWT authentication and vehicle ownership checks (404 on mismatch).
-- QR encodes only `/c/{token}`; store `SHA-256(token)`.
+- Owner phone numbers, QR tokens, passwords, and message content must NEVER be logged, returned by public/unauthenticated APIs, or embedded in URLs/QR/HTML. Exceptions: (1) the owner-facing conversation dashboard (`/api/v1/conversations`) returns message content behind JWT auth + ownership checks (404 on mismatch); (2) `POST /api/v1/public/orders` returns raw sticker tokens **exactly once** in the response (never stored/logged/re-sent; same response includes QR `imageDataUri`).
+- QR encodes only `/c/{token}`; sticker QRs encode the same pattern — store `SHA-256(token)`.
 - Configuration binds under `carlink.*` (`com.carlink.common.config.CarLinkProperties`).
 
 ## Implementation phases

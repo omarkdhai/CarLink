@@ -114,7 +114,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
             throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("channel", channel, "message", message))))
+                        .content(json(Map.of("channel", channel, "message", message, "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(result.getResponse().getContentAsString())

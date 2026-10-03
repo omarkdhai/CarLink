@@ -36,6 +36,8 @@ carlink:
     qr-per-hour: 100
     # Shared-IP Testcontainers suite: reports must not trip the per-IP limiter.
     report-ip-per-minute: 1000
+    # Same for guest order minting.
+    order-ip-per-minute: 1000
 
   contact:
     provider: mock

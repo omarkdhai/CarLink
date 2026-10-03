@@ -14,12 +14,14 @@ import java.util.UUID;
 public record ConversationMessageResponse(
         @NotNull UUID id,
         @NotNull String content,
+        @NotNull String reason,
         @NotNull Instant createdAt
 ) {
     public static ConversationMessageResponse from(Message message) {
         return new ConversationMessageResponse(
                 message.getId(),
                 message.getContent(),
+                message.getReason(),
                 message.getCreatedAt()
         );
     }

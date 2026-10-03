@@ -81,9 +81,9 @@ class ConversationServiceTest {
         when(conversationRepository.findAllByVehicle_Owner_IdOrderByCreatedAtDesc(ownerId))
                 .thenReturn(List.of(unread, read));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(unread.getId()))
-                .thenReturn(List.of(Message.of(unread, "Hello, is it available?")));
+                .thenReturn(List.of(Message.of(unread, "Hello, is it available?", "BLOCKING")));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(read.getId()))
-                .thenReturn(List.of(Message.of(read, "Hi, can I call you?")));
+                .thenReturn(List.of(Message.of(read, "Hi, can I call you?", "LIGHTS")));
 
         List<ConversationSummaryResponse> summaries = service.listForOwner(ownerId);
 
@@ -113,7 +113,7 @@ class ConversationServiceTest {
         when(conversationRepository.findAllByVehicle_Owner_IdOrderByCreatedAtDesc(ownerId))
                 .thenReturn(List.of(conv));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(conv.getId()))
-                .thenReturn(List.of(Message.of(conv, longMsg)));
+                .thenReturn(List.of(Message.of(conv, longMsg, "BLOCKING")));
 
         ConversationSummaryResponse summary = service.listForOwner(ownerId).get(0);
 
@@ -130,7 +130,7 @@ class ConversationServiceTest {
         when(conversationRepository.findAllByVehicle_IdOrderByCreatedAtDesc(vehicle.getId()))
                 .thenReturn(List.of(conv));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(conv.getId()))
-                .thenReturn(List.of(Message.of(conv, "hi")));
+                .thenReturn(List.of(Message.of(conv, "hi", "BLOCKING")));
 
         List<ConversationSummaryResponse> list = service.listForVehicle(ownerId, vehicle.getId());
 
@@ -151,8 +151,8 @@ class ConversationServiceTest {
     @Test
     void getForOwnerReturnsFullHistory() {
         Conversation conv = conversation(null, Channel.WHATSAPP);
-        Message m1 = Message.of(conv, "first");
-        Message m2 = Message.of(conv, "second");
+        Message m1 = Message.of(conv, "first", "BLOCKING");
+        Message m2 = Message.of(conv, "second", "LIGHTS");
         when(conversationRepository.findById(conv.getId())).thenReturn(Optional.of(conv));
         when(vehicleService.getOwned(ownerId, vehicle.getId())).thenReturn(vehicle);
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(conv.getId()))

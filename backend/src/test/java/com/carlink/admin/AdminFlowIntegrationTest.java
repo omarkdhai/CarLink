@@ -310,7 +310,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
 
         MvcResult contact = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("channel", "WHATSAPP", "message", "Buy it now!"))))
+                        .content(json(Map.of("channel", "WHATSAPP", "message", "Buy it now!", "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
                 .andReturn();
         String convId = objectMapper.readTree(contact.getResponse().getContentAsString())

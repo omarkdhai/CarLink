@@ -125,8 +125,8 @@ class ReportServiceTest {
     void getReturnsDetailWithLastMessageAndCount() {
         Report r = report();
         when(reportRepository.findById(r.getId())).thenReturn(Optional.of(r));
-        Message first = Message.of(r.getConversation(), "Hello");
-        Message last = Message.of(r.getConversation(), "Buy it please");
+        Message first = Message.of(r.getConversation(), "Hello", "BLOCKING");
+        Message last = Message.of(r.getConversation(), "Buy it please", "LIGHTS");
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(
                 r.getConversation().getId())).thenReturn(List.of(first, last));
 

@@ -5,6 +5,7 @@ import com.carlink.vehicle.model.VehicleStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -19,4 +20,12 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
     long countByOwnerId(UUID ownerId);
 
     long countByStatus(VehicleStatus status);
+
+    /**
+     * Finds the most recent ACTIVE vehicle of {@code ownerId} whose license
+     * plate matches (case-insensitive). Used by sticker activation to reuse an
+     * existing fleet entry instead of minting a duplicate vehicle per sticker.
+     */
+    Optional<Vehicle> findFirstByOwnerIdAndStatusAndLicensePlateIgnoreCaseOrderByCreatedAtDesc(
+            UUID ownerId, VehicleStatus status, String licensePlate);
 }

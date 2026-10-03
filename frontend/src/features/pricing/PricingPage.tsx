@@ -93,7 +93,7 @@ export default function PricingPage() {
                 </ul>
 
                 <Link
-                  to="/register"
+                  to={`/order?plan=${pack.key.toUpperCase()}`}
                   className={buttonClasses({
                     variant: pack.key === 'double' ? 'primary' : 'outline',
                     size: 'lg',

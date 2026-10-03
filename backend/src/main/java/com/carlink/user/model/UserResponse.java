@@ -4,8 +4,11 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Public user payload. Deliberately excludes {@code phone} — the owner's
- * number is private and never returned by any API.
+ * Owner's own profile payload. {@code phone} is serialized ONLY to the
+ * authenticated owner themselves (login / refresh / {@code /users/me}) so
+ * they can verify the number used to route SMS and anonymous-call relay.
+ * It is never exposed to third parties, public/unauthenticated APIs, HTML,
+ * QR codes, URLs or logs. See {@code docs/security.md}.
  */
 public record UserResponse(
         UUID id,
@@ -14,7 +17,8 @@ public record UserResponse(
         String lastName,
         String role,
         boolean emailVerified,
-        Instant createdAt
+        Instant createdAt,
+        String phone
 ) {
 
     public static UserResponse from(User user) {
@@ -25,6 +29,7 @@ public record UserResponse(
                 user.getLastName(),
                 user.getRole().name(),
                 user.isEmailVerified(),
-                user.getCreatedAt());
+                user.getCreatedAt(),
+                user.getPhone());
     }
 }

@@ -17,8 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Owner self-service endpoints. Returns {@link UserResponse} only — the private
- * phone number is never serialized.
+ * Owner self-service endpoints. Returns {@link UserResponse}, which includes
+ * the owner's own private phone (serialized only to the authenticated owner —
+ * never to third parties or public endpoints).
  */
 @RestController
 @RequestMapping("/api/v1/users")
@@ -29,7 +30,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    @Operation(summary = "Current user's profile (no phone number is returned)")
+    @Operation(summary = "Current user's profile (own private phone included)")
     public UserResponse me(@AuthenticationPrincipal UserPrincipal principal) {
         return userService.me(requireId(principal));
     }

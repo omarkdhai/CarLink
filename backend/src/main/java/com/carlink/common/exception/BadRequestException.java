@@ -8,4 +8,9 @@ public class BadRequestException extends ApiException {
     public BadRequestException(String message) {
         super("BAD_REQUEST", 400, message);
     }
+
+    /** Variant with a custom machine-readable code (e.g. for distinct client handling). */
+    public BadRequestException(String code, String message) {
+        super(code, 400, message);
+    }
 }

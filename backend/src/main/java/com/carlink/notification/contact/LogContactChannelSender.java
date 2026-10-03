@@ -26,9 +26,10 @@ public class LogContactChannelSender implements ContactChannelSender {
 
     @Override
     public boolean send(ContactDelivery delivery) {
-        log.info("[CONTACT-DEV] channel={} | owner={} | message={}",
+        log.info("[CONTACT-DEV] channel={} | owner={} | reason={} | message={}",
                 delivery.channel(),
                 tokenGenerator.sha256(delivery.ownerPhone()),
+                delivery.reason(),
                 delivery.message());
         return true;
     }

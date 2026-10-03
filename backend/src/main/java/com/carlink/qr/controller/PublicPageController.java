@@ -32,6 +32,11 @@ public class PublicPageController {
                                        HttpServletRequest request) {
         try {
             QrPublicView view = publicQrService.resolve(token, request.getRemoteAddr());
+            if (view.vehicle() == null) {
+                // UNBOUND or DEACTIVATED — show a neutral "not active" page
+                String page = UNBOUND_PAGE_TEMPLATE;
+                return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
+            }
             String vehicleLabel = vehicleLabel(view.vehicle());
             String page = PAGE_TEMPLATE.replace("@VEHICLE@", escaped(vehicleLabel));
             return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
@@ -104,6 +109,21 @@ public class PublicPageController {
               <h1>This QR link is not active</h1>
               <p>The code may have been deactivated by the owner. If you think
               this is a mistake, please try again later.</p>
+            </main></body></html>
+            """.formatted(CSS);
+
+    /** Neutral page for UNBOUND or DEACTIVATED stickers. */
+    private static final String UNBOUND_PAGE_TEMPLATE = """
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Sticker not yet active</title>
+            <style>%s</style></head>
+            <body><main class="card">
+              <h1>This sticker hasn't been activated yet</h1>
+              <p>Set up your CarLink account, register your vehicle, then scan
+              this QR again to activate it.</p>
+              <p><a href="/">Go to CarLink</a></p>
             </main></body></html>
             """.formatted(CSS);
 

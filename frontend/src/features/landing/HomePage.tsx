@@ -24,7 +24,6 @@ import {
   Star,
   Signal,
   Wifi,
-  PhoneCall,
   ChevronDown,
   HelpCircle,
 } from 'lucide-react'
@@ -67,7 +66,7 @@ export default function HomePage() {
                 {t('landing.heroSubtitle')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mt-8">
-                <Link to="/register" className={buttonClasses({ size: 'lg' })}>
+                <Link to="/order?plan=single" className={buttonClasses({ size: 'lg' })}>
                   {t('landing.heroCta')}
                   <ArrowRight className="h-5 w-5" aria-hidden />
                 </Link>
@@ -199,7 +198,7 @@ export default function HomePage() {
           {/* Bottom CTA */}
           <div className="text-center mt-10">
             <p className="text-muted-fg text-sm mb-4">{t('landing.problemsCtaText')}</p>
-            <Link to="/register" className={buttonClasses({ size: 'lg' })}>
+            <Link to="/order?plan=single" className={buttonClasses({ size: 'lg' })}>
               {t('landing.problemsCta')}
               <ArrowRight className="h-5 w-5" aria-hidden />
             </Link>
@@ -482,7 +481,7 @@ export default function HomePage() {
                 {t('landing.finalSectionSubtitle')}
               </p>
               <Link
-                to="/register"
+                to="/order?plan=business"
                 className={buttonClasses({ variant: 'primary', size: 'lg' }) + ' mt-6 inline-flex items-center gap-2 bg-heading text-white hover:bg-heading/90'}
               >
                 {t('landing.finalSectionCta')}

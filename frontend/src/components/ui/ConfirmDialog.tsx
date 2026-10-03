@@ -50,12 +50,12 @@ export function ConfirmDialog({
       aria-labelledby="confirm-dialog-title"
     >
       <button
-        className="absolute inset-0 bg-heading/40 backdrop-blur-[1px] cursor-default"
+        className="absolute inset-0 bg-heading/40 backdrop-blur-[1px] cursor-default dialog-backdrop-enter"
         onClick={onCancel}
         aria-label="Close"
         tabIndex={-1}
       />
-      <div className="relative w-full sm:max-w-md bg-surface rounded-t-xl sm:rounded-xl shadow-pop border border-border p-6">
+      <div className="relative w-full sm:max-w-md bg-surface rounded-t-xl sm:rounded-xl shadow-pop border border-border p-6 dialog-panel-enter">
         <div className="flex gap-4">
           <div className="h-11 w-11 shrink-0 rounded-full bg-destructive-soft flex items-center justify-center">
             <AlertTriangle className="h-5 w-5 text-destructive" aria-hidden />

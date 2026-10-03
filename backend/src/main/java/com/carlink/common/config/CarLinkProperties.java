@@ -37,7 +37,8 @@ public record CarLinkProperties(
             String captureHosts,
             int maxLoginFailures,
             int loginLockMinutes,
-            int reportIpPerMinute
+            int reportIpPerMinute,
+            int orderIpPerMinute
     ) {}
 
     public record Contact(String provider) {}
