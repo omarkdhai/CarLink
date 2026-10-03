@@ -163,9 +163,12 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // Blank entries are dropped so an unset variable means "no cross-origin
+        // callers" rather than a literal "" origin that matches nothing.
         List<String> allowedOrigins = Arrays.stream(
                         properties.security().corsAllowedOrigins().split(","))
                 .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
                 .toList();
 
         CorsConfiguration config = new CorsConfiguration();

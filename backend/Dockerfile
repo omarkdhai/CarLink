@@ -59,7 +59,8 @@ COPY src ./src
 RUN --mount=type=cache,target=/root/.m2,sharing=locked \
     mvn -B -ntp -s /opt/mvn/settings.xml package -DskipTests \
         -Dmaven.artifact.threads=2 \
-        -Dmaven.wagon.http.retryHandler.count=5
+        -Dmaven.wagon.http.retryHandler.count=5 \
+    && mv "$(ls -1 target/*.jar | head -n 1)" /build/app.jar
 
 # ---- Runtime stage ----
 FROM eclipse-temurin:17-jre
@@ -71,7 +72,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd -r carlink && useradd -r -g carlink carlink
 
-COPY --from=build /build/target/carlink-backend-0.0.1-SNAPSHOT.jar app.jar
+# Not target/carlink-backend-0.0.1-SNAPSHOT.jar: a version bump broke this COPY
+# at build time. The build stage normalises the artifact name instead, so the
+# image does not have to be edited when the project version changes.
+COPY --from=build /build/app.jar app.jar
 
 USER carlink
 EXPOSE 8080

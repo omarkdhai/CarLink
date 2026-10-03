@@ -58,9 +58,22 @@ server:
 
 # Actuator
 management:
+  # Metrics export is off unless asked for. Without this the actuator only ever
+  # builds a SimpleMeterRegistry, so the prometheus endpoint named in the
+  # exposure list below did not exist and 404'd.
+  defaults:
+    metrics:
+      export:
+        enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
   endpoints:
     web:
       exposure:
+        # prometheus and metrics are authenticated (they fall through to
+        # anyRequest().authenticated()), so only health/info are public.
         include: health,info,metrics,prometheus
   endpoint:
     health:
@@ -79,8 +92,11 @@ management:
 carlink:
   # Base URL used to build the public QR links
   base-url: ${APP_BASE_URL:http://localhost:8080}
-  # Public frontend origin (used for building links / CORS)
-  public-url: ${APP_PUBLIC_URL:http://localhost:4200}
+  # Public frontend origin (used for building links / CORS).
+  # 5173 is the Vite dev server. This used to default to :4200, the Angular
+  # dev-server port, which nothing in this project serves -- any profile that
+  # did not override it produced QR links pointing nowhere.
+  public-url: ${APP_PUBLIC_URL:http://localhost:5173}
 
   jwt:
     # Access token (short-lived)
@@ -125,15 +141,25 @@ carlink:
     # Per-IP per-minute submissions (guarded before the SMTP send)
     ip-per-minute: ${RATE_LIMIT_CONTACT_IP_PER_MINUTE:3}
 
-  # Email: mock (logs the message — dev, MailHog substitute) or smtp
+  # Email. The default is the mock sender, which only logs the message. That is
+  # right for dev and dangerous for production: verification and password-reset
+  # mails would be silently dropped. The prod compose file overrides this to
+  # smtp so the mock cannot be reached by accident.
   email:
     provider: ${EMAIL_PROVIDER:mock}
     token-expiry-minutes: ${EMAIL_TOKEN_EXPIRY_MINUTES:60}
 
   # Security
   security:
-    # Allowed CORS origins (the Vite SPA dev server and the packaged app)
-    cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:4200,http://localhost:8080}
+    # Allowed CORS origins (the Vite SPA dev server and the packaged app).
+    # Blank entries are ignored, so an unset value in production means "no
+    # cross-origin callers", which is correct when nginx serves both the SPA
+    # and the API from one origin.
+    cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:8080}
+    # Send HSTS. Left off by default: it is meaningless over plain HTTP and
+    # includeSubDomains cannot be withdrawn once a browser has cached it.
+    # Enable once TLS is terminated in front of the app.
+    hsts-enabled: ${HSTS_ENABLED:false}
 
   # Initial ADMIN bootstrap (disabled by default; dev profile sets credentials)
   admin:

@@ -1,0 +1,31 @@
+# Build context for backend/Dockerfile. Docker looks for .dockerignore next to
+# the build context, not at the repo root, so this file -- rather than any
+# root-level one -- is the one that actually applies.
+#
+# target/ is produced inside the image by Maven. Copying a host-built target/
+# in would shadow it and can bake in host-specific artifacts or stale classes.
+
+target/
+.mvn/
+mvnw
+mvnw.cmd
+.mvn/wrapper/maven-wrapper.properties
+
+# Never send local config or secrets into the build context.
+.env
+.env.*
+*.local
+application-local.yml
+application-local.yaml
+
+# Editor / OS noise
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Docs and tooling that the image build does not need
+*.md
+docs/
+.github/
