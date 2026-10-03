@@ -1,0 +1,17 @@
+# Build outputs & dependencies
+node_modules/
+dist/
+*.log
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Git & CI
+.git/
+.github/
+
+# Environment files
+.env
+.env.*
