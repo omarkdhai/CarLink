@@ -119,6 +119,9 @@ If you prefer to run services individually during development:
 
 ## Production deployment (Docker)
 
+**Read [docs/deployment.md](docs/deployment.md) first** — it covers secrets, TLS
+termination, migrations, verification, backup/restore, rollback and monitoring.
+
 ```bash
 cp .env.example .env.prod            # then fill in real secrets
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
@@ -126,7 +129,18 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 - The app container runs a **multi-stage build** (`backend/Dockerfile`).
 - The frontend container runs a **multi-stage build** (`frontend/Dockerfile`) serving static assets via Nginx.
-- All containers depend on healthchecks before starting.
+- All containers depend on healthchecks before starting. The backend's readiness
+  probe covers Postgres and Redis, so it only reports ready when it can
+  actually serve traffic.
+- Only the frontend port is published. The backend is bound to `127.0.0.1` and is
+  reached over the internal network, so the API and `/actuator` are not exposed
+  directly to the internet.
+- Container logs are capped at 10 MB × 5 files so they rotate instead of filling
+  the disk.
+- Flyway applies migrations on startup; Hibernate only validates. See
+  [§5 of the runbook](docs/deployment.md#5-database-migrations) before shipping
+  a release containing a new `V*.sql`.
+- Swagger is disabled in the `prod` profile.
 
 ## License
 
