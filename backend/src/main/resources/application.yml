@@ -82,6 +82,19 @@ management:
       # SMTP (MailHog) may be absent in dev without affecting app health.
       probes:
         enabled: true
+      group:
+        # With probes enabled, Spring's readiness group contains only
+        # readinessState by default, so it reports UP even when Postgres or
+        # Redis is unreachable -- the app cannot serve a scan or rate-limit
+        # anything in that state. Naming db and redis makes readiness mean
+        # "can actually do work", which is what an orchestrator should route on.
+        # Liveness is deliberately left to Spring's default: it reports DOWN
+        # only if the JVM itself is broken, and must not flap when a
+        # dependency fails or a restart loop becomes the outage.
+        readiness:
+          include: readinessState,db,redis
+        liveness:
+          include: livenessState
   health:
     mail:
       enabled: false

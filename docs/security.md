@@ -28,7 +28,7 @@ The account's own phone number IS returned to the authenticated owner in
 which only echoes back the number the caller just submitted). This is how the
 owner verifies the SMS / anonymous-call relay number in their profile. It is a
 **narrow** exception: the phone is never in any third-party view, public scan
-response, HTML, QR, URL, RedIS/DB export, or log. Admin DTOs (`AdminUserResponse`)
+response, HTML, QR, URL, Redis/DB export, or log. Admin DTOs (`AdminUserResponse`)
 still omit it.
 
 ## Logging rules
@@ -64,14 +64,23 @@ with a `Retry-After` header.
 
 The guest order endpoint (`POST /api/v1/public/orders`) returns the raw sticker token(s) in its response (`StickerIssuedResponse.rawToken`) **exactly once**. This is a deliberate exception to "raw tokens are never persisted or returned" — the raw value exists only in this HTTP response and is never stored, logged, or re-sent. The same response includes the QR `imageDataUri` so the buyer can save/download their codes immediately. After this, only the SHA-256 hash exists in the `stickers` table and the only way to resolve the sticker is through the authenticated activation flow.
 
-## Admin-only data access
+## Message content exceptions
 
-The following endpoints return message content only to authenticated users with `ROLE_ADMIN`:
+Message content is returned in exactly three places, all authenticated:
 
-- `GET /api/v1/admin/reports/{id}` — returns `conversation.lastMessageContent` for moderation judgment.
-- `GET /api/v1/conversations/{id}` — returns full message history for the owning owner.
+- `GET /api/v1/admin/reports/{id}` — `conversation.lastMessageContent` for a
+  `ROLE_ADMIN` moderator.
+- `GET /api/v1/conversations/{id}` — full history for the **owning owner** (not
+  an admin capability; ownership is enforced, mismatches 404).
+- `GET /api/v1/conversations` — the owner's dashboard list, which includes an
+  80-character `lastMessagePreview` snippet.
 
-Both are the only exceptions to "message content never returned by public/unauthenticated APIs". Regular visitors and unauthenticated callers receive only metadata (conversation ID, channel, timestamp, unread flag, truncated preview).
+`lastMessagePreview` exists **only** in `ConversationSummaryResponse`, which is
+served exclusively by the owner-facing authenticated endpoint. It is not part of
+any public scan, contact-submission, or order response.
+
+Everywhere else, unauthenticated callers receive identifiers, channel, status
+and timestamps — never message text.
 
 ## Audit trail
 

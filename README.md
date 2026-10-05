@@ -14,12 +14,20 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 - They pick a contact reason, choose **WhatsApp** or **SMS**, optionally write a message,
   and send — all without ever seeing the owner's phone number.
 
+> **Implementation status.** The scan flow, the owner's anonymous-call relay, and
+> the ordering/sticker flow are implemented and tested. The WhatsApp/SMS transport
+> is **not**: `notification/contact` currently has only a logging implementation
+> (`LogContactChannelSender`), so a submitted message is recorded, not delivered to
+> a real phone. A Twilio or WhatsApp Business adapter is the main outstanding
+> production gap — see `docs/deployment.md` §13. Numbers below describe the
+> configuration in this repo, which is the source of truth.
+
 ## Tech Stack
 
 | Layer      | Technology                                                |
 |------------|-----------------------------------------------------------|
 | Backend    | Java 17, Spring Boot 3.2, Spring Security, Spring Data JPA |
-| Database   | PostgreSQL 16 + Flyway migrations                          |
+| Database   | PostgreSQL 15 + Flyway migrations                          |
 | Cache/Rate-limit | Redis 7                                             |
 | QR         | ZXing                                                     |
 | Auth       | JWT (access + refresh tokens)                             |
@@ -39,20 +47,24 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 │       ├── auth/          # registration, login, JWT, password reset
 │       ├── user/          # profile management
 │       ├── vehicle/       # vehicle CRUD
-│       ├── qr/            # secure QR generation
-│       ├── contact/       # contact channel abstraction (WhatsApp/SMS)
+│       ├── qr/            # secure QR generation + public /c/{token} page
+│       ├── contact/       # public "contact us" form (business mailbox)
 │       ├── conversation/  # conversations & messages
-│       ├── notification/  # provider integrations
+│       ├── order/         # guest sticker orders
+│       ├── sticker/       # sticker issuance + owner activation
+│       ├── notification/  # delivery abstractions (email, contact channel);
+│       │                  #   logging implementations only — no Twilio/WhatsApp yet
 │       ├── admin/         # admin dashboard
 │       ├── security/      # JWT filters, rate limiting, anti-spam
 │       └── common/        # shared DTOs, exceptions, config
 ├── frontend/              # React 19 + Vite web application
 │   ├── Dockerfile         # multi-stage build (Node.js -> Nginx)
 │   └── nginx.conf         # Nginx SPA router + API proxy configuration
+├── docs/                  # architecture.md, security.md, deployment.md, progress.md
 ├── docker-compose.yml     # Full stack (Frontend + Backend + Postgres + Redis + MailHog)
 ├── docker-compose.prod.yml # Production stack (Frontend + Backend + Postgres + Redis)
 ├── .env.example           # env template (never commit real values)
-└── .github/workflows/     # CI/CD
+└── .github/workflows/     # CI (backend tests + image build; frontend not covered)
 ```
 
 ## Quick Start (Run Whole Project with Docker)
@@ -109,8 +121,12 @@ If you prefer to run services individually during development:
 
 ## Security invariants
 
-- The owner's phone number is **never** exposed via API, frontend, QR code,
-  URLs, redirects or logs.
+- The owner's phone number is **never** exposed in any QR code, URL, redirect,
+  public/unauthenticated response, third-party DTO, or log.
+  - *Documented exceptions:* the authenticated owner receives their own number in
+    their profile response (so they can verify the relay number), and
+    `ROLE_ADMIN` can read the last message on a report for moderation. See
+    [`docs/security.md`](docs/security.md).
 - QR codes encode only a random public token `/c/{token}`; only its SHA-256
   hash is stored.
 - Rate limiting per IP and per QR token (Redis-backed).
@@ -119,6 +135,9 @@ If you prefer to run services individually during development:
 
 ## Production deployment (Docker)
 
+**Read [docs/deployment.md](docs/deployment.md) first** — it covers secrets, TLS
+termination, migrations, verification, backup/restore, rollback and monitoring.
+
 ```bash
 cp .env.example .env.prod            # then fill in real secrets
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
@@ -126,7 +145,18 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 - The app container runs a **multi-stage build** (`backend/Dockerfile`).
 - The frontend container runs a **multi-stage build** (`frontend/Dockerfile`) serving static assets via Nginx.
-- All containers depend on healthchecks before starting.
+- All containers depend on healthchecks before starting. The backend's readiness
+  probe covers Postgres and Redis, so it only reports ready when it can
+  actually serve traffic.
+- Only the frontend port is published. The backend is bound to `127.0.0.1` and is
+  reached over the internal network, so the API and `/actuator` are not exposed
+  directly to the internet.
+- Container logs are capped at 10 MB × 5 files so they rotate instead of filling
+  the disk.
+- Flyway applies migrations on startup; Hibernate only validates. See
+  [§5 of the runbook](docs/deployment.md#5-database-migrations) before shipping
+  a release containing a new `V*.sql`.
+- Swagger is disabled in the `prod` profile.
 
 ## License
 

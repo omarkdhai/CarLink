@@ -7,10 +7,19 @@
 # APP_BASE_URL, APP_PUBLIC_URL.
 # ============================================
 
+# Docker's default json-file driver has no size cap, so a chatty container fills
+# the disk until the host dies. Applied to every service below.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-carlink}
       POSTGRES_USER: ${POSTGRES_USER:-carlink}
@@ -28,6 +37,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    logging: *default-logging
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     volumes:
       - redis_data:/data
@@ -44,8 +54,17 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
+    logging: *default-logging
+    # Bound to loopback on purpose. nginx reaches the backend over the internal
+    # network by service name, so publishing the port to 0.0.0.0 would only add
+    # a second, unfiltered way in -- straight to the API and /actuator,
+    # bypassing every nginx location block. To reach the API from another host,
+    # exec into the container instead of re-exposing the port.
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
+      - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+    # Let in-flight requests finish before SIGKILL, so a redeploy does not
+    # sever a scan mid-submission.
+    stop_grace_period: 30s
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-carlink}
@@ -95,6 +114,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "${FRONTEND_PORT:-80}:80"
     depends_on:

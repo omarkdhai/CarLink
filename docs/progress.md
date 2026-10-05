@@ -2,6 +2,19 @@
 
 Status legend: ✅ done & verified · ⏳ in progress · ⬜ pending
 
+> **Current state.** Phases 1–10 are the original build-out and are kept
+> verbatim, including the test counts that were true at the time. Work done
+> afterwards is recorded under [Stabilization work](#stabilization-work-after-phase-10).
+>
+> | | |
+> |---|---|
+> | Backend tests | **212 passing** (was 119 at Phase 10) |
+> | Frontend tests | 21 passing — **not** covered by CI |
+> | Migrations | `V1`–`V6` |
+> | Docs | [`architecture.md`](architecture.md) · [`security.md`](security.md) · [`deployment.md`](deployment.md) |
+>
+> Run the suite: `TESTCONTAINERS_RYUK_DISABLED=true mvn verify` from `backend/`.
+
 ## Phase 1 — Foundation ✅
 
 **Goal:** project scaffolding, Docker infra (Postgres/Redis/MailHog), Flyway, baseline configuration.
@@ -353,4 +366,102 @@ Integration test classes share one Postgres container, so email registration mus
 - Image build not run here — Docker Hub is unreachable in this dev environment; the build stage uses public images on a normal CI host.
 - Full suite (119 tests) unaffected — no Java changes in this phase.
 
-## Phase 11 — CI/CD pipeline ⬜
+## Phase 11 — CI/CD pipeline ⏳ (CI only)
+
+**Status:** effectively delivered inside Phase 10, which created
+`.github/workflows/ci.yml`. There is no deployment automation — this is CI, not
+CD. Documented here because Phase 10 left it as an open box.
+
+### What actually runs
+
+| Job | Does |
+|-----|------|
+| `test` | `mvn -B -ntp verify` on `ubuntu-latest`, Java 17 (Temurin) with the Maven cache. Testcontainers provides real Postgres + Redis; surefire reports upload as an artifact (14-day retention). |
+| `docker-build` | `needs: test`. Buildx builds `backend/Dockerfile`, `push: false`, tagged `carlink:ci-${{ github.sha }}`, with GitHub Actions layer caching (`mode=max`). |
+
+### Triggers and gaps
+
+- Runs on PRs and on pushes to `master`. A branch push alone does **not** trigger
+  it — a PR must be open.
+- **The frontend is not built, linted, or tested in CI.** All 21 frontend tests
+  and the lint pass are local-only. This is the most significant gap here.
+- The image is built but never pushed, so there is no registry artifact and
+  nothing for a deploy stage to consume.
+- No dependency scanning, no SAST, no CodeQL, no coverage gate.
+- Buildx warns that no output is specified; harmless for a build-only job, but
+  it will need addressing when `push: true` is introduced.
+
+### Docker build reliability fix
+
+Commit: `9f608da`, replacing the ineffective retry loop added in `9546c1d`.
+
+The `docker-build` job failed on GitHub runners with a non-resolvable parent POM
+(`spring-boot-starter-parent:3.2.5`) that demonstrably exists on Maven Central.
+Cause: Maven caches failed resolutions as `*.lastUpdated` markers inside the
+build layer, and `dependency:go-offline` does not retry around them — so the
+original retry loop replayed the same cached failure. Fixed by adding `-U`,
+deleting the markers before each attempt, retrying five times with backoff,
+pinning `-Dmaven.repo.local`, and dropping `set -e` so the final sleep could not
+abort the build. Confirmed green on CI.
+
+## Stabilization work (after Phase 10)
+
+A follow-up audit of the delivered system against its own docs found several
+claims that did not match the code. These phases fixed the code and then the
+docs. Full deployment procedure is now in [`deployment.md`](deployment.md).
+
+### Phase A — Compose and container bring-up
+
+Commits: `496f164` (frontend image), `9546c1d` (backend image), `fb7e5b3` (wiring).
+
+- The dev and prod compose files did not actually run the application. `fb7e5b3`
+  added container names, a network, healthchecks, and healthcheck-gated
+  `depends_on` so the backend starts after Postgres and Redis are genuinely
+  accepting connections.
+- Added `frontend/Dockerfile` and `nginx.conf` so the SPA is served by a real
+  image rather than only via `npm run dev`.
+- The backend image runs as a dedicated non-root user (uid 999) with a writable
+  `/tmp`; the earlier layer failed to start as an arbitrary uid.
+- Verified the app boots, Flyway migrates, and `/actuator/health` reports UP.
+
+### Phase B — Configuration and security correctness
+
+Commits: `15c6e8c`, `4b39c68`, `8c42630`.
+
+- **Real bug:** `GET /c/{token}` returned HTTP 500 because the controller
+  required a `reason` it never supplied. Fixed, with
+  `PublicPageControllerTest` added as a drift guard.
+- **Security regression:** `SecurityConfig` had disabled `X-Content-Type-Options`
+  and `Cache-Control`. `nosniff` was restored; `Cache-Control` is now applied
+  selectively to sensitive endpoints. A 500 on `/c/{token}` was the symptom that
+  surfaced it.
+- HSTS is now gated on `carlink.security.hsts-enabled` (on in `prod`) instead of
+  being applied unconditionally in every environment.
+- `ForwardedHeaderFilter` is `@Profile("prod")` — honouring `X-Forwarded-*` in
+  dev let any client forge its own IP and evade the Redis rate limiter.
+- nginx overwrites `X-Forwarded-For` rather than appending, so a client-supplied
+  value cannot ride along.
+- Springdoc is disabled in `prod`; `/v3/api-docs` and `/swagger-ui/**` are
+  `permitAll`, so this needed a behavioural test to confirm. See
+  `SwaggerDisabledTest` and its `SwaggerEnabledTest` control.
+- Stale Angular `:4200` defaults (a leftover from before the React rewrite)
+  replaced with the Vite dev port; CORS origins and mail variables are now bound
+  to `carlink.*` properties instead of being hardcoded.
+- Added the Prometheus registry and explicit `management.endpoints.web.exposure`
+  rather than the `*` wildcard.
+
+### Phase C — Production operations
+
+Commit: `dabcb72`.
+
+- **Readiness was reporting UP with the database and Redis both down.** Spring's
+  readiness group contains only `readinessState` by default. It now names `db`
+  and `redis`. Liveness deliberately still excludes dependencies, so a database
+  blip does not trigger a restart loop; a test asserts that.
+- The backend port is now bound to `127.0.0.1` in `docker-compose.prod.yml`.
+  nginx reaches it internally by service name, so publishing it to `0.0.0.0` was
+  a second, unfiltered path to the API and `/actuator`.
+- Added `stop_grace_period: 30s` so redeploys do not sever an in-flight scan, and
+  capped container logs (Docker's `json-file` default is unbounded).
+- Wrote `docs/deployment.md` and reconciled `architecture.md` and `security.md`
+  with the code.

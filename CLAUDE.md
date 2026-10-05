@@ -42,4 +42,4 @@ Access points:
 
 ## Docs
 
-Architecture: `docs/architecture.md` · Security model: `docs/security.md` · README at repo root.
+Architecture: `docs/architecture.md` · Security model: `docs/security.md` · Deployment runbook: `docs/deployment.md` · Progress log: `docs/progress.md` · README at repo root.
