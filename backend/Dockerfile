@@ -29,37 +29,49 @@ RUN set -eu; \
       echo '</settings>'; \
     } > /opt/mvn/settings.xml
 
-# Dependencies first, so this step is only invalidated when pom.xml changes.
-#
-# The cache mount is the important part: ~/.m2 survives between builds, so the
-# first build downloads the dependencies and every later build reuses them.
-# Without it each cold build re-downloads ~3 GB and hammers Central hard enough
-# to earn a 429. Both this step and the package step below must mount the same
-# cache, otherwise package starts from an empty repository.
-#
-# Resolution is also throttled and retried: maven.artifact.threads caps the
-# concurrent requests and the loop backs off and tries again if Central is
-# still throttling.
 COPY pom.xml .
+
+# Resolve dependencies before the source is copied, so this layer survives
+# source-only changes.
+#
+# -U is essential, not a nicety. Maven records a failed resolution as a
+# *.lastUpdated marker in the local repository and refuses to re-check while
+# that marker is present. /root/.m2 is a persistent cache mount, so the marker
+# outlives both this retry loop and future builds: a single transient failure
+# on attempt 1 made attempts 2 and 3 fail instantly with "was not found during
+# a previous attempt", which is a replay of the cache rather than a retry.
+# That is why a shared CI egress IP hitting a Central hiccup could not recover.
+# Forcing updates and dropping the markers makes the backoff actually work.
 RUN --mount=type=cache,target=/root/.m2,sharing=locked \
     set -eu; \
-    for attempt in 1 2 3; do \
-      if mvn -B -ntp -s /opt/mvn/settings.xml dependency:go-offline \
+    for attempt in 1 2 3 4 5; do \
+      find /root/.m2 -name '*.lastUpdated' -delete 2>/dev/null || true; \
+      if mvn -B -ntp -U -s /opt/mvn/settings.xml \
+           -Dmaven.repo.local=/root/.m2/repository \
            -Dmaven.artifact.threads=2 \
-           -Dmaven.wagon.http.retryHandler.count=5; then \
+           -Dmaven.wagon.http.retryHandler.count=5 \
+           dependency:go-offline; then \
         exit 0; \
       fi; \
-      echo "dependency resolution attempt ${attempt} failed, backing off"; \
-      sleep $((attempt * 30)); \
+      echo "dependency resolution attempt ${attempt}/5 failed, backing off"; \
+      if [ "$attempt" -lt 5 ]; then sleep $((attempt * 20)); fi; \
     done; \
+    echo "dependency resolution failed after 5 attempts"; \
     exit 1
 
-# Source + build (skip tests: they run in CI, not in the image)
 COPY src ./src
+
+# Source + build (skip tests: they run in CI, not in the image).
+# -U again for the same reason as above: this step shares the /root/.m2 cache
+# mount with dependency resolution and would otherwise honour a stale negative
+# marker left by an earlier failed build.
 RUN --mount=type=cache,target=/root/.m2,sharing=locked \
-    mvn -B -ntp -s /opt/mvn/settings.xml package -DskipTests \
+    find /root/.m2 -name '*.lastUpdated' -delete 2>/dev/null; \
+    mvn -B -ntp -U -s /opt/mvn/settings.xml \
+        -Dmaven.repo.local=/root/.m2/repository \
         -Dmaven.artifact.threads=2 \
         -Dmaven.wagon.http.retryHandler.count=5 \
+        package -DskipTests \
     && mv "$(ls -1 target/*.jar | head -n 1)" /build/app.jar
 
 # ---- Runtime stage ----
