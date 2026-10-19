@@ -7,9 +7,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * Dev-only contact sender for both WhatsApp and SMS: prints the would-be
- * delivery as an INFO log line so a scan-and-submit can be exercised without
- * a real provider (Twilio/WhatsApp Business).
+ * Dev-only contact sender: prints the would-be delivery as an INFO log line so
+ * a scan-and-submit can be exercised without a real provider. The production
+ * implementation is {@code TelnyxContactChannelSender} (SMS).
  *
  * <p><strong>Never active in production.</strong> Guarded by
  * {@code carlink.contact.provider=mock} (the default). The owner phone is

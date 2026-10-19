@@ -7,7 +7,7 @@ Assets to protect:
 1. **Owner phone numbers** — the crown jewel. Never leaves the server except back to the owner themselves (see the narrow exception below).
 2. **Account credentials** — hashed, never logged.
 3. **QR tokens** — the public interface; must be unguessable and rate-limited.
-4. **Message content** — the payload of an SMS/WhatsApp relay.
+4. **Message content** — the payload of an SMS relay.
 
 Primary threats:
 

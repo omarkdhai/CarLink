@@ -2,6 +2,8 @@ package com.carlink.common.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
+
 /**
  * Root configuration properties for the module. Binds the `carlink.*` prefix.
  */
@@ -17,7 +19,8 @@ public record CarLinkProperties(
         ContactForm contactForm,
         Email email,
         Security security,
-        Admin admin
+        Admin admin,
+        Telnyx telnyx
 ) {
 
     public record Jwt(
@@ -41,7 +44,21 @@ public record CarLinkProperties(
             int orderIpPerMinute
     ) {}
 
-    public record Contact(String provider) {}
+    /**
+     * Contact relay settings.
+     *
+     * @param provider        which {@code ContactChannelSender} is active:
+     *                        {@code mock} (logs, dev) or {@code telnyx}.
+     * @param enabledChannels channels the public page advertises and the
+     *                        submit endpoint accepts, as {@link
+     *                        com.carlink.conversation.model.Channel} names.
+     *                        Defaults to SMS-only: Telnyx cannot send free-text
+     *                        WhatsApp to an owner who has not messaged the
+     *                        business number in the last 24 hours, which is
+     *                        every unprompted QR scan, so offering WhatsApp
+     *                        would advertise a channel that cannot deliver.
+     */
+    public record Contact(String provider, List<String> enabledChannels) {}
 
     /**
      * Public "Contact us" form: the mailbox the form messages are delivered to
@@ -60,4 +77,26 @@ public record CarLinkProperties(
      * startup. Left unset in production; only enabled for dev management.
      */
     public record Admin(String bootstrapEmail, String bootstrapPassword) {}
+
+    /**
+     * Telnyx credentials and sender identities.
+     *
+     * @param apiKey       API key. Must never be logged or echoed.
+     * @param smsFrom      SMS-enabled number in E.164, assigned to a messaging
+     *                     profile in the Telnyx portal.
+     * @param voiceFrom    Number to present as the caller for the alert call.
+     * @param connectionId Call Control connection the outbound call is placed
+     *                     on.
+     * @param voiceAudioUrl audio played to the owner when they answer. The
+     *                     outbound dial API carries a static URL only — it
+     *                     cannot speak a dynamic reason or message, so the
+     *                     alert has to be a pre-recorded clip.
+     */
+    public record Telnyx(
+            String apiKey,
+            String smsFrom,
+            String voiceFrom,
+            String connectionId,
+            String voiceAudioUrl
+    ) {}
 }

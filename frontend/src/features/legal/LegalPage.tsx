@@ -1,16 +1,14 @@
 import { useTranslation } from 'react-i18next'
 
-type LegalType = 'privacy' | 'terms' | 'communication'
+type LegalType = 'privacy' | 'communication'
 
 const LEGAL_META: Record<LegalType, { badgeKey: string; titleKey: string; updatedKey: string; sectionCount: number }> = {
   privacy:      { badgeKey: 'legalPrivacyBadge',      titleKey: 'legalPrivacyTitle',      updatedKey: 'legalPrivacyUpdated',      sectionCount: 5 },
-  terms:        { badgeKey: 'legalTermsBadge',        titleKey: 'legalTermsTitle',        updatedKey: 'legalTermsUpdated',        sectionCount: 5 },
   communication:{ badgeKey: 'legalCommsBadge',        titleKey: 'legalCommsTitle',        updatedKey: 'legalCommsUpdated',        sectionCount: 5 },
 }
 
 const SECTION_PREFIX: Record<LegalType, string> = {
   privacy:       'legalPrivacy',
-  terms:         'legalTerms',
   communication: 'legalComms',
 }
 

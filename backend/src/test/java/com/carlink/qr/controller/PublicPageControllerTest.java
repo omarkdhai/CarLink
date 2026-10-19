@@ -58,7 +58,23 @@ class PublicPageControllerTest {
                     .contains(reason.label());
         }
         // Nothing may reach the page that identifies the owner.
-        assertThat(html).doesNotContain("@REASONS@").doesNotContain("@VEHICLE@");
+        assertThat(html).doesNotContain("@REASONS@").doesNotContain("@VEHICLE@")
+                .doesNotContain("@CHANNELS@");
+    }
+
+    @Test
+    void pageOffersOnlyTheChannelsItWasGiven() throws Exception {
+        when(publicQrService.resolve(anyString(), any())).thenReturn(new QrPublicView(
+                "BOUND",
+                new QrPublicView.VehicleSafe("My Car", "Toyota", "Corolla", "Blue"),
+                List.of("SMS")));
+
+        String html = controller.page("some-raw-token", request).getBody();
+
+        assertThat(html).contains("data-channel=\"SMS\"");
+        // A disabled channel must not be offered, or the page would POST a
+        // channel the API rejects.
+        assertThat(html).doesNotContain("WhatsApp").doesNotContain("WHATSAPP");
     }
 
     @Test

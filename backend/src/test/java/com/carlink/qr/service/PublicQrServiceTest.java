@@ -93,7 +93,7 @@ class PublicQrServiceTest {
 
         assertThat(view.vehicle().nickname()).isEqualTo("My Car");
         assertThat(view.vehicle().brand()).isEqualTo("Toyota");
-        assertThat(view.channels()).containsExactly("WHATSAPP", "SMS");
+        assertThat(view.channels()).containsExactly("SMS");
     }
 
     @Test
@@ -177,7 +177,7 @@ class PublicQrServiceTest {
                 org.mockito.ArgumentMatchers.any())).thenReturn(UUID.randomUUID());
 
         ContactSubmitResponse response = service.submit(rawToken, clientIp,
-                new ContactSubmitRequest("WHATSAPP", "Hi! Is this car for sale?", "BLOCKING"));
+                new ContactSubmitRequest("SMS", "Hi! Is this car for sale?", "BLOCKING"));
 
         assertThat(response.message()).contains("owner");
         verify(conversationService).appendMessage(
@@ -185,7 +185,7 @@ class PublicQrServiceTest {
         // The owner phone travels only into the relay, never out of it.
         verify(contactDeliveryService).deliver(
                 org.mockito.ArgumentMatchers.any(UUID.class),
-                org.mockito.ArgumentMatchers.eq(Channel.WHATSAPP),
+                org.mockito.ArgumentMatchers.eq(Channel.SMS),
                 org.mockito.ArgumentMatchers.eq("+21655123456"),
                 org.mockito.ArgumentMatchers.eq("Hi! Is this car for sale?"),
                 org.mockito.ArgumentMatchers.eq("BLOCKING"));
@@ -215,7 +215,7 @@ class PublicQrServiceTest {
                 org.mockito.ArgumentMatchers.anyInt())).thenReturn(42L);
 
         assertThatThrownBy(() -> service.submit(rawToken, clientIp,
-                new ContactSubmitRequest("WHATSAPP", "hi", "BLOCKING")))
+                new ContactSubmitRequest("SMS", "hi", "BLOCKING")))
                 .isInstanceOf(TooManyRequestsException.class);
     }
 
@@ -233,7 +233,7 @@ class PublicQrServiceTest {
 
         assertThat(view.state()).isEqualTo("BOUND");
         assertThat(view.vehicle().nickname()).isEqualTo("My Car");
-        assertThat(view.channels()).containsExactly("WHATSAPP", "SMS");
+        assertThat(view.channels()).containsExactly("SMS");
         // Sticker path wins; legacy table is never consulted.
         verify(qrCodeRepository, never()).findByTokenHash(anyString());
     }
@@ -292,9 +292,30 @@ class PublicQrServiceTest {
                 .thenReturn(Optional.of(sticker));
 
         assertThatThrownBy(() -> service.submit(rawToken, clientIp,
-                new ContactSubmitRequest("WHATSAPP", "hello", "BLOCKING")))
+                new ContactSubmitRequest("SMS", "hello", "BLOCKING")))
                 .isInstanceOf(NotFoundException.class);
         verify(conversationService, never()).open(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void submitRejectsChannelThatIsNotEnabled() {
+        allowAllRequests();
+        when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
+                .thenReturn(Optional.of(activeCode()));
+
+        assertThatThrownBy(() -> service.submit(rawToken, clientIp,
+                new ContactSubmitRequest("WHATSAPP", "hello", "BLOCKING")))
+                .isInstanceOf(com.carlink.common.exception.BadRequestException.class);
+        verify(conversationService, never()).open(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any());
+        verify(contactDeliveryService, never()).deliver(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any());
@@ -312,14 +333,14 @@ class PublicQrServiceTest {
                 org.mockito.ArgumentMatchers.any())).thenReturn(UUID.randomUUID());
 
         ContactSubmitResponse response = service.submit(rawToken, clientIp,
-                new ContactSubmitRequest("WHATSAPP", "Hi! Is this car for sale?", "BLOCKING"));
+                new ContactSubmitRequest("SMS", "Hi! Is this car for sale?", "BLOCKING"));
 
         assertThat(response.message()).contains("owner");
         verify(conversationService).appendMessage(
                 org.mockito.ArgumentMatchers.any(UUID.class), anyString(), anyString());
         verify(contactDeliveryService).deliver(
                 org.mockito.ArgumentMatchers.any(UUID.class),
-                org.mockito.ArgumentMatchers.eq(Channel.WHATSAPP),
+                org.mockito.ArgumentMatchers.eq(Channel.SMS),
                 org.mockito.ArgumentMatchers.eq("+21655123456"),
                 org.mockito.ArgumentMatchers.eq("Hi! Is this car for sale?"),
                 org.mockito.ArgumentMatchers.eq("BLOCKING"));

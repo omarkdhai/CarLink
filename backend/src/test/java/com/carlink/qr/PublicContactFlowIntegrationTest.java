@@ -48,8 +48,9 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         MvcResult page = mockMvc.perform(get("/c/{token}", rawToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("WhatsApp")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("SMS")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("WhatsApp"))))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("My Car")))
                 .andReturn();
 
@@ -65,7 +66,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.vehicle.nickname").value("My Car"))
                 .andExpect(jsonPath("$.vehicle.brand").value("Toyota"))
                 .andExpect(jsonPath("$.channels").isArray())
-                .andExpect(jsonPath("$.channels[0]").value("WHATSAPP"))
+                .andExpect(jsonPath("$.channels[0]").value("SMS"))
                 .andExpect(jsonPath("$.licensePlate").doesNotExist())
                 .andExpect(jsonPath("$.phone").doesNotExist());
     }
@@ -77,7 +78,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
 
         MvcResult result = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("channel", "WHATSAPP",
+                        .content(json(Map.of("channel", "SMS",
                                 "message", "Hi, is this car still available?",
                                 "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
@@ -91,7 +92,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         // the message body is stored but never echoed anywhere.
         Conversation conv = conversationRepository.findById(UUID.fromString(conversationId))
                 .orElseThrow();
-        assertThat(conv.getChannel().name()).isEqualTo("WHATSAPP");
+        assertThat(conv.getChannel().name()).isEqualTo("SMS");
         assertThat(conv.getExpiresAt()).isAfter(conv.getCreatedAt());
         // The mock relay accepts the delivery, so the conversation is SENT.
         assertThat(conv.getStatus().name()).isEqualTo("SENT");

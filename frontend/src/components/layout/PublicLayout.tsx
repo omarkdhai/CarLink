@@ -13,6 +13,9 @@ const NAV_LINKS = [
   { to: '/contact', key: 'contact' },
 ] as const
 
+const FOOTER_LABEL =
+  'mb-2.5 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-primary/70 rtl:tracking-[0.04em]'
+
 /** Centered anchor links for the public marketing navbar (desktop only). */
 function LandingNav() {
   const { t } = useTranslation()
@@ -168,82 +171,85 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <main id="main-content" ref={mainRef} className="reveal-host flex-1 flex flex-col bg-transparent">
         <PageTransition key={location.pathname} className="flex-1 flex flex-col">{children}</PageTransition>
       </main>
-      <footer className="border-t border-border bg-white/40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Brand column */}
-            <div>
-              <Logo link={false} />
-              <p className="text-sm text-muted-fg mt-3 leading-relaxed max-w-xs">
-                {t('landing.footerTagline')}
-              </p>
-            </div>
+      {/* Footer */}
+      <footer className="mt-auto pb-7 pt-3 sm:pb-9 sm:pt-4 lg:pb-10">
+        <div className="mx-auto max-w-6xl px-4 sm:px-9">
+          <div className="overflow-hidden rounded-[1.75rem] border border-border bg-white shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:rounded-[2rem]">
+            <div className="grid gap-6 bg-[radial-gradient(circle_at_100%_0,rgba(37,99,235,0.07),transparent_42%),linear-gradient(to_bottom,#fff,#f8fafc)] px-5 py-5 sm:grid-cols-2 sm:gap-8 sm:px-6 sm:py-6 md:px-7">
+              <div>
+                <Logo />
+                <p className="mt-3 max-w-[22ch] text-xs leading-5 text-muted-fg">
+                  {t('landing.footerTagline')}
+                </p>
+              </div>
 
-            {/* Pages column */}
-            <div>
-              <h4 className="font-semibold text-heading text-sm mb-3">{t('footer.pagesTitle')}</h4>
-              <nav className="space-y-2">
-                {[
-                  { to: '/', label: t('navbar.home') },
-                  { to: '/pricing', label: t('navbar.pricing') },
-                  { to: '/about', label: t('navbar.about') },
-                  { to: '/contact', label: t('navbar.contact') },
-                ].map(({ to, label }) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    className="block text-sm text-muted-fg hover:text-primary transition-colors"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-5">
+                  <div>
+                    <p className={FOOTER_LABEL}>{t('footer.pagesTitle')}</p>
+                    <nav className="flex flex-col gap-1.5">
+                      {[
+                        { to: '/', label: t('navbar.home') },
+                        { to: '/pricing', label: t('navbar.pricing') },
+                        { to: '/about', label: t('navbar.about') },
+                        { to: '/contact', label: t('navbar.contact') },
+                      ].map(({ to, label }) => (
+                        <Link
+                          key={to}
+                          to={to}
+                          className="text-sm text-heading transition-colors hover:text-primary"
+                        >
+                          {label}
+                        </Link>
+                      ))}
+                    </nav>
+                  </div>
 
-            {/* Legal column */}
-            <div>
-              <h4 className="font-semibold text-heading text-sm mb-3">{t('footer.legalTitle')}</h4>
-              <nav className="space-y-2">
-                {[
-                  { to: '/privacy', label: t('footer.privacyLink') },
-                  { to: '/terms', label: t('footer.termsLink') },
-                  { to: '/communication', label: t('footer.commsLink') },
-                ].map(({ to, label }) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    className="block text-sm text-muted-fg hover:text-primary transition-colors"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
+                  <div>
+                    <p className={FOOTER_LABEL}>{t('footer.accountTitle')}</p>
+                    <nav className="flex flex-col gap-1.5">
+                      <Link
+                        to="/login"
+                        className="text-sm text-heading transition-colors hover:text-primary"
+                      >
+                        {t('navbar.login')}
+                      </Link>
+                      <Link
+                        to="/register"
+                        className="text-sm text-heading transition-colors hover:text-primary"
+                      >
+                        {t('auth.createAccount')}
+                      </Link>
+                    </nav>
+                  </div>
+                </div>
 
-            {/* Account column */}
-            <div>
-              <h4 className="font-semibold text-heading text-sm mb-3">{t('footer.accountTitle')}</h4>
-              <div className="flex flex-col gap-2">
-                <Link
-                  to="/login"
-                  className="inline-flex items-center justify-center h-10 px-4 rounded-xl border border-border bg-surface text-sm font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-colors"
-                >
-                  {t('navbar.login')}
-                </Link>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
-                >
-                  {t('auth.createAccount')}
-                </Link>
+                <div>
+                  <p className={FOOTER_LABEL}>{t('footer.legalTitle')}</p>
+                  <nav className="flex flex-col gap-1.5">
+                    {[
+                      { to: '/privacy', label: t('footer.privacyLink') },
+                      { to: '/terms', label: t('footer.termsLink') },
+                      { to: '/communication', label: t('footer.commsLink') },
+                    ].map(({ to, label }) => (
+                      <Link
+                        key={to}
+                        to={to}
+                        className="text-sm text-heading transition-colors hover:text-primary"
+                      >
+                        {label}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Bottom bar */}
-          <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-fg">
-            <p>&copy; {new Date().getFullYear()} CarLink. {t('footer.rightsReserved')}</p>
-            
+            <div className="border-t border-border bg-primary-soft/50 px-5 py-4 sm:px-6 md:px-7">
+              <p className="text-xs leading-5 text-muted-fg tabular-nums">
+                &copy; {new Date().getFullYear()} CarLink. {t('footer.rightsReserved')}
+              </p>
+            </div>
           </div>
         </div>
       </footer>

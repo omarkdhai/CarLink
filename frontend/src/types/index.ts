@@ -253,7 +253,7 @@ export interface QrPublicView {
     model: string | null
     color: string | null
   } | null
-  /** e.g. ['WHATSAPP', 'SMS'] — empty when the sticker isn't BOUND. */
+  /** Server-advertised channels, e.g. ['SMS']; empty when not BOUND. */
   channels: ContactChannel[]
 }
 

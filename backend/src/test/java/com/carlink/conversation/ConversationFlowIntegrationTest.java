@@ -42,10 +42,10 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
 
-        // Submit two contacts on different channels
+        // Submit two contacts (WhatsApp is disabled, so both use SMS)
         mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json(Map.of("channel", "WHATSAPP", "message", "Hello!", "reason", "BLOCKING"))));
+                .content(json(Map.of("channel", "SMS", "message", "Hello!", "reason", "BLOCKING"))));
         mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("channel", "SMS", "message", "Is this car still for sale?", "reason", "BLOCKING"))));
@@ -55,13 +55,13 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2))
-                // Newest first: SMS submission came second
+                // Newest first: second submission came later
                 .andExpect(jsonPath("$[0].channel").value("SMS"))
                 .andExpect(jsonPath("$[0].unread").value(true))
                 .andExpect(jsonPath("$[0].vehicleNickname").value("My Car"))
                 .andExpect(jsonPath("$[0].lastMessagePreview").value("Is this car still for sale?"))
                 .andExpect(jsonPath("$[0].id").isNotEmpty())
-                .andExpect(jsonPath("$[1].channel").value("WHATSAPP"))
+                .andExpect(jsonPath("$[1].channel").value("SMS"))
                 .andExpect(jsonPath("$[1].unread").value(true))
                 .andExpect(jsonPath("$[1].lastMessagePreview").value("Hello!"));
     }
@@ -72,13 +72,13 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void ownerReadsConversationDetailWithMessageHistory() throws Exception {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
-        String convId = submitContact(auth, rawToken, "WHATSAPP", "First message");
+        String convId = submitContact(auth, rawToken, "SMS", "First message");
 
         mockMvc.perform(get("/api/v1/conversations/{id}", convId)
                         .header("Authorization", bearer(auth)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(convId))
-                .andExpect(jsonPath("$.channel").value("WHATSAPP"))
+                .andExpect(jsonPath("$.channel").value("SMS"))
                 .andExpect(jsonPath("$.unread").value(true))
                 .andExpect(jsonPath("$.messages").isArray())
                 .andExpect(jsonPath("$.messages.length()").value(1))
@@ -94,7 +94,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void ownerMarksConversationRead() throws Exception {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
-        String convId = submitContact(auth, rawToken, "WHATSAPP", "Hi there");
+        String convId = submitContact(auth, rawToken, "SMS", "Hi there");
 
         // Initially unread
         mockMvc.perform(get("/api/v1/conversations/{id}", convId)
@@ -124,7 +124,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void crossOwnerAccessReturns404() throws Exception {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
-        String convId = submitContact(auth, rawToken, "WHATSAPP", "Test");
+        String convId = submitContact(auth, rawToken, "SMS", "Test");
 
         String otherAuth = registerAndLogin(uniqueEmail());
 
@@ -160,7 +160,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
         String auth1 = creds1[0], rawToken1 = creds1[1], vehicleId1 = creds1[2];
         String auth2 = creds2[0], rawToken2 = creds2[1], vehicleId2 = creds2[2];
 
-        submitContact(auth1, rawToken1, "WHATSAPP", "For vehicle 1");
+        submitContact(auth1, rawToken1, "SMS", "For vehicle 1");
         submitContact(auth2, rawToken2, "SMS", "For vehicle 2");
 
         // Scoped to vehicle 1 — shows only vehicle 1's conversation
@@ -184,7 +184,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void sweeperExpiresStaleConversations() throws Exception {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
-        String convId = submitContact(auth, rawToken, "WHATSAPP", "Will expire");
+        String convId = submitContact(auth, rawToken, "SMS", "Will expire");
 
         var conv = conversationRepository.findById(UUID.fromString(convId)).orElseThrow();
         assertThat(conv.getStatus().name()).isEqualTo("SENT");
@@ -206,7 +206,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void publicJsonViewDoesNotExposeMessageContent() throws Exception {
         String[] creds = ownerWithQr();
         String rawToken = creds[1];
-        submitContact(creds[0], rawToken, "WHATSAPP", "Private message text");
+        submitContact(creds[0], rawToken, "SMS", "Private message text");
 
         mockMvc.perform(get("/api/v1/public/qr/{token}", rawToken))
                 .andExpect(status().isOk())
