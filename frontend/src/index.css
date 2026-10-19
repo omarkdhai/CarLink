@@ -47,6 +47,10 @@
   /* Typography */
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
     sans-serif;
+  /* Display font for big titles (h1/h2). Installed locally as
+     "arfonts-thmanyah-sans-black"; falls back to the sans stack where absent. */
+  --font-display: 'arfonts-thmanyah-sans-black', 'Plus Jakarta Sans', ui-sans-serif, system-ui,
+    -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* Radii */
   --radius-sm: 0.5rem;
@@ -90,6 +94,12 @@
 
   button {
     cursor: pointer;
+  }
+
+  /* Big titles use the display font. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
   }
 
   /* Respect reduced motion */
@@ -141,20 +151,6 @@
     filter: blur(0);
     transform: translateY(0);
   }
-}
-
-/* Auto-scrolling carousel animation */
-@keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.animate-scroll {
-  animation: scroll 30s linear infinite;
-}
-
-.animate-scroll:hover {
-  animation-play-state: paused;
 }
 
 /* Pulsing dots loader (from Uiverse.io by adamgiebl) */

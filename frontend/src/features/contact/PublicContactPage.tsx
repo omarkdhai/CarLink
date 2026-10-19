@@ -19,6 +19,32 @@ type ReasonKey = (typeof REASONS)[number]
 
 const REPORT_REASONS: ReportReason[] = ['SPAM', 'ABUSE', 'OTHER']
 
+const CHANNEL_UI: Record<
+  ContactChannel,
+  {
+    labelKey: string
+    icon: React.ReactNode
+    className: string
+    activeClass: string
+    variant: 'whatsapp' | 'sms'
+  }
+> = {
+  WHATSAPP: {
+    labelKey: 'contact.whatsapp',
+    icon: <MessageCircle className="h-5 w-5" aria-hidden />,
+    className: 'border-whatsapp/60 text-whatsapp hover:bg-whatsapp/5',
+    activeClass: 'bg-whatsapp text-white border-whatsapp',
+    variant: 'whatsapp',
+  },
+  SMS: {
+    labelKey: 'contact.sms',
+    icon: <Smartphone className="h-5 w-5" aria-hidden />,
+    className: 'border-sms/60 text-sms hover:bg-sms/5',
+    activeClass: 'bg-sms text-white border-sms',
+    variant: 'sms',
+  },
+}
+
 /**
  * Core product: the mobile-first public page behind a scanned QR (/c/:token).
  * Visitor picks a channel + message to reach the owner; nothing personal is
@@ -35,12 +61,17 @@ export default function PublicContactPage() {
     retry: false,
   })
 
-  const [channel, setChannel] = useState<ContactChannel>('WHATSAPP')
+  const [channel, setChannel] = useState<ContactChannel | null>(null)
   const [message, setMessage] = useState('')
   const [selectedReason, setSelectedReason] = useState<ReasonKey | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
 
   const [done, setDone] = useState<{ conversationId: string; method: ContactChannel } | null>(null)
+
+  // The backend advertises only the channels it will accept (SMS today).
+  // Never hardcode a channel: the submit endpoint rejects anything else.
+  const channels = view.data?.channels ?? []
+  const activeChannel: ContactChannel | undefined = channel ?? channels[0]
 
   // Report flow
   const [showReport, setShowReport] = useState(false)
@@ -51,11 +82,11 @@ export default function PublicContactPage() {
   const contactMutation = useMutation({
     mutationFn: () =>
       publicQrApi.submit(token, {
-        channel,
+        channel: activeChannel!,
         message: message.trim(),
         reason: selectedReason!,
       }),
-    onSuccess: (data) => setDone({ conversationId: data.conversationId, method: channel }),
+    onSuccess: (data) => setDone({ conversationId: data.conversationId, method: activeChannel! }),
     onError: (err) => setFieldError(http.humanizeError(err)),
   })
 
@@ -81,6 +112,10 @@ export default function PublicContactPage() {
     setFieldError(null)
     if (!selectedReason) {
       setFieldError(t('contact.reasonRequired'))
+      return
+    }
+    if (!activeChannel) {
+      setFieldError(t('errors.generic'))
       return
     }
     contactMutation.mutate()
@@ -230,32 +265,30 @@ export default function PublicContactPage() {
           />
         </div>
 
-        <div className="mt-5">
-          <h2 className="text-sm font-bold text-heading mb-2">{t('contact.method')}</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <ChannelButton
-              active={channel === 'WHATSAPP'}
-              onClick={() => setChannel('WHATSAPP')}
-              label={t('contact.whatsapp')}
-              icon={<MessageCircle className="h-5 w-5" aria-hidden />}
-              className="border-whatsapp/60 text-whatsapp hover:bg-whatsapp/5"
-              activeClass="bg-whatsapp text-white border-whatsapp"
-            />
-            <ChannelButton
-              active={channel === 'SMS'}
-              onClick={() => setChannel('SMS')}
-              label={t('contact.sms')}
-              icon={<Smartphone className="h-5 w-5" aria-hidden />}
-              className="border-sms/60 text-sms hover:bg-sms/5"
-              activeClass="bg-sms text-white border-sms"
-            />
+        {channels.length > 0 && (
+          <div className="mt-5">
+            <h2 className="text-sm font-bold text-heading mb-2">{t('contact.method')}</h2>
+            <div className={'grid gap-3 ' + (channels.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
+              {channels.map((c) => (
+                <ChannelButton
+                  key={c}
+                  active={activeChannel === c}
+                  onClick={() => setChannel(c)}
+                  label={t(CHANNEL_UI[c].labelKey)}
+                  icon={CHANNEL_UI[c].icon}
+                  className={CHANNEL_UI[c].className}
+                  activeClass={CHANNEL_UI[c].activeClass}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <Button
           className="w-full mt-5"
-          variant={channel === 'WHATSAPP' ? 'whatsapp' : 'sms'}
+          variant={activeChannel ? CHANNEL_UI[activeChannel].variant : 'sms'}
           loading={contactMutation.isPending}
+          disabled={!activeChannel}
           onClick={handleSubmit}
         >
           {t('contact.sendContact')}
