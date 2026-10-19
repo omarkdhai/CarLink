@@ -4,23 +4,27 @@
 
 CarLink lets vehicle owners generate a unique QR code sticker for their windshield.
 Anyone who wants to reach the owner — without exposing the owner's phone number —
-scans the code and sends a WhatsApp or SMS message through the platform.
+scans the code and sends an SMS through the platform.
 
 ## Product Overview
 
 - A vehicle owner registers and adds vehicles.
 - The platform generates a unique, unguessable QR token per vehicle.
 - Scanners open a public, mobile-first page at `/c/{token}`.
-- They pick a contact reason, choose **WhatsApp** or **SMS**, optionally write a message,
-  and send — all without ever seeing the owner's phone number.
+- They pick a contact reason, optionally write a message, and send — all without
+  ever seeing the owner's phone number.
 
 > **Implementation status.** The scan flow, the owner's anonymous-call relay, and
-> the ordering/sticker flow are implemented and tested. The WhatsApp/SMS transport
-> is **not**: `notification/contact` currently has only a logging implementation
-> (`LogContactChannelSender`), so a submitted message is recorded, not delivered to
-> a real phone. A Twilio or WhatsApp Business adapter is the main outstanding
-> production gap — see `docs/deployment.md` §13. Numbers below describe the
-> configuration in this repo, which is the source of truth.
+> the ordering/sticker flow are implemented and tested. SMS delivery goes through
+> Telnyx when `CONTACT_PROVIDER=telnyx` is configured (`TelnyxContactChannelSender`);
+> without it the default `mock` provider only logs, so a submitted message is
+> recorded but not delivered to a real phone. WhatsApp is **not** offered: Telnyx
+> requires an approved Meta template for free-text WhatsApp outside a 24-hour
+> window, which never applies to an unprompted QR scan, so
+> `carlink.contact.enabled-channels` defaults to `SMS` for both the advertised
+> page and the submit endpoint. See `docs/deployment.md` §13 for the credentials
+> still required. Numbers below describe the configuration in this repo, which is
+> the source of truth.
 
 ## Tech Stack
 
@@ -53,7 +57,7 @@ scans the code and sends a WhatsApp or SMS message through the platform.
 │       ├── order/         # guest sticker orders
 │       ├── sticker/       # sticker issuance + owner activation
 │       ├── notification/  # delivery abstractions (email, contact channel);
-│       │                  #   logging implementations only — no Twilio/WhatsApp yet
+│       │                  #   mock logging impls + Telnyx SMS/call providers
 │       ├── admin/         # admin dashboard
 │       ├── security/      # JWT filters, rate limiting, anti-spam
 │       └── common/        # shared DTOs, exceptions, config

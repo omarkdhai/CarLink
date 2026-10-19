@@ -22,10 +22,12 @@ public final class TestProperties {
                 new CarLinkProperties.Conversation(24),
                 new CarLinkProperties.Qr(32),
                 new CarLinkProperties.RateLimit(5, 20, "https://captcha.invalid", 5, 15, 10, 10),
-                new CarLinkProperties.Contact("mock"),
+                new CarLinkProperties.Contact("mock", java.util.List.of("SMS")),
                 new CarLinkProperties.ContactForm("hello@carlink.app", 1000),
                 new CarLinkProperties.Email("mock", 60),
-                new CarLinkProperties.Security("http://localhost:4200"),
-                new CarLinkProperties.Admin(null, null));
+                new CarLinkProperties.Security("http://localhost:5173"),
+                new CarLinkProperties.Admin(null, null),
+                new CarLinkProperties.Telnyx(
+                        "test", "+15550000001", "+15550000002", "conn-1", "https://audio.invalid/alert.mp3"));
     }
 }

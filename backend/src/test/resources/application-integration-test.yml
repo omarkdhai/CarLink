@@ -41,6 +41,7 @@ carlink:
 
   contact:
     provider: mock
+    enabled-channels: SMS
 
   security:
     cors-allowed-origins: http://localhost:5173

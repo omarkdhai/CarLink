@@ -1,6 +1,7 @@
 package com.carlink.qr.service;
 
 import com.carlink.common.config.CarLinkProperties;
+import com.carlink.common.exception.BadRequestException;
 import com.carlink.common.exception.NotFoundException;
 import com.carlink.common.exception.TooManyRequestsException;
 import com.carlink.common.security.TokenGenerator;
@@ -108,6 +109,9 @@ public class PublicQrService {
 
     private ContactSubmitResponse doSubmit(Vehicle vehicle, ContactSubmitRequest request) {
         Channel channel = Channel.valueOf(request.channel());
+        if (!advertisedChannels().contains(channel.name())) {
+            throw new BadRequestException("Unsupported contact channel: " + channel);
+        }
         // The note is optional — when absent, the reason label alone is the content.
         String content = request.message() == null || request.message().isBlank()
                 ? ContactReason.from(request.reason()).label()
@@ -131,7 +135,7 @@ public class PublicQrService {
                     "BOUND",
                     new QrPublicView.VehicleSafe(
                             v.getNickname(), v.getBrand(), v.getModel(), v.getColor()),
-                    List.of("WHATSAPP", "SMS"));
+                    advertisedChannels());
         }
         // UNBOUND or DEACTIVATED: no vehicle, no channels
         return new QrPublicView(status.name(), null, List.of());
@@ -143,7 +147,16 @@ public class PublicQrService {
                 "BOUND",
                 new QrPublicView.VehicleSafe(
                         v.getNickname(), v.getBrand(), v.getModel(), v.getColor()),
-                List.of("WHATSAPP", "SMS"));
+                advertisedChannels());
+    }
+
+    /**
+     * Channels the public page offers, from {@code carlink.contact.enabled-channels}.
+     * Defaults to SMS-only when unset.
+     */
+    private List<String> advertisedChannels() {
+        List<String> configured = properties.contact().enabledChannels();
+        return configured == null ? List.of() : List.copyOf(configured);
     }
 
     /** Verifies the token maps to an ACTIVE QR. Missing/inactive → 404. */

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * Mobile-first public page rendered at {@code /c/{token}} — the exact URL a
  * scanned QR encodes. The page shows only a safe vehicle summary and contact
@@ -41,6 +43,7 @@ public class PublicPageController {
             String vehicleLabel = vehicleLabel(view.vehicle());
             String page = PAGE_TEMPLATE
                     .replace("@VEHICLE@", escaped(vehicleLabel))
+                    .replace("@CHANNELS@", channelButtons(view.channels()))
                     .replace("@REASONS@", reasonChips());
             return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
         } catch (NotFoundException e) {
@@ -64,6 +67,34 @@ public class PublicPageController {
         if (a == null || a.isBlank()) return b == null ? "" : b;
         if (b == null || b.isBlank()) return a;
         return a + separator + b;
+    }
+
+    /**
+     * Renders one button per channel this deployment offers, from
+     * {@code carlink.contact.enabled-channels}. Building the buttons from the
+     * same source the API validates against means the page can never offer a
+     * channel the submit endpoint would reject.
+     */
+    private String channelButtons(List<String> channels) {
+        StringBuilder sb = new StringBuilder();
+        for (String channel : channels) {
+            sb.append("<button type=\"button\" class=\"chan ")
+                    .append(channelClass(channel))
+                    .append("\" data-channel=\"")
+                    .append(escaped(channel))
+                    .append("\">")
+                    .append(escaped(channelLabel(channel)))
+                    .append("</button>");
+        }
+        return sb.toString();
+    }
+
+    private String channelLabel(String channel) {
+        return "WHATSAPP".equals(channel) ? "WhatsApp" : channel;
+    }
+
+    private String channelClass(String channel) {
+        return "WHATSAPP".equals(channel) ? "whatsapp" : "sms";
     }
 
     /**
@@ -165,10 +196,7 @@ textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius
                 <div class="reasons" id="reasons" role="group" aria-labelledby="reason-hint">@REASONS@</div>
                 <textarea id="msg" maxlength="500"
                   placeholder="Add a note (optional, max 500 characters)..."></textarea>
-                <div class="channels">
-                  <button type="button" id="wa" class="whatsapp">WhatsApp</button>
-                  <button type="button" id="sms" class="sms">SMS</button>
-                </div>
+                <div class="channels" id="channels">@CHANNELS@</div>
                 <button type="submit" class="send">Send message</button>
                 <p class="status dim" id="st" role="status"></p>
               </form>
@@ -176,11 +204,10 @@ textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius
             <script>
             // The token is the last path segment the visitor scanned; never embed it.
             const token=decodeURIComponent(location.pathname.split('/').filter(Boolean).pop());
-            let channel="WHATSAPP";
-            const setCh=c=>{channel=c;document.getElementById("wa").classList.toggle("sel",c==="WHATSAPP");
-              document.getElementById("sms").classList.toggle("sel",c==="SMS");};
-            document.getElementById("wa").onclick=()=>setCh("WHATSAPP");
-            document.getElementById("sms").onclick=()=>setCh("SMS");
+            const chans=[...document.querySelectorAll("#channels .chan")];
+            let channel=chans.length?chans[0].dataset.channel:"";
+            const setCh=c=>{channel=c;chans.forEach(b=>b.classList.toggle("sel",b.dataset.channel===c));};
+            chans.forEach(b=>b.onclick=()=>setCh(b.dataset.channel));
             setCh(channel);
             // reason is required by the API; message stays optional so the owner
             // can be told what happened even when the visitor writes nothing.

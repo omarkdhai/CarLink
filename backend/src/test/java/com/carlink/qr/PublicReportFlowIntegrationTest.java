@@ -37,7 +37,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     void visitorFilesReportThatEntersTheModerationQueue() throws Exception {
         String rawToken = ownerWithQr()[1];
-        String convId = submitContact(rawToken, "WHATSAPP", "Is this still available?");
+        String convId = submitContact(rawToken, "SMS", "Is this still available?");
 
         mockMvc.perform(post("/api/v1/public/qr/{token}/report", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -73,7 +73,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     void missingReasonIsRejectedWith400() throws Exception {
         String rawToken = ownerWithQr()[1];
-        String convId = submitContact(rawToken, "WHATSAPP", "hi");
+        String convId = submitContact(rawToken, "SMS", "hi");
 
         mockMvc.perform(post("/api/v1/public/qr/{token}/report", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)

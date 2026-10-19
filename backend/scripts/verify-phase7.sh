@@ -34,11 +34,11 @@ VID=$(curl -s -X POST "$BASE/api/v1/vehicles" -H "$B1" -H 'Content-Type: applica
 TOKEN=$(curl -s -X POST "$BASE/api/v1/vehicles/$VID/qr" -H "$B1" | jqget rawToken)
 echo "  vehicle=$VID token=${TOKEN:0:12}..."
 
-echo "[2/7] visitor submits two contacts (WHATSAPP then SMS)"
+echo "[2/7] visitor submits two contacts (SMS — WhatsApp is disabled)"
 C1=$(curl -s -X POST "$BASE/api/v1/public/qr/$TOKEN/contact" -H 'Content-Type: application/json' \
-  -d '{"channel":"WHATSAPP","message":"Hello, is this available?"}' | jqget conversationId)
+  -d '{"channel":"SMS","message":"Hello, is this available?","reason":"BLOCKING"}' | jqget conversationId)
 C2=$(curl -s -X POST "$BASE/api/v1/public/qr/$TOKEN/contact" -H 'Content-Type: application/json' \
-  -d '{"channel":"SMS","message":"Can you call me back please?"}' | jqget conversationId)
+  -d '{"channel":"SMS","message":"Can you call me back please?","reason":"BLOCKING"}' | jqget conversationId)
 echo "  conversations: $C1, $C2"
 
 echo "[3/7] owner1 lists dashboard — 2 items, both unread, SMS first (newest)"

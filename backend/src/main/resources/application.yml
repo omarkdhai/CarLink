@@ -144,9 +144,14 @@ carlink:
     # so the mint is rate-limited per IP per minute.
     order-ip-per-minute: ${RATE_LIMIT_ORDER_IP_PER_MINUTE:5}
 
-  # Contact channel provider
+  # Contact relay
   contact:
     provider: ${CONTACT_PROVIDER:mock}
+    # Channels advertised on the public page and accepted by the submit
+    # endpoint. SMS-only by default: WhatsApp on Telnyx requires an approved
+    # template outside the 24-hour window, which never applies to an
+    # unprompted QR scan.
+    enabled-channels: ${CONTACT_ENABLED_CHANNELS:SMS}
 
   # Public "Contact us" form → business mailbox
   contact-form:
@@ -178,6 +183,15 @@ carlink:
   admin:
     bootstrap-email: ${ADMIN_BOOTSTRAP_EMAIL:}
     bootstrap-password: ${ADMIN_BOOTSTRAP_PASSWORD:}
+
+  # Telnyx. Only read when contact.provider=telnyx.
+  telnyx:
+    api-key: ${TELNYX_API_KEY:}
+    sms-from: ${TELNYX_SMS_FROM:}
+    voice-from: ${TELNYX_VOICE_FROM:}
+    connection-id: ${TELNYX_CONNECTION_ID:}
+    # Static clip played when the owner answers the alert call.
+    voice-audio-url: ${TELNYX_VOICE_AUDIO_URL:}
 
 logging:
   level:

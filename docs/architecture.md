@@ -20,7 +20,7 @@ com.carlink
 ├── user          → profile management
 ├── vehicle       → vehicle CRUD (owned resources)
 ├── qr            → secure token + QR image generation/lifecycle
-├── contact       → ContactChannel abstraction (WHATSAPP | SMS)
+├── contact       → public "contact us" form (delivered to the business mailbox)
 ├── conversation  → Conversation / Message persistence & expiry
 ├── order         → guest sticker orders (QR purchase flow)
 ├── sticker       → sticker issuance + owner activation
@@ -59,18 +59,26 @@ Two parallel abstractions, both in `notification`, so the submission flows never
 depend on a transport:
 
 ```
-notification/email/    EmailSender        → LogEmailSender | SmtpEmailSender
-notification/contact/  ContactChannelSender → LogContactChannelSender
+notification/email/    EmailSender         → LogEmailSender | SmtpEmailSender
+notification/contact/  ContactChannelSender → LogContactChannelSender | TelnyxContactChannelSender
+notification/contact/  AnonymousCallSender  → LogAnonymousCallSender  | TelnyxAnonymousCallSender
+notification/telnyx/   TelnyxClient bean (built only when carlink.contact.provider=telnyx)
 ```
 
-`carlink.contact.provider` selects the implementation.
+`carlink.contact.provider` selects the implementation (`mock` default, `telnyx` live).
 
-**Only the logging implementations exist today.** There is no Twilio or WhatsApp
-Business adapter in the codebase — `LogContactChannelSender` and
-`AnonymousCallService` log the owner's number and are for development only. The
-provider integration is the main outstanding production gap; treat any
-screenshot or claim of live WhatsApp/SMS delivery as false until
-`docs/deployment.md` §13 is revisited.
+**Two providers exist.** The default `mock` provider logs and never reaches a
+phone. With `carlink.contact.provider=telnyx`, `TelnyxContactChannelSender`
+sends the visitor's message by **SMS** through the Telnyx Messages API, and
+`TelnyxAnonymousCallSender` places the alert call on a Call Control connection,
+playing a static clip (`TELNYX_VOICE_AUDIO_URL`). WhatsApp is intentionally not
+implemented: Telnyx only allows free-text WhatsApp inside a 24-hour window the
+owner must open first, which an unprompted QR scan cannot. Both providers receive
+the owner phone but never log, persist, or echo it except as a SHA-256.
+
+The advertised and accepted channels come from `carlink.contact.enabled-channels`
+(default `SMS`); a channel that is not enabled is rejected with 400 by the submit
+endpoint, so the page cannot offer what the API refuses.
 
 ### Security posture
 - Stateless JWT (`SessionCreationPolicy.STATELESS`).

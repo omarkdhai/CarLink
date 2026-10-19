@@ -8,9 +8,10 @@ Status legend: ✅ done & verified · ⏳ in progress · ⬜ pending
 >
 > | | |
 > |---|---|
-> | Backend tests | **212 passing** (was 119 at Phase 10) |
+> | Backend tests | **224 passing** (was 119 at Phase 10, 212 after Stabilization) |
 > | Frontend tests | 21 passing — **not** covered by CI |
 > | Migrations | `V1`–`V6` |
+> | Contact relay | Telnyx SMS + static-audio alert call; WhatsApp intentionally disabled |
 > | Docs | [`architecture.md`](architecture.md) · [`security.md`](security.md) · [`deployment.md`](deployment.md) |
 >
 > Run the suite: `TESTCONTAINERS_RYUK_DISABLED=true mvn verify` from `backend/`.
@@ -465,3 +466,24 @@ Commit: `dabcb72`.
   capped container logs (Docker's `json-file` default is unbounded).
 - Wrote `docs/deployment.md` and reconciled `architecture.md` and `security.md`
   with the code.
+
+### Phase E — Telnyx contact relay
+
+- **Real delivery behind `carlink.contact.provider`.** `mock` (default) keeps the
+  logging senders; `telnyx` activates `TelnyxContactChannelSender` (SMS via the
+  Telnyx Messages API) and `TelnyxAnonymousCallSender` (alert call with a static
+  `TELNYX_VOICE_AUDIO_URL` clip). A single `TelnyxClient` bean is built only when
+  the provider is `telnyx` and fails fast if `TELNYX_API_KEY` is blank.
+- **WhatsApp removed from the product surface.** Telnyx only permits free-text
+  WhatsApp inside a 24-hour window the owner opens first, which an unprompted QR
+  scan never does. `carlink.contact.enabled-channels` defaults to `SMS`; the
+  public page renders exactly those channels and the submit endpoint returns 400
+  for anything else (so the page cannot offer a channel the API refuses).
+- **`AnonymousCallService` replaced** by the `AnonymousCallSender` interface with
+  a logging and a Telnyx implementation, matching the sender-abstraction pattern.
+- **Delivery correctness.** A missing/blank owner phone now fails the conversation
+  instead of sending to `null`, and a failed alert call no longer downgrades a
+  message that was already delivered (verified by tests).
+- Body text is kept ASCII-only to stay in GSM-7, and reuses `ContactReason.label()`
+  rather than duplicating the label switch. New unit tests mock the Telnyx SDK
+  (`TelnyxContactChannelSenderTest`, `TelnyxAnonymousCallSenderTest`).

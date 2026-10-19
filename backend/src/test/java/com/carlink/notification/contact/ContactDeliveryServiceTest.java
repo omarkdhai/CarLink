@@ -14,6 +14,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,7 +23,7 @@ import static org.mockito.Mockito.when;
 class ContactDeliveryServiceTest {
 
     @Mock private ContactChannelSender sender;
-    @Mock private AnonymousCallService anonymousCallService;
+    @Mock private AnonymousCallSender anonymousCallSender;
     @Mock private ConversationService conversationService;
 
     private ContactDeliveryService service;
@@ -32,30 +34,30 @@ class ContactDeliveryServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ContactDeliveryService(sender, anonymousCallService, conversationService);
+        service = new ContactDeliveryService(sender, anonymousCallSender, conversationService);
     }
 
     @Test
     void deliveredMessageMarksConversationSent() {
-        when(sender.send(new ContactDelivery(Channel.WHATSAPP, ownerPhone, message, reason)))
+        when(sender.send(new ContactDelivery(Channel.SMS, ownerPhone, message, reason)))
                 .thenReturn(true);
 
-        service.deliver(conversationId, Channel.WHATSAPP, ownerPhone, message, reason);
+        service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason);
 
         ArgumentCaptor<ContactDelivery> captor = ArgumentCaptor.forClass(ContactDelivery.class);
         verify(sender).send(captor.capture());
-        assertThat(captor.getValue().channel()).isEqualTo(Channel.WHATSAPP);
+        assertThat(captor.getValue().channel()).isEqualTo(Channel.SMS);
         assertThat(captor.getValue().ownerPhone()).isEqualTo(ownerPhone);
         assertThat(captor.getValue().message()).isEqualTo(message);
         assertThat(captor.getValue().reason()).isEqualTo(reason);
         // An anonymous masked call is also placed alongside the message relay.
-        verify(anonymousCallService).initiateCall(ownerPhone, reason, message, conversationId.toString());
+        verify(anonymousCallSender).initiateCall(ownerPhone, reason, message, conversationId.toString());
         verify(conversationService).updateStatus(conversationId, ConversationStatus.SENT);
     }
 
     @Test
     void rejectedByProviderMarksConversationFailed() {
-        when(sender.send(org.mockito.ArgumentMatchers.any())).thenReturn(false);
+        when(sender.send(any())).thenReturn(false);
 
         service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason);
 
@@ -64,12 +66,41 @@ class ContactDeliveryServiceTest {
 
     @Test
     void throwingProviderMarksConversationFailedAndDoesNotPropagate() {
-        when(sender.send(org.mockito.ArgumentMatchers.any()))
-                .thenThrow(new RuntimeException("provider down"));
+        when(sender.send(any())).thenThrow(new RuntimeException("provider down"));
 
         assertThatCode(() -> service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason))
                 .doesNotThrowAnyException();
 
+        verify(conversationService).updateStatus(conversationId, ConversationStatus.FAILED);
+        verify(anonymousCallSender, never()).initiateCall(any(), any(), any(), any());
+    }
+
+    @Test
+    void failedCallDoesNotDowngradeDeliveredMessage() {
+        when(sender.send(any())).thenReturn(true);
+        when(anonymousCallSender.initiateCall(any(), any(), any(), any()))
+                .thenThrow(new RuntimeException("voice down"));
+
+        assertThatCode(() -> service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason))
+                .doesNotThrowAnyException();
+
+        verify(conversationService).updateStatus(conversationId, ConversationStatus.SENT);
+    }
+
+    @Test
+    void missingOwnerPhoneFailsWithoutSending() {
+        service.deliver(conversationId, Channel.SMS, "  ", message, reason);
+
+        verify(sender, never()).send(any());
+        verify(anonymousCallSender, never()).initiateCall(any(), any(), any(), any());
+        verify(conversationService).updateStatus(conversationId, ConversationStatus.FAILED);
+    }
+
+    @Test
+    void nullOwnerPhoneFailsWithoutSending() {
+        service.deliver(conversationId, Channel.SMS, null, message, reason);
+
+        verify(sender, never()).send(any());
         verify(conversationService).updateStatus(conversationId, ConversationStatus.FAILED);
     }
 }

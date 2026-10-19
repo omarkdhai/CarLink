@@ -40,7 +40,13 @@ development-grade default if omitted.
 | `APP_BASE_URL` | Public origin used to build QR, verification and reset links. Must be the real `https://` URL, or those links point nowhere. |
 | `APP_PUBLIC_URL` | Public frontend origin, used for links and CORS. |
 | `CORS_ALLOWED_ORIGINS` | Leave **empty** for the normal deployment: nginx serves the SPA and API from one origin, so no cross-origin access is needed. |
-| `CONTACT_PROVIDER` | `mock` (default) logs instead of sending real WhatsApp/SMS. Set `twilio` and supply the Twilio variables to go live. |
+| `CONTACT_PROVIDER` | `mock` (default) logs instead of sending real SMS. Set `telnyx` and supply the Telnyx variables below to go live. |
+| `CONTACT_ENABLED_CHANNELS` | Channels advertised and accepted. Defaults to `SMS`; WhatsApp is deliberately not enabled (needs a Meta template outside the 24-hour window). |
+| `TELNYX_API_KEY` | Telnyx API key. Required when `CONTACT_PROVIDER=telnyx`; startup fails fast if it is blank. |
+| `TELNYX_SMS_FROM` | SMS-enabled number in E.164, attached to a messaging profile. Required for SMS relay. |
+| `TELNYX_VOICE_FROM` | Caller ID for the alert call. |
+| `TELNYX_CONNECTION_ID` | Call Control connection the outbound alert call is placed on. |
+| `TELNYX_VOICE_AUDIO_URL` | Public HTTPS URL of the clip played when the owner answers. Without it the alert call is skipped (a call to silence is worse than none). |
 | `HSTS_ENABLED` | `false` until TLS is confirmed working — see §3. |
 
 **Rotating `JWT_SECRET` or `JWT_REFRESH_SECRET` invalidates every issued token,
@@ -230,3 +236,16 @@ Not yet automated, listed so they are not mistaken for oversights:
   deliberate decision, not a config flip.
 - **No TLS or reverse-proxy config in this repo.** §3 assumes one exists
   elsewhere.
+- **Contact relay defaults to the logging mock.** With `CONTACT_PROVIDER=mock`,
+  submissions are recorded but never reach the owner. Set `telnyx` and supply
+  `TELNYX_API_KEY`, `TELNYX_SMS_FROM`, `TELNYX_VOICE_FROM`,
+  `TELNYX_CONNECTION_ID` and `TELNYX_VOICE_AUDIO_URL` for real SMS + alert calls.
+- **WhatsApp is unsupported by design.** Telnyx delivers WhatsApp free-text only
+  inside a 24-hour window opened by the recipient; a QR scan never opens it, so
+  WhatsApp would need a Meta-approved template. `CONTACT_ENABLED_CHANNELS`
+  defaults to `SMS` and both the page and the API honour it (a disabled channel
+  is a 400).
+- **The alert call plays a static clip.** `TELNYX_VOICE_AUDIO_URL` is fixed at
+  deploy time; the outbound dial API cannot speak the visitor's dynamic message.
+  Speaking it would require hosting a Call Control `speak` webhook, which this
+  app does not do. With no URL set the call is skipped (the SMS still sends).
