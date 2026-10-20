@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,12 +12,14 @@ import {
   ChevronDown,
   CircleHelp,
   Copy,
+  Download,
   Loader2,
   Minus,
   PackageCheck,
   Plus,
   ScanLine,
   ShieldCheck,
+  Smartphone,
   Truck,
   X,
 } from 'lucide-react'
@@ -28,6 +30,7 @@ import { orderApi } from '@/services/orderApi'
 import { http } from '@/services/apiClient'
 import {
   orderDetailsSchema,
+  DELIVERY_FEE,
   PACKS,
   PACK_MAX_QTY,
   packIsPreselect,
@@ -110,6 +113,11 @@ export default function OrderPage() {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
   }, [step, pkg, qty, details, placed])
 
+  // Bring the confirmation screen into view on small screens.
+  useEffect(() => {
+    if (placed) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [placed])
+
   // Recovery after a page refresh: token-free / PII-free summary only.
   const lastSummary = useQuery({
     queryKey: ['order', 'last', lastReference],
@@ -121,7 +129,8 @@ export default function OrderPage() {
   const pack = packPrice(pkg)
   const maxQty = Math.min(PACK_MAX_QTY, Math.floor(MAX_TOTAL_STICKERS / pack.stickers))
   const totalStickers = pack.stickers * qty
-  const total = pack.price * qty
+  const subtotal = pack.price * qty
+  const total = subtotal + DELIVERY_FEE
   const minPrice = Math.min(...PACKS.map((p) => p.price))
 
   const placeMutation = useMutation({
@@ -166,72 +175,152 @@ export default function OrderPage() {
     setLastReference(null)
   }
 
-  // ---------- Success screen (in-memory order, raw tokens shown once) ----------
+  // ---------- Confirmation screen (in-memory order, raw tokens shown once) ----------
   if (placed) {
     return (
       <OrderShell>
-        <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-8 sm:py-12">
-          <div className="rounded-[24px] border border-border bg-white p-5 sm:p-8">
-            <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-success-soft text-success">
-              <Check className="h-8 w-8" aria-hidden />
-            </div>
-            <h1 className="mt-5 text-center text-2xl font-semibold tracking-[-0.03em] text-heading">
-              {t('order.success')}
-            </h1>
-            <p className="mt-2 text-center text-sm text-muted-fg">{t('order.successHint')}</p>
-
-            <div className="mt-6 rounded-2xl border border-border bg-background p-5 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-fg">
-                {t('order.reference')}
+        <div className="px-5 py-8 sm:px-8 sm:py-10">
+          <div className="mx-auto w-full max-w-3xl">
+            {/* Hero */}
+            <div className="text-center">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-success-soft text-success ring-8 ring-success-soft/60">
+                <Check className="h-8 w-8" aria-hidden />
+              </div>
+              <h1 className="mt-5 text-[28px] font-black leading-tight tracking-[-0.03em] text-heading sm:text-4xl">
+                {t('order.success')}
+              </h1>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-fg">
+                {t('order.successHint')}
               </p>
-              <div className="mt-2 flex items-center justify-center gap-2">
-                <p className="font-mono text-lg font-bold tracking-wide text-heading">{placed.reference}</p>
+            </div>
+
+            {/* Reference + status */}
+            <div className="mt-7 flex flex-col gap-4 rounded-2xl border border-border bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                  <PackageCheck className="h-5 w-5" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-fg">
+                    {t('order.reference')}
+                  </p>
+                  <p className="truncate font-mono text-base font-bold tracking-wide text-heading">
+                    {placed.reference}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-[11px] font-semibold text-success">
+                  <Truck className="h-3.5 w-3.5" aria-hidden />
+                  {t('order.statusPlaced')}
+                </span>
                 <button
                   type="button"
                   onClick={copyReference}
-                  className="p-1 text-muted-fg transition-colors hover:text-primary"
-                  aria-label={t('order.copyReference')}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-white px-3 text-xs font-semibold text-muted-fg transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   {copied ? (
-                    <Check className="h-4 w-4 text-success" aria-hidden />
+                    <Check className="h-3.5 w-3.5 text-success" aria-hidden />
                   ) : (
-                    <Copy className="h-4 w-4" aria-hidden />
+                    <Copy className="h-3.5 w-3.5" aria-hidden />
                   )}
+                  {t('order.copyReference')}
                 </button>
               </div>
-              <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-fg">
-                <Truck className="h-3.5 w-3.5" aria-hidden />
-                {t('order.statusPlaced')}
-              </p>
             </div>
 
-            <div className="mt-6">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="font-semibold text-heading">{t('order.yourStickers')}</h2>
-                <span className="text-sm text-muted-fg tabular-nums">{placed.totalAmount} TND</span>
+            {/* Summary + delivery */}
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-border bg-white p-5">
+                <h2 className="text-sm font-semibold text-heading">{t('order.summary')}</h2>
+                <dl className="mt-4 grid gap-3 text-sm">
+                  {placed.items.map((item) => (
+                    <div
+                      key={item.stickerPackage}
+                      className="flex items-baseline justify-between gap-4"
+                    >
+                      <dt className="text-muted-fg">
+                        {item.quantity} × {t(`landing.pricingPack${packNum(item.stickerPackage)}Name`)}
+                      </dt>
+                      <dd className="font-semibold tabular-nums text-heading">
+                        {item.subtotal} TND
+                      </dd>
+                    </div>
+                  ))}
+                  <div className="flex items-baseline justify-between gap-4">
+                    <dt className="text-muted-fg">{t('order.deliveryRow')}</dt>
+                    <dd className="font-semibold tabular-nums text-heading">
+                      {DELIVERY_FEE.toFixed(2)} TND
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-4 border-t border-border pt-3">
+                    <dt className="font-semibold text-heading">{t('order.total')}</dt>
+                    <dd className="text-lg font-bold tabular-nums text-heading">
+                      {placed.totalAmount} TND
+                    </dd>
+                  </div>
+                </dl>
               </div>
-              <ul className="grid gap-4 sm:grid-cols-2">
+
+              <div className="rounded-2xl border border-border bg-white p-5">
+                <h2 className="text-sm font-semibold text-heading">{t('order.deliverySection')}</h2>
+                {details && (
+                  <div className="mt-3 space-y-1 text-sm leading-6 text-muted-fg">
+                    <p className="font-semibold text-heading">{details.customerName}</p>
+                    <p dir="ltr" className="tabular-nums">
+                      {toFullMobile(details.mobile)}
+                    </p>
+                    <p className="break-words">{details.email}</p>
+                    <p className="break-words">{details.deliveryAddress}</p>
+                    <p>{t(`order.governorates.${details.governorate}`)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* QR stickers — raw tokens are shown exactly once */}
+            <div className="mt-4 rounded-2xl border border-border bg-white p-5 sm:p-6">
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                  <ScanLine className="h-4 w-4" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="text-sm font-semibold text-heading">{t('order.yourStickers')}</h2>
+                  <p className="mt-1 text-xs leading-5 text-muted-fg">{t('order.qrOnce')}</p>
+                </div>
+              </div>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                 {placed.stickers.map((st, i) => (
                   <li
                     key={i}
-                    className="rounded-2xl border border-border bg-white p-4 flex flex-col items-center text-center"
+                    className="flex items-center gap-4 rounded-xl border border-border bg-background p-3"
                   >
                     <img
                       src={st.imageDataUri}
                       alt={`${t('order.label')} ${i + 1}`}
-                      className="h-36 w-36 rounded-lg bg-white p-1.5 shadow-card"
+                      className="h-24 w-24 shrink-0 rounded-lg bg-white p-1.5 shadow-card"
                     />
-                    <p className="mt-3 text-sm font-semibold text-heading">
-                      {t('order.label')} {i + 1}
-                    </p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-fg">
-                      <ScanLine className="h-3.5 w-3.5" aria-hidden />
-                      {t('order.scanHint')}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-heading">
+                        {t('order.label')} {i + 1}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-fg">
+                        <ScanLine className="h-3.5 w-3.5" aria-hidden />
+                        {t('order.scanHint')}
+                      </p>
+                      <a
+                        href={st.imageDataUri}
+                        download={`carlink-sticker-${i + 1}.png`}
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                      >
+                        <Download className="h-3.5 w-3.5" aria-hidden />
+                        {t('order.download')}
+                      </a>
+                    </div>
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 flex items-start gap-2 text-xs text-muted-fg">
+              <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-muted-fg">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                 {t('order.keepReference')}
               </p>
@@ -269,17 +358,17 @@ export default function OrderPage() {
             <p className="mt-3 max-w-[620px] text-[13px] leading-7 text-muted-fg">
               {t('order.subtitle')}
             </p>
-            <ul className="mt-4 flex flex-wrap gap-2">
-              <BenefitChip icon={<Banknote className="h-3.5 w-3.5" aria-hidden />}>
+            <ul className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <BenefitChip icon={<Smartphone className="h-3.5 w-3.5" aria-hidden />}>
                 {t('order.benefit1')}
               </BenefitChip>
               <BenefitChip icon={<ScanLine className="h-3.5 w-3.5" aria-hidden />}>
                 {t('order.benefit2')}
               </BenefitChip>
-              <BenefitChip icon={<ShieldCheck className="h-3.5 w-3.5" aria-hidden />}>
+              <BenefitChip icon={<Banknote className="h-3.5 w-3.5" aria-hidden />}>
                 {t('order.benefit3')}
               </BenefitChip>
-              <BenefitChip icon={<Truck className="h-3.5 w-3.5" aria-hidden />}>
+              <BenefitChip icon={<ShieldCheck className="h-3.5 w-3.5" aria-hidden />}>
                 {t('order.benefit4')}
               </BenefitChip>
             </ul>
@@ -297,13 +386,18 @@ export default function OrderPage() {
       {/* Checkout: summary aside + order card */}
       <div className="grid gap-7 px-3.5 pb-0 pt-3.5 sm:px-8 sm:pt-[30px] lg:grid-cols-[minmax(260px,0.75fr)_minmax(0,1.25fr)] lg:gap-9">
         <OrderSummaryAside
-          className="hidden lg:block lg:sticky lg:top-24"
+          className="hidden lg:block lg:sticky lg:top-24 lg:mb-10"
           pkg={pkg}
           qty={qty}
+          subtotal={subtotal}
           total={total}
         />
 
-        <div className="rounded-[24px] border border-border bg-white p-[22px] shadow-[0_12px_40px_rgba(37,99,235,0.05)] sm:p-8">
+        <div
+          className="relative mb-8 rounded-[24px] border border-border bg-white p-[22px] shadow-[0_12px_40px_rgba(37,99,235,0.05)] sm:p-8 lg:mb-10"
+          aria-busy={placeMutation.isPending || undefined}
+        >
+          {placeMutation.isPending && <PlacingOrderOverlay />}
           {showRecovery && lastSummary.data && (
             <div className="mb-7 rounded-2xl border border-primary/30 bg-primary-soft/50 p-4">
               <div className="flex items-start gap-3">
@@ -473,7 +567,7 @@ export default function OrderPage() {
               </div>
 
               {/* Mobile totals (desktop uses the summary aside) */}
-              <MobileTotal pkg={pkg} qty={qty} total={total} />
+              <MobileTotal pkg={pkg} qty={qty} subtotal={subtotal} total={total} />
 
               <nav className="mt-5 flex justify-end">
                 <button type="button" className={SUBMIT_BTN} onClick={() => setStep(2)}>
@@ -555,7 +649,9 @@ export default function OrderPage() {
               <div className="mt-5 flex items-end justify-between border-t border-border pt-4">
                 <div>
                   <span className="text-sm font-semibold text-heading">{t('order.total')}</span>
-                  <p className="text-xs text-muted-fg">{t('order.deliveryIncluded')}</p>
+                  <p className="text-xs text-muted-fg">
+                    {t('order.deliveryFeeNote', { fee: DELIVERY_FEE.toFixed(2) })}
+                  </p>
                 </div>
                 <span className="text-2xl font-semibold tabular-nums tracking-[-0.03em] text-heading">
                   {total.toFixed(2)} TND
@@ -613,10 +709,30 @@ function OrderShell({ children }: { children: ReactNode }) {
 
 function BenefitChip({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
-    <li className="inline-flex items-center gap-1.5 rounded-full bg-white/85 px-3 py-2 text-[10px] font-semibold text-muted-fg ring-1 ring-white/70">
-      <span className="text-primary">{icon}</span>
+    <li className="flex h-full min-h-[36px] w-full items-center justify-center gap-1.5 rounded-full bg-white/85 px-2.5 py-2 text-center text-[10px] font-semibold leading-tight text-muted-fg ring-1 ring-white/70 sm:inline-flex sm:min-h-0 sm:w-auto sm:justify-start">
+      <span className="shrink-0 text-primary">{icon}</span>
       {children}
     </li>
+  )
+}
+
+/** Full-screen progress state while the order is being created server-side. */
+function PlacingOrderOverlay() {
+  const { t } = useTranslation()
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-[100] grid place-items-center bg-white/80 p-6 backdrop-blur-sm"
+    >
+      <div className="flex w-full max-w-sm flex-col items-center rounded-[28px] border border-border bg-white p-8 text-center shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
+        <span className="grid h-16 w-16 place-items-center rounded-full bg-primary-soft text-primary">
+          <Loader2 className="h-8 w-8 animate-spin" aria-hidden />
+        </span>
+        <p className="mt-5 text-base font-bold text-heading">{t('order.placingOrder')}</p>
+        <p className="mt-1.5 text-xs leading-5 text-muted-fg">{t('order.placingHint')}</p>
+      </div>
+    </div>
   )
 }
 
@@ -666,11 +782,13 @@ function StickerArt({ className }: { className?: string }) {
 function OrderSummaryAside({
   pkg,
   qty,
+  subtotal,
   total,
   className,
 }: {
   pkg: StickerPackage
   qty: number
+  subtotal: number
   total: number
   className?: string
 }) {
@@ -703,11 +821,11 @@ function OrderSummaryAside({
           <dt className="text-muted-fg">
             {qty} × {planName}
           </dt>
-          <dd className="font-semibold tabular-nums text-heading">{total.toFixed(2)} TND</dd>
+          <dd className="font-semibold tabular-nums text-heading">{subtotal.toFixed(2)} TND</dd>
         </div>
         <div className="flex items-baseline justify-between gap-4">
           <dt className="text-muted-fg">{t('order.deliveryRow')}</dt>
-          <dd className="font-semibold text-heading">{t('order.deliveryIncluded')}</dd>
+          <dd className="font-semibold tabular-nums text-heading">{DELIVERY_FEE.toFixed(2)} TND</dd>
         </div>
         <div className="mt-1.5 flex items-baseline justify-between gap-4 border-t border-border pt-[18px]">
           <dt className="font-semibold text-heading">{t('order.total')}</dt>
@@ -739,10 +857,12 @@ function OrderSummaryAside({
 function MobileTotal({
   pkg,
   qty,
+  subtotal,
   total,
 }: {
   pkg: StickerPackage
   qty: number
+  subtotal: number
   total: number
 }) {
   const { t } = useTranslation()
@@ -757,12 +877,12 @@ function MobileTotal({
             <span className="truncate font-bold text-heading">
               {planName} × {qty}
             </span>
-            <strong className="shrink-0 font-bold text-heading">{total.toFixed(2)} TND</strong>
+            <strong className="shrink-0 font-bold text-heading">{subtotal.toFixed(2)} TND</strong>
           </div>
           <div className="flex items-baseline justify-between gap-3 text-muted-fg">
             <span>{t('order.deliveryRow')}</span>
             <strong className="shrink-0 text-[11px] font-semibold text-muted-fg">
-              {t('order.deliveryIncluded')}
+              {DELIVERY_FEE.toFixed(2)} TND
             </strong>
           </div>
           <div className="flex items-baseline justify-between gap-3 border-t border-border pt-2.5">
@@ -837,6 +957,8 @@ function DetailsForm({
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<OrderDetailsValues>({
     resolver: zodResolver(orderDetailsSchema),
@@ -851,6 +973,7 @@ function DetailsForm({
   })
 
   const labelCls = 'text-xs font-medium text-foreground'
+  const governorate = watch('governorate')
 
   return (
     <section className="page-enter">
@@ -963,24 +1086,14 @@ function DetailsForm({
 
             <div>
               <label className={labelCls}>{t('order.governorate')}</label>
-              <select
-                className={cn(
-                  'mt-1.5 h-12 w-full appearance-none rounded-xl border bg-white px-3.5 text-foreground transition-colors focus-visible:outline-none',
-                  errors.governorate
-                    ? 'border-destructive focus-visible:border-destructive'
-                    : 'border-border hover:border-primary/50 focus-visible:border-primary',
-                )}
-                {...register('governorate')}
-              >
-                <option value="" disabled>
-                  {t('order.governoratePlaceholder')}
-                </option>
-                {GOVERNORATES.map((g) => (
-                  <option key={g} value={g}>
-                    {t(`order.governorates.${g}`)}
-                  </option>
-                ))}
-              </select>
+              <GovernorateSelect
+                value={governorate}
+                error={Boolean(errors.governorate)}
+                placeholder={t('order.governoratePlaceholder')}
+                onChange={(g) =>
+                  setValue('governorate', g, { shouldValidate: true, shouldDirty: true })
+                }
+              />
               {errors.governorate && (
                 <p className="mt-1 text-sm text-destructive" role="alert">
                   {errors.governorate.message}
@@ -1033,5 +1146,98 @@ function DetailsForm({
         </div>
       </form>
     </section>
+  )
+}
+
+/** Elegant governorate picker — mirrors the language selector's dropdown. */
+function GovernorateSelect({
+  value,
+  onChange,
+  placeholder,
+  error,
+}: {
+  value: string
+  onChange: (value: Governorate) => void
+  placeholder: string
+  error?: boolean
+}) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDocClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div className="relative mt-1.5" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-invalid={error || undefined}
+        className={cn(
+          'flex h-12 w-full items-center justify-between gap-3 rounded-xl border bg-white px-3.5 text-start text-sm transition-colors focus-visible:outline-none',
+          error
+            ? 'border-destructive'
+            : 'border-border hover:border-primary/50 focus-visible:border-primary',
+          open && !error && 'border-primary',
+        )}
+      >
+        <span className={cn('truncate', value ? 'font-medium text-foreground' : 'text-muted-fg')}>
+          {value ? t(`order.governorates.${value}`) : placeholder}
+        </span>
+        <ChevronDown
+          className={cn(
+            'h-4 w-4 shrink-0 text-muted-fg transition-transform',
+            open && 'rotate-180',
+          )}
+          aria-hidden
+        />
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          className="absolute inset-x-0 z-50 mt-2 max-h-64 overflow-y-auto rounded-xl border border-border bg-surface py-1 shadow-pop"
+        >
+          {GOVERNORATES.map((g) => {
+            const selected = g === value
+            return (
+              <button
+                key={g}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                onClick={() => {
+                  onChange(g)
+                  setOpen(false)
+                }}
+                className={cn(
+                  'flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-start text-sm transition-colors hover:bg-muted',
+                  selected ? 'font-semibold text-primary' : 'text-foreground',
+                )}
+              >
+                <span className="truncate">{t(`order.governorates.${g}`)}</span>
+                {selected && <Check className="h-4 w-4 shrink-0" aria-hidden />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }

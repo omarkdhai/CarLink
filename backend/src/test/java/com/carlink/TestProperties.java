@@ -24,7 +24,7 @@ public final class TestProperties {
                 new CarLinkProperties.RateLimit(5, 20, "https://captcha.invalid", 5, 15, 10, 10),
                 new CarLinkProperties.Contact("mock", java.util.List.of("SMS")),
                 new CarLinkProperties.ContactForm("hello@carlink.app", 1000),
-                new CarLinkProperties.Email("mock", 60),
+                new CarLinkProperties.Email("mock", 60, "omarkdhai@gmail.com", "omarkdhai@gmail.com"),
                 new CarLinkProperties.Security("http://localhost:5173"),
                 new CarLinkProperties.Admin(null, null),
                 new CarLinkProperties.Telnyx(

@@ -23,4 +23,15 @@ public class LogEmailSender implements EmailSender {
     public void send(String to, String subject, String text) {
         log.info("[MAIL-DEV] To: {} | Subject: {} | Body: {}", to, subject, text);
     }
+
+    /**
+     * HTML bodies may contain customer names and addresses, so only metadata is
+     * logged. Use MailHog ({@code docker compose --profile email up -d}) to read
+     * the rendered message.
+     */
+    @Override
+    public void sendHtml(String to, String subject, String html, String textBody) {
+        log.info("[MAIL-DEV] To: {} | Subject: {} | HTML body: {} chars (not logged)",
+                to, subject, html.length());
+    }
 }

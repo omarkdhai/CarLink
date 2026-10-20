@@ -66,8 +66,18 @@ public record CarLinkProperties(
      */
     public record ContactForm(String toEmail, int ipPerMinute) {}
 
-    /** Email sending strategy: {@code mock} (logs, dev) or {@code smtp}. */
-    public record Email(String provider, long tokenExpiryMinutes) {}
+    /**
+     * Email sending strategy and envelope identity.
+     *
+     * @param provider          {@code mock} (logs, dev) or {@code smtp}.
+     * @param tokenExpiryMinutes lifetime of verification / reset tokens.
+     * @param from              sender address (must be allowed by the SMTP
+     *                          account; until a branded mailbox exists this is
+     *                          the founder's personal address).
+     * @param replyTo           Reply-To address; customers replying to an order
+     *                          confirmation reach a human.
+     */
+    public record Email(String provider, long tokenExpiryMinutes, String from, String replyTo) {}
 
     public record Security(String corsAllowedOrigins) {}
 

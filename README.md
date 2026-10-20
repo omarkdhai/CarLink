@@ -37,7 +37,7 @@ scans the code and sends an SMS through the platform.
 | Auth       | JWT (access + refresh tokens)                             |
 | Frontend   | React 19, TypeScript, Vite, React Router 7                |
 | Styling    | Tailwind CSS (mobile-first)                               |
-| Email (dev) | MailHog                                                  |
+| Email (dev) | SMTP via Gmail App Password (MailHog optional)             |
 | Test       | JUnit 5, Mockito, Testcontainers, Vitest                  |
 | CI         | GitHub Actions                                            |
 
@@ -114,6 +114,13 @@ If you prefer to run services individually during development:
    cd backend
    mvn spring-boot:run -Dspring-boot.run.profiles=dev
    ```
+
+   Transactional email (verification, password reset, order confirmations) uses
+   the `mock` sender by default and only logs. For real delivery, set the SMTP
+   variables in `.env` (see `.env.example`): Gmail needs 2-step verification and
+   a 16-character **App Password** in `MAIL_PASSWORD`, with `EMAIL_PROVIDER=smtp`.
+   MailHog remains available as a local catcher via
+   `docker-compose --profile email up -d`.
 
 3. **Run the frontend**
 

@@ -15,12 +15,17 @@ import com.carlink.order.model.OrderItem;
 import com.carlink.order.model.OrderStatus;
 import com.carlink.order.repository.OrderItemRepository;
 import com.carlink.order.repository.OrderRepository;
+import com.carlink.order.email.OrderConfirmationEmailComposer;
+import com.carlink.notification.email.EmailSender;
 import com.carlink.qr.service.QrImageGenerator;
 import com.carlink.sticker.model.Sticker;
 import com.carlink.sticker.repository.StickerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -36,10 +41,13 @@ import java.util.Locale;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class OrderService {
 
     private static final int MAX_TOTAL_STICKERS = 100;
+    /** Flat delivery fee (TND) applied once per order, on top of the pack price. */
+    private static final BigDecimal DELIVERY_FEE = new BigDecimal("7.00");
     private static final int REFERENCE_RANDOM_LEN = 8;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final char[] REFERENCE_CHARS =
@@ -51,6 +59,8 @@ public class OrderService {
     private final TokenGenerator tokenGenerator;
     private final QrImageGenerator imageGenerator;
     private final CarLinkProperties properties;
+    private final EmailSender emailSender;
+    private final OrderConfirmationEmailComposer confirmationEmailComposer;
 
     /**
      * Creates a new COD order. Returns the full response with sticker tokens
@@ -93,6 +103,8 @@ public class OrderService {
 
         List<StickerIssuedResponse> stickers = mintStickers(saved, request.items());
 
+        sendConfirmationAfterCommit(saved, items);
+
         return new OrderResponse(
                 order.getReference(),
                 order.getStatus().name(),
@@ -122,6 +134,37 @@ public class OrderService {
     }
 
     // ————————— internal —————————
+
+    /**
+     * Sends the customer confirmation only once the order is committed, so a
+     * rolled-back checkout can never email a confirmation. Delivery failures
+     * are logged without customer data and never fail the order itself.
+     */
+    private void sendConfirmationAfterCommit(Order order, List<OrderItem> items) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendConfirmation(order, items);
+                }
+            });
+        } else {
+            sendConfirmation(order, items);
+        }
+    }
+
+    private void sendConfirmation(Order order, List<OrderItem> items) {
+        try {
+            OrderConfirmationEmailComposer.EmailContent email =
+                    confirmationEmailComposer.compose(order, items);
+            emailSender.sendHtml(order.getEmail(), email.subject(), email.html(), email.text());
+        } catch (RuntimeException ex) {
+            // No customer data in the log line: only the reference and the
+            // exception type, so a broken SMTP setup cannot dump PII.
+            log.warn("Order confirmation email could not be sent for {} ({})",
+                    order.getReference(), ex.getClass().getSimpleName());
+        }
+    }
 
     /**
      * Mints one {@link Sticker} per slot in the order. Each sticker receives
@@ -164,7 +207,7 @@ public class OrderService {
     }
 
     private static BigDecimal computeTotal(List<OrderItemRequest> items) {
-        BigDecimal total = BigDecimal.ZERO;
+        BigDecimal total = DELIVERY_FEE;
         for (OrderItemRequest it : items) {
             total = total.add(it.stickerPackage().packPrice().multiply(BigDecimal.valueOf(it.quantity())));
         }

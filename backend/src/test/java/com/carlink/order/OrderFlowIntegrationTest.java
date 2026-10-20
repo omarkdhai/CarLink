@@ -56,9 +56,9 @@ class OrderFlowIntegrationTest extends AbstractIntegrationTest {
         String reference = node.get("reference").asText();
         assertThat(reference).startsWith("CL-").hasSize(11);
 
-        // Server-side total: DOUBLE (35.00) × 2 = 70.00 TND.
+        // Server-side total: DOUBLE (35.00) × 2 + 7.00 delivery = 77.00 TND.
         assertThat(new java.math.BigDecimal(node.get("totalAmount").asText()))
-                .isEqualByComparingTo("70.00");
+                .isEqualByComparingTo("77.00");
 
         // Exactly Σ(quantity × stickers_per_pack) = 4 raw tokens, each with a QR.
         assertThat(node.get("stickers")).hasSize(4);

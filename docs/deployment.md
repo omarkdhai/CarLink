@@ -36,7 +36,11 @@ development-grade default if omitted.
 
 | Variable | Notes |
 |---|---|
-| `EMAIL_PROVIDER` | Defaults to `smtp` in prod. **Never `mock` in production** — the mock sender logs messages instead of delivering them, so verification and password-reset mail silently disappears. |
+| `MAIL_HOST` / `MAIL_PORT` | SMTP transport. Gmail: `smtp.gmail.com` on `465` (implicit TLS). |
+| `MAIL_USERNAME` / `MAIL_PASSWORD` | SMTP account. Gmail needs 2-step verification and a 16-character **App Password** — the normal account password is rejected. |
+| `MAIL_SMTP_AUTH` / `MAIL_SMTP_STARTTLS` | Default `true` / `false`. Keep STARTTLS `false` on port 465; set it `true` only when the provider is reached on 587. |
+| `MAIL_FROM` / `MAIL_REPLY_TO` | Envelope sender and Reply-To on every transactional mail. Gmail only accepts a sender the authenticated account owns, so both track `MAIL_USERNAME` until a branded mailbox exists. Customers replying to an order confirmation reach the Reply-To address. |
+| `EMAIL_PROVIDER` | Defaults to `smtp` in prod. **Never `mock` in production** — the mock sender logs messages instead of delivering them, so verification, password-reset and order-confirmation mail silently disappears. |
 | `APP_BASE_URL` | Public origin used to build QR, verification and reset links. Must be the real `https://` URL, or those links point nowhere. |
 | `APP_PUBLIC_URL` | Public frontend origin, used for links and CORS. |
 | `CORS_ALLOWED_ORIGINS` | Leave **empty** for the normal deployment: nginx serves the SPA and API from one origin, so no cross-origin access is needed. |
@@ -132,6 +136,10 @@ Then confirm, through the public entry point only:
 - Registration sends a **real** verification email that arrives (this is the
   check that catches `EMAIL_PROVIDER=mock`).
 - Password reset delivers a real email.
+- Placing a test order delivers the **order-confirmation** email to the buyer
+  address, with the reference, item/total breakdown and delivery details.
+  Delivery failure only logs a warning (no customer data), so a broken SMTP
+  setup never loses the order — but it will go unnoticed without this check.
 - Swagger is **not** reachable: `/swagger-ui/` and `/v3/api-docs` must 404 or
   return the SPA shell, not API documentation. They are disabled in the prod
   profile.
@@ -216,6 +224,8 @@ Worth alerting on: readiness flapping, 5xx rate, `429` rate on `/c/{token}`
 | Backend exits at startup, complains about the schema | A Flyway migration failed or is missing. Check `flyway_schema_history` (§10). |
 | Backend exits, "could not resolve parent POM" / Maven errors | Only affects `--build`; see the Dockerfile retry notes. A cached image avoids it. |
 | Verification emails never arrive | `EMAIL_PROVIDER` is `mock`, or SMTP is rejecting. Check §2 and the backend log. |
+| `535` / "Username and Password not accepted" | Gmail rejects the account password — create an App Password (2-step verification required) and put it in `MAIL_PASSWORD`. |
+| Order confirmations missing but orders exist | The send is fail-safe: grep the backend log for `Order confirmation email could not be sent for <reference>`; the cause is on the following lines. The order itself was still created. |
 | QR / reset links point at `localhost` | `APP_BASE_URL` unset or wrong. It is required in prod, so this usually means the dev profile is active. |
 | Swagger still reachable | The `prod` profile is not active; `springdoc` is only disabled there. |
 | `429`s from one IP | Working as intended — see `carlink.ratelimit` in `application.yml`. Raising limits weakens spam protection. |
