@@ -13,7 +13,7 @@ interface AuthContextValue {
   isRestoring: boolean
   isAuthenticated: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (data: { email: string; password: string; firstName: string; lastName: string; phone?: string }) => Promise<void>
+  signUp: (data: { email: string; password: string; firstName: string; lastName: string; phone?: string; stickerCode: string }) => Promise<void>
   signOut: () => Promise<void>
   /** Replace the in-memory + stored user (e.g. after a profile update). */
   setUser: (next: UserResponse) => void
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   const registerMutation = useMutation({
-    mutationFn: (data: { email: string; password: string; firstName: string; lastName: string; phone?: string }) =>
+    mutationFn: (data: { email: string; password: string; firstName: string; lastName: string; phone?: string; stickerCode: string }) =>
       register(data),
     onSuccess: (data) => {
       tokenStore.setSession(data)
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const signUp = useCallback(
-    async (data: { email: string; password: string; firstName: string; lastName: string; phone?: string }) => {
+    async (data: { email: string; password: string; firstName: string; lastName: string; phone?: string; stickerCode: string }) => {
       await registerMutation.mutateAsync(data)
     },
     [registerMutation],

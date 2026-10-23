@@ -13,6 +13,7 @@ import {
   CircleHelp,
   Copy,
   Download,
+  KeyRound,
   Loader2,
   Minus,
   PackageCheck,
@@ -316,6 +317,12 @@ export default function OrderPage() {
                         <Download className="h-3.5 w-3.5" aria-hidden />
                         {t('order.download')}
                       </a>
+                      {st.activationCode && (
+                        <div className="mt-2 inline-flex items-center gap-1 text-xs rounded-lg bg-primary-soft text-primary px-2 py-1 font-mono font-semibold border border-primary/30">
+                          <KeyRound className="h-3 w-3" aria-hidden />
+                          {st.activationCode}
+                        </div>
+                      )}
                     </div>
                   </li>
                 ))}

@@ -59,7 +59,7 @@ class StickerServiceTest {
     }
 
     private Sticker virginSticker() {
-        return Sticker.newSticker(null, tokenGenerator.sha256(rawToken));
+        return Sticker.newSticker(null, tokenGenerator.sha256(rawToken), null);
     }
 
     private Vehicle vehicle(String plate) {

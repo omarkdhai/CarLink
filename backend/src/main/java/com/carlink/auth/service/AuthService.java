@@ -16,6 +16,7 @@ import com.carlink.common.exception.BadRequestException;
 import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.notification.email.EmailSender;
+import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
 import com.carlink.user.model.UserResponse;
@@ -60,6 +61,7 @@ public class AuthService {
     private final EmailSender emailSender;
     private final CarLinkProperties properties;
     private final LoginAttemptService loginAttemptService;
+    private final StickerRepository stickerRepository;
 
     // ---------- Register ----------
 
@@ -75,6 +77,15 @@ public class AuthService {
                     "This email is already registered. Please sign in instead.");
         }
 
+        // An account exists only to own a sticker: reject registration unless
+        // the supplied code maps to a claimable (UNBOUND / DEACTIVATED) sticker.
+        String codeHash = tokenGenerator.sha256(
+                tokenGenerator.normalizeActivationCode(request.stickerCode()));
+        stickerRepository.findByActivationCodeHash(codeHash)
+                .orElseThrow(() -> new BadRequestException("INVALID_STICKER_CODE",
+                        "That sticker code could not be found. Check the code printed "
+                                + "under the QR and try again."));
+
         User user = User.newUser(
                 email,
                 passwordEncoder.encode(request.password()),
@@ -85,6 +96,10 @@ public class AuthService {
             user.setPhone(request.phone());
         }
         userRepository.save(user);
+
+        // The sticker is bound later, from the car-details form
+        // (activateByCode). Registration only validates that the supplied code
+        // maps to a claimable sticker.
 
         sendVerificationEmail(user);
 

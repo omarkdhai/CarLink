@@ -127,14 +127,20 @@ public class OrderConfirmationEmailComposer {
                   <meta name="color-scheme" content="light">
                   <title>{{TITLE}}</title>
                   <style>
+                    /* Progressive enhancement: clients that support @import
+                       (Apple Mail, iOS, most webmail) render the brand face;
+                       others fall back to the system stack below. */
+                    @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap');
                     body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
                     table,td{mso-table-lspace:0;mso-table-rspace:0}
                     body{margin:0;padding:0;width:100%!important;background:#f1f5f9}
+                    .cl-display{font-family:'Bricolage Grotesque','Segoe UI',Arial,sans-serif}
                     @media only screen and (max-width:620px){
                       .cl-shell{padding:20px 10px!important}
                       .cl-pad{padding-left:22px!important;padding-right:22px!important}
                       .cl-title{font-size:26px!important;line-height:1.15!important}
                       .cl-ref{font-size:18px!important}
+                      .cl-sec{font-size:10px!important}
                     }
                   </style>
                 </head>
@@ -148,8 +154,10 @@ public class OrderConfirmationEmailComposer {
                             <td style="background:#2563eb;padding:22px 32px;" class="cl-pad">
                               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                  <td align="left" style="font-size:22px;line-height:26px;font-weight:800;letter-spacing:-.02em;color:#ffffff;">Car<span style="color:#bfdbfe;">Link</span></td>
-                                  <td align="right" style="font-size:10px;line-height:14px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#dbeafe;">Order confirmation</td>
+                                  <td align="left" valign="middle" style="font-family:'Bricolage Grotesque','Segoe UI',Arial,sans-serif;font-size:22px;line-height:26px;font-weight:800;letter-spacing:-.02em;color:#ffffff;white-space:nowrap;">
+                                    Car<span style="color:#bfdbfe;">Link</span>
+                                  </td>
+                                  <td align="right" valign="middle" style="font-family:'Bricolage Grotesque','Segoe UI',Arial,sans-serif;font-size:10px;line-height:14px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#dbeafe;white-space:nowrap;">Order confirmation</td>
                                 </tr>
                               </table>
                             </td>
@@ -161,7 +169,7 @@ public class OrderConfirmationEmailComposer {
                                   <td align="center" valign="middle" width="64" height="64" style="width:64px;height:64px;background:#ecfdf5;border-radius:32px;font-family:Arial,sans-serif;font-size:30px;line-height:64px;color:#059669;">&#10003;</td>
                                 </tr>
                               </table>
-                              <h1 class="cl-title" style="margin:20px 0 0;font-size:30px;line-height:36px;font-weight:800;letter-spacing:-.025em;color:#0f172a;">Your order is confirmed!</h1>
+                              <h1 class="cl-title cl-display" style="margin:20px 0 0;font-size:30px;line-height:36px;font-weight:800;letter-spacing:-.025em;color:#0f172a;">Your order is confirmed!</h1>
                               <p style="margin:14px 0 0;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#475569;">Thanks, <strong style="color:#0f172a;">{{NAME}}</strong>. We&#8217;ve received your order and will contact you soon to arrange delivery.</p>
                             </td>
                           </tr>
@@ -170,8 +178,8 @@ public class OrderConfirmationEmailComposer {
                               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#eff6ff;border:1px solid #dbeafe;border-radius:14px;">
                                 <tr>
                                   <td align="center" style="padding:12px 28px;">
-                                    <div style="font-size:10px;line-height:14px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#2563eb;">Order</div>
-                                    <div class="cl-ref" style="margin-top:3px;font-size:20px;line-height:26px;font-weight:800;letter-spacing:.02em;color:#0f172a;">{{REFERENCE}}</div>
+                                    <div class="cl-sec" style="font-family:'Bricolage Grotesque','Segoe UI',Arial,sans-serif;font-size:10px;line-height:14px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#2563eb;">Order</div>
+                                    <div class="cl-ref cl-display" style="margin-top:3px;font-size:20px;line-height:26px;font-weight:800;letter-spacing:.02em;color:#0f172a;">{{REFERENCE}}</div>
                                   </td>
                                 </tr>
                               </table>
@@ -180,7 +188,7 @@ public class OrderConfirmationEmailComposer {
                           </tr>
                           <tr>
                             <td style="padding:30px 32px 0;" class="cl-pad">
-                              <p style="margin:0 0 10px;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748b;">Order details</p>
+                              <p class="cl-sec" style="margin:0 0 10px;font-family:'Bricolage Grotesque','Segoe UI',Arial,sans-serif;font-size:11px;line-height:16px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#64748b;">Order details</p>
                               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;">
                                 <tr>
                                   <td style="padding:2px 18px 0;">
@@ -212,7 +220,7 @@ public class OrderConfirmationEmailComposer {
                           </tr>
                           <tr>
                             <td style="padding:24px 32px 0;" class="cl-pad">
-                              <p style="margin:0 0 10px;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748b;">Delivery details</p>
+                              <p class="cl-sec" style="margin:0 0 10px;font-family:'Bricolage Grotesque','Segoe UI',Arial,sans-serif;font-size:11px;line-height:16px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#64748b;">Delivery details</p>
                               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;font-family:'Segoe UI',Arial,sans-serif;">
                                 {{DELIVERY_ROWS}}
                               </table>

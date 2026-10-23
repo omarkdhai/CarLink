@@ -5,6 +5,7 @@ import com.carlink.common.exception.ConflictException;
 import com.carlink.common.exception.NotFoundException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.sticker.dto.ActivateStickerRequest;
+import com.carlink.sticker.dto.StickerResolveResponse;
 import com.carlink.sticker.dto.StickerView;
 import com.carlink.sticker.model.Sticker;
 import com.carlink.sticker.model.StickerStatus;
@@ -59,7 +60,41 @@ public class StickerService {
         Sticker sticker = stickerRepository
                 .findByTokenHashForUpdate(tokenGenerator.sha256(rawToken))
                 .orElseThrow(() -> new NotFoundException("Sticker not found"));
+        bind(user, sticker, request);
+    }
 
+    /**
+     * Looks up a sticker by the short activation code (or, as a convenience,
+     * the raw QR token) for the public registration page. Reveals only whether
+     * the sticker can be claimed; unknown codes read as 404 so enumeration
+     * reveals nothing.
+     */
+    @Transactional(readOnly = true)
+    public StickerResolveResponse resolve(String codeOrToken) {
+        Sticker sticker = findByCodeOrToken(codeOrToken)
+                .orElseThrow(() -> new NotFoundException("Sticker not found"));
+        return sticker.getStatus() == StickerStatus.BOUND
+                ? StickerResolveResponse.bound()
+                : StickerResolveResponse.claimable();
+    }
+
+    /**
+     * Claims a sticker identified by its short activation code for the acting
+     * user. Used both by registration (after the account exists) and by the
+     * car-details form.
+     */
+    @Transactional
+    public void activateByCode(UUID userId, String code, ActivateStickerRequest request) {
+        User user = userService.getUser(userId);
+        String codeHash = tokenGenerator.sha256(tokenGenerator.normalizeActivationCode(code));
+        Sticker sticker = stickerRepository
+                .findByActivationCodeHashForUpdate(codeHash)
+                .orElseThrow(() -> new NotFoundException("Sticker not found"));
+        bind(user, sticker, request);
+    }
+
+    /** Shared bind path: conflict-check, find-or-create vehicle, attach. */
+    private void bind(User user, Sticker sticker, ActivateStickerRequest request) {
         if (sticker.getStatus() == StickerStatus.BOUND) {
             // Never reveal who owns it — only that it is taken.
             throw new ConflictException("This sticker is already linked to an account.");
@@ -68,7 +103,7 @@ public class StickerService {
         String plate = request.licensePlate().trim();
         Vehicle vehicle = vehicleRepository
                 .findFirstByOwnerIdAndStatusAndLicensePlateIgnoreCaseOrderByCreatedAtDesc(
-                        userId, VehicleStatus.ACTIVE, plate)
+                        user.getId(), VehicleStatus.ACTIVE, plate)
                 .orElseGet(() -> createVehicle(user, request, plate));
 
         user.setBirthDate(request.birthDate());
@@ -100,6 +135,20 @@ public class StickerService {
             throw new NotFoundException("Sticker not found");
         }
         return sticker;
+    }
+
+    /**
+     * Looks a sticker up by short activation code first, then by raw QR token,
+     * so the registration page accepts either the printed code or a link
+     * scanned from the QR (which carries the raw token).
+     */
+    private java.util.Optional<Sticker> findByCodeOrToken(String codeOrToken) {
+        String codeHash = tokenGenerator.sha256(tokenGenerator.normalizeActivationCode(codeOrToken));
+        java.util.Optional<Sticker> byCode = stickerRepository.findByActivationCodeHash(codeHash);
+        if (byCode.isPresent()) {
+            return byCode;
+        }
+        return stickerRepository.findByTokenHash(tokenGenerator.sha256(codeOrToken));
     }
 
     private Vehicle createVehicle(User owner, ActivateStickerRequest request, String plate) {

@@ -184,6 +184,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     private String registerAndLogin(String email) throws Exception {
+        String stickerCode = freshStickerCode();
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
@@ -191,7 +192,8 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
                                 "password", "Secret123",
                                 "firstName", "A",
                                 "lastName", "B",
-                                "phone", "+21655123456"))))
+                                "phone", "+21655123456",
+                                "stickerCode", stickerCode))))
                 .andExpect(status().isOk());
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
@@ -209,5 +211,22 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
 
     private String json(Object value) throws Exception {
         return objectMapper.writeValueAsString(value);
+    }
+
+    /** Orders a SINGLE sticker as a guest and returns the printed activation code. */
+    private String freshStickerCode() throws Exception {
+        MvcResult r = mockMvc.perform(post("/api/v1/public/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of(
+                                "items", List.of(Map.of("stickerPackage", "SINGLE", "quantity", 1)),
+                                "customerName", "Test Buyer",
+                                "mobile", "+21655123456",
+                                "email", "buyer@example.com",
+                                "governorate", "TUNIS",
+                                "deliveryAddress", "1 Place de la République"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(r.getResponse().getContentAsString())
+                .get("stickers").get(0).get("activationCode").asText();
     }
 }

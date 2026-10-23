@@ -3,6 +3,7 @@ package com.carlink.sticker.controller;
 import com.carlink.common.dto.MessageResponse;
 import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.security.principal.UserPrincipal;
+import com.carlink.sticker.dto.ActivateStickerByCodeRequest;
 import com.carlink.sticker.dto.ActivateStickerRequest;
 import com.carlink.sticker.dto.StickerView;
 import com.carlink.sticker.service.StickerService;
@@ -40,6 +41,14 @@ public class StickerController {
                                     @PathVariable String token,
                                     @Valid @RequestBody ActivateStickerRequest body) {
         stickerService.activate(requireId(principal), token, body);
+        return new MessageResponse("Sticker activated");
+    }
+
+    @PostMapping("/activate-by-code")
+    @Operation(summary = "Claim a sticker by its printed activation code and link it to one of your cars")
+    public MessageResponse activateByCode(@AuthenticationPrincipal UserPrincipal principal,
+                                          @Valid @RequestBody ActivateStickerByCodeRequest body) {
+        stickerService.activateByCode(requireId(principal), body.code(), body.details());
         return new MessageResponse("Sticker activated");
     }
 

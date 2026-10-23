@@ -224,7 +224,7 @@ class PublicQrServiceTest {
     @Test
     void resolveBoundStickerReturnsStateVehicleAndChannels() {
         allowAllRequests();
-        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken));
+        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken), null);
         sticker.bind(owner, vehicle);
         when(stickerRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
                 .thenReturn(Optional.of(sticker));
@@ -241,7 +241,7 @@ class PublicQrServiceTest {
     @Test
     void resolveUnboundStickerHidesVehicleAndChannels() {
         allowAllRequests();
-        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken));
+        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken), null);
         when(stickerRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
                 .thenReturn(Optional.of(sticker));
 
@@ -256,7 +256,7 @@ class PublicQrServiceTest {
     @Test
     void resolveDeactivatedStickerHidesVehicleAndChannels() {
         allowAllRequests();
-        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken));
+        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken), null);
         sticker.bind(owner, vehicle);
         sticker.unbind();
         when(stickerRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
@@ -287,7 +287,7 @@ class PublicQrServiceTest {
     @Test
     void submit404ForUnboundSticker() {
         allowAllRequests();
-        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken));
+        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken), null);
         when(stickerRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
                 .thenReturn(Optional.of(sticker));
 
@@ -324,7 +324,7 @@ class PublicQrServiceTest {
     @Test
     void submitBoundStickerRelaysUsingStickerVehicle() {
         allowAllRequests();
-        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken));
+        Sticker sticker = Sticker.newSticker(null, tokenGenerator.sha256(rawToken), null);
         sticker.bind(owner, vehicle);
         when(stickerRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
                 .thenReturn(Optional.of(sticker));

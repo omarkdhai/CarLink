@@ -19,6 +19,7 @@ const CommunicationPage = lazy(() => import('@/features/legal/CommunicationPage'
 // ---- Auth ----
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
 const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
+const RegisterStickerPage = lazy(() => import('@/features/stickers/RegisterStickerPage'))
 const ForgotPasswordPage = lazy(() => import('@/features/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'))
 const VerifyEmailPage = lazy(() => import('@/features/auth/VerifyEmailPage'))
@@ -122,6 +123,16 @@ export function AppRouter() {
           <RedirectIfAuthed>
             <Suspense fallback={<PageLoader />}>
               <RegisterPage />
+            </Suspense>
+          </RedirectIfAuthed>
+        }
+      />
+      <Route
+        path="/register-sticker"
+        element={
+          <RedirectIfAuthed>
+            <Suspense fallback={<PageLoader />}>
+              <RegisterStickerPage />
             </Suspense>
           </RedirectIfAuthed>
         }

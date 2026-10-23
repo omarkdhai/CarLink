@@ -52,6 +52,8 @@ export interface RegisterRequest {
   firstName: string
   lastName: string
   phone?: string
+  /** Short activation code printed under the QR; required to create an account. */
+  stickerCode: string
 }
 
 export interface LoginRequest {
@@ -184,6 +186,8 @@ export interface StickerIssuedResponse {
   publicUrl: string
   /** base64 PNG data URI of the QR image. */
   imageDataUri: string
+  /** Short human-enterable code printed under the QR; shown once. */
+  activationCode: string
 }
 
 export interface OrderItemResponse {
@@ -217,6 +221,18 @@ export interface OrderSummaryResponse {
 // ---------- Stickers ----------
 
 export type StickerStatus = 'UNBOUND' | 'BOUND' | 'DEACTIVATED'
+
+/** Whether a scanned/typed sticker code is still claimable. */
+export type StickerResolveState = 'CLAIMABLE' | 'BOUND'
+
+export interface StickerResolveRequest {
+  /** Raw QR token (scan) or short activation code (manual entry). */
+  code: string
+}
+
+export interface StickerResolveResponse {
+  state: StickerResolveState
+}
 
 export interface ActivateStickerRequest {
   birthDate: string

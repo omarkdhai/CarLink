@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -280,7 +281,8 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         String email = "ad" + (++seq) + "@example.com";
         JsonNode body = postJson("/api/v1/auth/register",
                 Map.of("email", email, "password", "Secret123",
-                        "firstName", "Own", "lastName", "Er", "phone", "+21655100" + seq));
+                        "firstName", "Own", "lastName", "Er", "phone", "+21655100" + seq,
+                        "stickerCode", freshStickerCode()));
         return new Owner(body.get("accessToken").asText(),
                 UUID.fromString(body.get("user").get("id").asText()), email);
     }
@@ -367,6 +369,23 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
 
     private String json(Object value) throws Exception {
         return objectMapper.writeValueAsString(value);
+    }
+
+    /** Orders a SINGLE sticker as a guest and returns the printed activation code. */
+    private String freshStickerCode() throws Exception {
+        MvcResult r = mockMvc.perform(post("/api/v1/public/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of(
+                                "items", List.of(Map.of("stickerPackage", "SINGLE", "quantity", 1)),
+                                "customerName", "Test Buyer",
+                                "mobile", "+21655123456",
+                                "email", "buyer@example.com",
+                                "governorate", "TUNIS",
+                                "deliveryAddress", "1 Place de la République"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(r.getResponse().getContentAsString())
+                .get("stickers").get(0).get("activationCode").asText();
     }
 
     private record Admin(String auth, UUID userId, String email) {}

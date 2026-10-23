@@ -61,6 +61,14 @@ public class Sticker extends BaseEntity {
     @Column(name = "token_hash", nullable = false, length = 128)
     private String tokenHash;
 
+    /**
+     * SHA-256 of the short activation code printed under the QR; {@code null}
+     * for legacy rows minted before the code existed. The raw code is returned
+     * to the buyer exactly once at order creation and never persisted.
+     */
+    @Column(name = "activation_code_hash", length = 128)
+    private String activationCodeHash;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StickerStatus status;
@@ -72,11 +80,12 @@ public class Sticker extends BaseEntity {
     private Instant deactivatedAt;
 
     /** A virgin (sold but unclaimed) sticker. The raw token is NOT stored. */
-    public static Sticker newSticker(Order order, String tokenHash) {
+    public static Sticker newSticker(Order order, String tokenHash, String activationCodeHash) {
         return Sticker.builder()
                 .id(UUID.randomUUID())
                 .order(order)
                 .tokenHash(tokenHash)
+                .activationCodeHash(activationCodeHash)
                 .status(StickerStatus.UNBOUND)
                 .build();
     }

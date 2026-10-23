@@ -168,8 +168,8 @@ public class OrderService {
 
     /**
      * Mints one {@link Sticker} per slot in the order. Each sticker receives
-     * a fresh random token whose raw value is returned once and whose SHA-256
-     * hash is stored.
+     * a fresh random token and a short activation code; both raw values are
+     * returned exactly once and stored only as SHA-256 hashes.
      */
     private List<StickerIssuedResponse> mintStickers(
             Order order, List<OrderItemRequest> items) {
@@ -182,9 +182,14 @@ public class OrderService {
                 String tokenHash = tokenGenerator.sha256(rawToken);
                 String publicUrl = properties.baseUrl() + "/c/" + rawToken;
 
-                stickerRepository.save(Sticker.newSticker(order, tokenHash));
+                String activationCode = tokenGenerator.generateActivationCode();
+                String activationCodeHash = tokenGenerator.sha256(
+                        tokenGenerator.normalizeActivationCode(activationCode));
+
+                stickerRepository.save(Sticker.newSticker(order, tokenHash, activationCodeHash));
                 out.add(new StickerIssuedResponse(
-                        rawToken, publicUrl, imageGenerator.pngDataUri(publicUrl, 300)));
+                        rawToken, publicUrl, imageGenerator.pngDataUri(publicUrl, 300),
+                        activationCode));
             }
         }
         return out;
