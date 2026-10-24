@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, CarFront, Pencil, QrCode, Archive, Trash2, MessageSquare, Calendar, RefreshCw } from 'lucide-react'
+import { ArrowLeft, CarFront, Pencil, QrCode, Archive, Trash2, MessageSquare } from 'lucide-react'
 import { vehicleApi, vehicleQueryKeys } from '@/services/vehicleApi'
 import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
 import { http } from '@/services/apiClient'
 import { useCarColor } from '@/hooks/useCarColor'
 import { VehicleStatusBadge } from '@/features/vehicles/VehicleStatusBadge'
-import { ChannelBadge, ConversationStatusBadge } from '@/features/conversations/ConversationBadges'
+import { ConversationStatusBadge } from '@/features/conversations/ConversationBadges'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -89,103 +89,101 @@ export default function VehicleDetailPage() {
       )}
 
       {/* Hero */}
-      <div className="bg-surface border border-border rounded-2xl p-6 mb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div
-            className="h-16 w-16 shrink-0 rounded-2xl flex items-center justify-center"
-            style={{ backgroundColor: color.soft, color: color.main }}
-          >
-            <CarFront className="h-8 w-8" aria-hidden />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold text-heading tracking-tight">{v.nickname ?? t('vehicle.details')}</h1>
-              <VehicleStatusBadge status={v.status} />
+      <div className="bg-surface border border-border rounded-xl shadow-sm p-4 mb-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="h-12 w-12 shrink-0 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: color.soft, color: color.main }}
+            >
+              <CarFront className="h-6 w-6" aria-hidden />
             </div>
-            <p className="text-sm text-muted-fg mt-1">
-              {[v.brand, v.model].filter(Boolean).join(' ')}
-              {v.color ? ` · ${v.color}` : ''}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link to={`/vehicles/${v.id}/edit`} className={buttonClasses({ variant: 'secondary', size: 'sm' })}>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h1 className="text-lg font-semibold text-heading truncate">{v.nickname ?? t('vehicle.details')}</h1>
+                <VehicleStatusBadge status={v.status} />
+              </div>
+              <p className="text-sm text-muted-fg truncate">
+                {[v.brand, v.model, v.licensePlate].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+            <Link to={`/vehicles/${v.id}/edit`} className={buttonClasses({ variant: 'ghost', size: 'sm' })}>
               <Pencil className="h-4 w-4" aria-hidden />
-              {t('vehicle.edit')}
             </Link>
-            <Link to="/stickers" className={buttonClasses({ size: 'sm' })}>
+          </div>
+
+          {/* Details */}
+          <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border">
+            <div className="p-2 rounded-lg bg-muted/30">
+              <p className="text-xs text-muted-fg">{t('vehicle.brand')}</p>
+              <p className="text-sm text-foreground mt-0.5 truncate">{v.brand ?? '—'}</p>
+            </div>
+            <div className="p-2 rounded-lg bg-muted/30">
+              <p className="text-xs text-muted-fg">{t('vehicle.model')}</p>
+              <p className="text-sm text-foreground mt-0.5 truncate">{v.model ?? '—'}</p>
+            </div>
+            <div className="p-2 rounded-lg bg-muted/30">
+              <p className="text-xs text-muted-fg">{t('vehicle.color')}</p>
+              <p className="text-sm text-foreground mt-0.5 truncate">{v.color ?? '—'}</p>
+            </div>
+            <div className="p-2 rounded-lg bg-muted/30">
+              <p className="text-xs text-muted-fg">{t('admin.memberSince')}</p>
+              <p className="text-sm text-foreground mt-0.5">{formatDateTime(v.createdAt).split(',')[0]}</p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 pt-3 border-t border-border">
+            <Link to="/stickers" className={buttonClasses({ size: 'sm' }) + ' flex-1 justify-center'}>
               <QrCode className="h-4 w-4" aria-hidden />
               {t('stickers.title')}
             </Link>
-          </div>
-        </div>
-
-        {/* Details grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-5 border-t border-border">
-          <Detail label={t('vehicle.licensePlate')} value={v.licensePlate} />
-          <Detail label={t('vehicle.brand')} value={v.brand ?? '—'} />
-          <Detail label={t('vehicle.model')} value={v.model ?? '—'} />
-          <Detail label={t('vehicle.color')} value={v.color ?? '—'} />
-        </div>
-
-        <div className="flex items-center gap-4 mt-5 text-xs text-muted-fg flex-wrap">
-          <span className="inline-flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" aria-hidden />
-            {t('admin.memberSince')} {formatDateTime(v.createdAt)}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-            {formatRelative(v.updatedAt)}
-          </span>
-        </div>
-
-        {/* Danger actions */}
-        <div className="flex gap-2 mt-6 pt-5 border-t border-border">
-          {v.status === 'ACTIVE' ? (
-            <Button variant="outline" size="sm" onClick={() => setConfirm('archive')}>
-              <Archive className="h-4 w-4" aria-hidden />
-              {t('vehicle.archive')}
+            {v.status === 'ACTIVE' ? (
+              <Button variant="outline" size="sm" className="flex-1 justify-center" onClick={() => setConfirm('archive')}>
+                <Archive className="h-4 w-4" aria-hidden />
+                {t('vehicle.archive')}
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive-soft px-2" onClick={() => setConfirm('delete')}>
+              <Trash2 className="h-4 w-4" aria-hidden />
             </Button>
-          ) : null}
-          <Button variant="danger" size="sm" onClick={() => setConfirm('delete')}>
-            <Trash2 className="h-4 w-4" aria-hidden />
-            {t('vehicle.delete')}
-          </Button>
+          </div>
         </div>
       </div>
 
       {/* Conversations for this vehicle */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-heading flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" aria-hidden />
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base font-semibold text-heading flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" aria-hidden />
             {t('message.title')}
           </h2>
-          <Link to="/messages" className="text-sm font-semibold text-primary hover:text-primary-hover">
-            {t('dashboard.viewAll')}
-          </Link>
+          {conversations.data && conversations.data.length > 0 && (
+            <Link to="/messages" className="text-sm text-primary hover:text-primary-hover">
+              {t('dashboard.viewAll')}
+            </Link>
+          )}
         </div>
 
         {conversations.isPending ? (
-          <div className="h-28 rounded-lg bg-muted animate-pulse" />
+          <div className="h-20 rounded-lg bg-muted animate-pulse" />
         ) : !conversations.data || conversations.data.length === 0 ? (
-          <div className="bg-surface border border-border rounded-lg p-8 text-center">
+          <div className="bg-surface border border-border rounded-xl p-6 text-center">
             <p className="text-sm text-muted-fg">{t('message.empty')}</p>
-            <p className="text-xs text-muted-fg mt-1">{t('message.emptyHint')}</p>
           </div>
         ) : (
-          <ul className="bg-surface border border-border rounded-lg divide-y divide-border">
+          <ul className="bg-surface border border-border rounded-xl divide-y divide-border overflow-hidden">
             {conversations.data.map((c) => (
               <li key={c.id}>
-                <Link to={`/messages/${c.id}`} className="flex items-center gap-3 p-4 hover:bg-muted transition-colors">
+                <Link to={`/messages/${c.id}`} className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className={cn('truncate', c.unread ? 'font-bold text-heading' : 'font-semibold text-foreground')}>
+                      <p className={cn('truncate text-sm', c.unread ? 'font-semibold text-heading' : 'text-foreground')}>
                         {c.lastMessagePreview ?? t('message.pending')}
                       </p>
-                      {c.unread && <span className="h-2 w-2 rounded-full bg-primary shrink-0" aria-hidden />}
+                      {c.unread && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" aria-hidden />}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
-                      <ChannelBadge channel={c.channel} />
                       <ConversationStatusBadge status={c.status} />
                     </div>
                   </div>
@@ -221,11 +219,4 @@ export default function VehicleDetailPage() {
   )
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs text-muted-fg">{label}</p>
-      <p className="text-sm font-semibold text-foreground mt-0.5 truncate">{value}</p>
-    </div>
-  )
-}
+

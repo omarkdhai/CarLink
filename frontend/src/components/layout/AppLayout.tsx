@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
-import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard,
+  LayoutGrid,
   Car,
-  MessageSquare,
+  MessageSquareText,
   Bell,
-  UserRound,
+  UserCircle,
   Settings,
   ShieldCheck,
-  ScanLine,
+  QrCode,
   Menu,
   X,
   LogOut,
@@ -21,15 +21,15 @@ import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { PageTransition } from '@/components/shared/PageTransition'
 
 const ownerNav = [
-  { to: '/dashboard', key: 'nav.dashboard', icon: LayoutDashboard },
-  { to: '/stickers', key: 'nav.stickers', icon: ScanLine },
+  { to: '/dashboard', key: 'nav.dashboard', icon: LayoutGrid },
+  { to: '/stickers', key: 'nav.stickers', icon: QrCode },
   { to: '/vehicles', key: 'nav.vehicles', icon: Car },
-  { to: '/messages', key: 'nav.messages', icon: MessageSquare },
+  { to: '/messages', key: 'nav.messages', icon: MessageSquareText },
   { to: '/notifications', key: 'nav.notifications', icon: Bell },
 ]
 
 const accountNav = [
-  { to: '/profile', key: 'nav.profile', icon: UserRound },
+  { to: '/profile', key: 'nav.profile', icon: UserCircle },
   { to: '/settings', key: 'nav.settings', icon: Settings },
 ]
 
@@ -98,7 +98,7 @@ function SidebarContent({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?
 
 export function AppLayout() {
   const { t } = useTranslation()
-  const { user, isAdmin, signOut } = useAuth()
+  const { isAdmin, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -111,8 +111,6 @@ export function AppLayout() {
     await signOut()
     navigate('/login', { replace: true })
   }
-
-  const initials = user ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase() : '?'
 
   return (
     <div className="min-h-screen">
@@ -132,32 +130,49 @@ export function AppLayout() {
           <div className="absolute inset-0 bg-heading/40 backdrop-blur-[1px] drawer-backdrop-enter" onClick={() => setMobileOpen(false)} />
           <aside className="absolute inset-y-0 start-0 w-72 bg-surface shadow-pop flex flex-col drawer-panel-enter">
             <button
-              className="absolute end-3 top-4 h-9 w-9 rounded-lg text-muted-fg hover:bg-muted flex items-center justify-center"
+              className="absolute end-3 top-4 h-9 w-9 rounded-lg text-muted-fg hover:bg-muted flex items-center justify-center touch-target"
               onClick={() => setMobileOpen(false)}
               aria-label={t('common.close')}
             >
               <X className="h-5 w-5" />
             </button>
             <SidebarContent isAdmin={isAdmin} onNavigate={() => setMobileOpen(false)} />
+            <div className="px-3 py-3 border-t border-border">
+              <button
+                className="flex items-center gap-3 h-11 px-3 w-full rounded-lg text-sm font-medium text-muted-fg hover:bg-destructive-soft hover:text-destructive transition-colors touch-target"
+                onClick={() => {
+                  setMobileOpen(false)
+                  handleSignOut()
+                }}
+              >
+                <LogOut className="h-5 w-5 shrink-0" aria-hidden />
+                {t('auth.logout')}
+              </button>
+            </div>
           </aside>
         </div>
       )}
 
       {/* Main column */}
       <div className="lg:ps-64">
-        {/* Top bar */}
-        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 px-4 sm:px-6 h-16 border-b border-border/60 navbar-glass">
+        {/* Top bar - cleaner mobile style */}
+        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 px-3 sm:px-6 h-14 sm:h-16 border-b border-border/60 navbar-glass">
           <div className="flex items-center gap-2">
             <button
-              className="lg:hidden h-11 w-11 rounded-lg text-muted-fg hover:bg-muted flex items-center justify-center"
+              className="lg:hidden h-10 w-10 rounded-xl text-muted-fg hover:bg-muted flex items-center justify-center touch-target"
               onClick={() => setMobileOpen(true)}
               aria-label="Menu"
             >
               <Menu className="h-5 w-5" />
             </button>
+            <div className="lg:hidden">
+              <Logo />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
             <button
               className="inline-flex items-center gap-2 h-9 px-2 rounded-lg hover:bg-muted transition-colors"
               onClick={handleSignOut}
@@ -166,15 +181,10 @@ export function AppLayout() {
               <LogOut className="h-4 w-4 text-muted-fg" aria-hidden />
               <span className="hidden sm:inline text-sm font-medium text-muted-fg">{t('auth.logout')}</span>
             </button>
-            <Link to="/profile" className="flex items-center gap-2.5 ps-2" aria-label={t('nav.profile')}>
-              <span className="h-8 w-8 rounded-full bg-primary-soft text-primary flex items-center justify-center text-sm font-bold">
-                {initials}
-              </span>
-            </Link>
           </div>
         </header>
 
-        <main id="main-content" className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
+        <main id="main-content" className="px-3 sm:px-6 lg:px-8 pt-4 pb-6 max-w-6xl mx-auto">
           <PageTransition key={location.pathname}>
             <Outlet />
           </PageTransition>

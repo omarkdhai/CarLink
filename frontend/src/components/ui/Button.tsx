@@ -3,7 +3,7 @@ import { forwardRef } from 'react'
 import { Loader2 } from 'lucide-react'
 import { clsx } from '@/lib/cn'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'whatsapp' | 'sms'
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'sms'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 
 const baseClasses =
@@ -18,7 +18,6 @@ const variantClasses: Record<ButtonVariant, string> = {
   outline: 'bg-surface border border-border text-foreground hover:bg-muted',
   ghost: 'bg-transparent text-muted-fg hover:bg-muted hover:text-foreground',
   danger: 'bg-destructive text-white hover:bg-destructive-hover',
-  whatsapp: 'bg-whatsapp text-white hover:bg-whatsapp-hover',
   sms: 'bg-sms text-white hover:bg-primary-hover',
 }
 

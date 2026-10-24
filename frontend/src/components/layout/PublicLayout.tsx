@@ -121,7 +121,9 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <Logo />
           <LandingNav />
           <div className="flex items-center gap-2 sm:gap-3">
-            <LanguageSwitcher />
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
             <Link
               to="/login"
               className="hidden lg:inline-flex items-center gap-2 h-10 px-3.5 rounded-xl border border-border bg-surface text-sm font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-colors"

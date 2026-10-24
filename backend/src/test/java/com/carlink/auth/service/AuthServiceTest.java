@@ -18,7 +18,6 @@ import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.notification.email.EmailSender;
 import com.carlink.sticker.model.Sticker;
-import com.carlink.sticker.model.StickerStatus;
 import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;

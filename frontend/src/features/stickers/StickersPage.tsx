@@ -25,23 +25,25 @@ export default function StickersPage() {
 
   return (
     <div>
-      <PageHeader
-        title={t('stickers.title')}
-        subtitle={t('stickers.subtitle')}
-        actions={
-          <Link to="/order" className={buttonClasses()}>
-            <ShoppingBag className="h-4 w-4" aria-hidden />
-            {t('stickers.orderCta')}
-          </Link>
-        }
-      />
+      <div className="mb-6">
+        <PageHeader
+          title={t('stickers.title')}
+          subtitle={t('stickers.subtitle')}
+          actions={
+            <Link to="/order" className={buttonClasses({ size: 'sm' }) + ' sm:h-10 sm:px-4'}>
+              <ShoppingBag className="h-4 w-4" aria-hidden />
+              <span>{t('stickers.orderCta')}</span>
+            </Link>
+          }
+        />
+      </div>
 
       {mine.isError && <ErrorState message={t('errors.generic')} onRetry={() => mine.refetch()} />}
 
       {mine.isPending ? (
         <SkeletonGrid count={4} />
       ) : mine.data && mine.data.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {mine.data.map((s: StickerView, i) => (
             <div key={s.id} className="stagger-delay" style={{ '--stagger': i } as React.CSSProperties}>
               <StickerCard sticker={s} />
@@ -49,7 +51,7 @@ export default function StickersPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-surface border border-border rounded-2xl">
+        <div className="bg-surface border border-border rounded-xl sm:rounded-2xl shadow-sm">
           <EmptyState
             icon={<ScanLine className="h-7 w-7" aria-hidden />}
             title={t('stickers.empty')}

@@ -12,7 +12,7 @@ const STATUS_TONE: Record<ConversationStatus, BadgeTone> = {
 export function ChannelBadge({ channel }: { channel: ContactChannel }) {
   const { t } = useTranslation()
   return (
-    <Badge tone={channel === 'WHATSAPP' ? 'whatsapp' : 'sms'}>
+    <Badge tone="sms">
       {t(`contact.${channel.toLowerCase()}`)}
     </Badge>
   )

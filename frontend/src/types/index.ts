@@ -255,7 +255,7 @@ export interface StickerView {
 
 // ---------- Public / contact ----------
 
-export type ContactChannel = 'WHATSAPP' | 'SMS'
+export type ContactChannel = 'SMS'
 
 /** Lifecycle state of the resolved token (physical sticker or legacy QR). */
 export type QrPublicState = 'BOUND' | 'UNBOUND' | 'DEACTIVATED'
@@ -409,6 +409,6 @@ export interface AuditLogResponse {
 
 // Enumerations shared with server enum names.
 
-export const CONTACT_CHANNELS: ContactChannel[] = ['WHATSAPP', 'SMS']
+export const CONTACT_CHANNELS: ContactChannel[] = ['SMS']
 export const REPORT_STATUSES: ReportStatus[] = ['OPEN', 'REVIEWED', 'CLOSED']
 export const REPORT_REASONS: ReportReason[] = ['SPAM', 'ABUSE', 'OTHER']
