@@ -16,7 +16,6 @@ import { Alert } from '@/components/ui/Alert'
 import { userApi, userQueryKeys } from '@/services/userApi'
 import { useAuth } from '@/features/auth/AuthContext'
 import { http } from '@/services/apiClient'
-import { formatDateTime } from '@/lib/format'
 import { joinPhone, splitPhone, DEFAULT_PHONE_CODE } from '@/lib/phone'
 
 const phoneCodeRegex = /^\+[1-9][0-9]{0,3}$/
@@ -83,7 +82,9 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
+      <div className="mb-6">
+        <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Profile card */}
@@ -158,17 +159,14 @@ export default function ProfilePage() {
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-fg">{t('profile.role')}</span>
-                <Badge tone={data?.role === 'ADMIN' ? 'primary' : 'neutral'}>{t(`admin.roles.${data?.role}`)}</Badge>
-              </div>
+
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-fg flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" aria-hidden />
                   {t('profile.memberSince')}
                 </span>
                 <span className="text-sm font-medium text-foreground">
-                  {data?.createdAt ? formatDateTime(data.createdAt) : '—'}
+                  {data?.createdAt ? new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(data.createdAt)) : '—'}
                 </span>
               </div>
               {!data?.emailVerified && (

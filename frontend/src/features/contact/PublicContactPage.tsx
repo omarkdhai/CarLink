@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { CarFront, Check, ShieldAlert, MessageCircle, Smartphone, Lock } from 'lucide-react'
+import { CarFront, Check, ShieldAlert, Smartphone, Lock } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
@@ -26,16 +26,9 @@ const CHANNEL_UI: Record<
     icon: React.ReactNode
     className: string
     activeClass: string
-    variant: 'whatsapp' | 'sms'
+    variant: 'sms'
   }
 > = {
-  WHATSAPP: {
-    labelKey: 'contact.whatsapp',
-    icon: <MessageCircle className="h-5 w-5" aria-hidden />,
-    className: 'border-whatsapp/60 text-whatsapp hover:bg-whatsapp/5',
-    activeClass: 'bg-whatsapp text-white border-whatsapp',
-    variant: 'whatsapp',
-  },
   SMS: {
     labelKey: 'contact.sms',
     icon: <Smartphone className="h-5 w-5" aria-hidden />,

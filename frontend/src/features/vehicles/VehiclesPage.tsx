@@ -46,16 +46,18 @@ export default function VehiclesPage() {
 
   return (
     <div>
-      <PageHeader
-        title={t('vehicle.title')}
-        subtitle={t('vehicle.subtitle')}
-        actions={
-          <Link to="/vehicles/new" className={buttonClasses()}>
-            <Plus className="h-4 w-4" aria-hidden />
-            {t('vehicle.add')}
-          </Link>
-        }
-      />
+      <div className="mb-6">
+        <PageHeader
+          title={t('vehicle.title')}
+          subtitle={t('vehicle.subtitle')}
+          actions={
+            <Link to="/vehicles/new" className={buttonClasses({ size: 'sm' }) + ' sm:h-10 sm:px-4'}>
+              <Plus className="h-4 w-4" aria-hidden />
+              <span className="hidden sm:inline">{t('vehicle.add')}</span>
+            </Link>
+          }
+        />
+      </div>
 
       {toast && (
         <div className="mb-4">
@@ -65,22 +67,24 @@ export default function VehiclesPage() {
         </div>
       )}
 
-      {/* Status tabs */}
-      <div className="inline-flex rounded-lg border border-border bg-surface p-1 mb-6" role="tablist" aria-label={t('vehicle.status')}>
-        {TABS.map((value) => (
-          <button
-            key={value}
-            role="tab"
-            aria-selected={tab === value}
-            onClick={() => setTab(value)}
-            className={cn(
-              'px-4 h-9 rounded-md text-sm font-semibold transition-colors touch-target',
-              tab === value ? 'bg-primary text-white' : 'text-muted-fg hover:text-foreground',
-            )}
-          >
-            {value === 'ACTIVE' ? t('vehicle.active') : value === 'ARCHIVED' ? t('vehicle.archived') : t('common.all')}
-          </button>
-        ))}
+      {/* Status tabs - mobile scrollable */}
+      <div className="mb-6 -mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="inline-flex rounded-xl border border-border bg-surface p-1 min-w-max" role="tablist" aria-label={t('vehicle.status')}>
+          {TABS.map((value) => (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={tab === value}
+              onClick={() => setTab(value)}
+              className={cn(
+                'px-4 h-10 rounded-lg text-sm font-semibold transition-colors touch-target whitespace-nowrap',
+                tab === value ? 'bg-primary text-white shadow-sm' : 'text-muted-fg hover:text-foreground hover:bg-muted/50',
+              )}
+            >
+              {value === 'ACTIVE' ? t('vehicle.active') : value === 'ARCHIVED' ? t('vehicle.archived') : t('common.all')}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && <ErrorState message={t('errors.generic')} onRetry={() => vehiclesQuery.refetch()} />}
@@ -108,7 +112,7 @@ export default function VehiclesPage() {
       )}
 
       {!loading && !error && vehicles.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {vehicles.map((vehicle, i) => (
             <div key={vehicle.id} className="stagger-delay" style={{ '--stagger': i } as React.CSSProperties}>
               <VehicleCard

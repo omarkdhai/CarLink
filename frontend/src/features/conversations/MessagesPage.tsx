@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MessageSquare, MessageCircle, Smartphone } from 'lucide-react'
+import { MessageSquare, Smartphone } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -13,8 +13,8 @@ import { cn } from '@/lib/cn'
 import { formatRelative } from '@/lib/format'
 import type { ContactChannel } from '@/types'
 
-type Filter = 'ALL' | 'UNREAD' | 'WHATSAPP' | 'SMS'
-const FILTERS: Filter[] = ['ALL', 'UNREAD', 'WHATSAPP', 'SMS']
+type Filter = 'ALL' | 'UNREAD' | 'SMS'
+const FILTERS: Filter[] = ['ALL', 'UNREAD', 'SMS']
 
 export default function MessagesPage() {
   const { t } = useTranslation()
@@ -35,7 +35,7 @@ export default function MessagesPage() {
   const all = conversationsQuery.data ?? []
   const conversations = all
     .filter((c) => (filter === 'UNREAD' ? c.unread : true))
-    .filter((c) => (filter === 'WHATSAPP' || filter === 'SMS' ? c.channel === filter : true))
+    .filter((c) => (filter === 'SMS' ? c.channel === filter : true))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const loading = conversationsQuery.isPending
@@ -49,24 +49,28 @@ export default function MessagesPage() {
 
   return (
     <div>
-      <PageHeader title={t('message.title')} subtitle={t('message.subtitle')} />
+      <div className="mb-6">
+        <PageHeader title={t('message.title')} subtitle={t('message.subtitle')} />
+      </div>
 
-      {/* Filters */}
-      <div className="inline-flex rounded-lg border border-border bg-surface p-1 mb-6" role="tablist" aria-label={t('message.channel')}>
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            role="tab"
-            aria-selected={filter === f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'px-4 h-9 rounded-md text-sm font-semibold transition-colors touch-target',
-              filter === f ? 'bg-primary text-white' : 'text-muted-fg hover:text-foreground',
-            )}
-          >
-            {filterLabel(f)}
-          </button>
-        ))}
+      {/* Filters - mobile scrollable */}
+      <div className="mb-6 -mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="inline-flex rounded-xl border border-border bg-surface p-1 min-w-max" role="tablist" aria-label={t('message.channel')}>
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              role="tab"
+              aria-selected={filter === f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                'px-4 h-10 rounded-lg text-sm font-semibold transition-colors touch-target whitespace-nowrap',
+                filter === f ? 'bg-primary text-white shadow-sm' : 'text-muted-fg hover:text-foreground hover:bg-muted/50',
+              )}
+            >
+              {filterLabel(f)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && <ErrorState message={t('errors.generic')} onRetry={() => conversationsQuery.refetch()} />}
@@ -83,20 +87,16 @@ export default function MessagesPage() {
       )}
 
       {!loading && !error && conversations.length > 0 && (
-        <ul className="bg-surface border border-border rounded-lg divide-y divide-border">
+        <ul className="bg-surface border border-border rounded-xl shadow-sm divide-y divide-border overflow-hidden">
           {conversations.map((conv) => (
             <li key={conv.id}>
               <Link
                 to={`/messages/${conv.id}`}
                 onClick={() => open(conv.id, conv.unread)}
-                className="flex items-center gap-4 p-4 hover:bg-muted transition-colors"
+                className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-muted/50 transition-colors touch-target"
               >
-                <div className={cn('h-11 w-11 rounded-xl flex items-center justify-center shrink-0', channelTone(conv.channel))}>
-                  {conv.channel === 'WHATSAPP' ? (
-                    <MessageCircle className="h-5 w-5" aria-hidden />
-                  ) : (
-                    <Smartphone className="h-5 w-5" aria-hidden />
-                  )}
+                <div className={cn('h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0', channelTone(conv.channel))}>
+                  <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -129,14 +129,12 @@ export default function MessagesPage() {
         return t('common.all')
       case 'UNREAD':
         return t('message.unread')
-      case 'WHATSAPP':
-        return t('contact.whatsapp')
       case 'SMS':
         return t('contact.sms')
     }
   }
 }
 
-function channelTone(channel: ContactChannel) {
-  return channel === 'WHATSAPP' ? 'bg-success-soft text-whatsapp' : 'bg-primary-soft text-sms'
+function channelTone(_channel: ContactChannel) {
+  return 'bg-primary-soft text-sms'
 }

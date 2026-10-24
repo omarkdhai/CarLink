@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { clsx } from '@/lib/cn'
 
-export type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'whatsapp' | 'sms'
+export type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'sms'
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: BadgeTone
@@ -14,7 +14,6 @@ const tones: Record<BadgeTone, string> = {
   success: 'bg-success-soft text-success',
   warning: 'bg-warning-soft text-warning',
   danger: 'bg-destructive-soft text-destructive',
-  whatsapp: 'bg-success-soft text-whatsapp',
   sms: 'bg-primary-soft text-sms',
 }
 

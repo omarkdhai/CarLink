@@ -1,14 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { Bell, MessageCircle, Smartphone } from 'lucide-react'
+import { Bell, Smartphone } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
 import { formatRelative } from '@/lib/format'
 import { cn } from '@/lib/cn'
-import type { ContactChannel } from '@/types'
 
 /**
  * Notifications. The backend has no standalone notifications endpoint —
@@ -31,7 +30,9 @@ export default function NotificationsPage() {
 
   return (
     <div>
-      <PageHeader title={t('notifications.title')} subtitle={t('notifications.subtitle')} />
+      <div className="mb-6">
+        <PageHeader title={t('notifications.title')} subtitle={t('notifications.subtitle')} />
+      </div>
 
       {error && <ErrorState message={t('errors.generic')} onRetry={() => conversationsQuery.refetch()} />}
 
@@ -60,12 +61,8 @@ export default function NotificationsPage() {
           {notifications.map((n) => (
             <li key={n.id}>
               <Link to={`/messages/${n.id}`} className="flex items-center gap-4 p-4 hover:bg-muted transition-colors">
-                <div className={cn('h-11 w-11 rounded-xl flex items-center justify-center shrink-0', tone(n.channel))}>
-                  {n.channel === 'WHATSAPP' ? (
-                    <MessageCircle className="h-5 w-5" aria-hidden />
-                  ) : (
-                    <Smartphone className="h-5 w-5" aria-hidden />
-                  )}
+                <div className={cn('h-11 w-11 rounded-xl flex items-center justify-center shrink-0', tone())}>
+                  <Smartphone className="h-5 w-5" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-foreground truncate">
@@ -83,6 +80,6 @@ export default function NotificationsPage() {
   )
 }
 
-function tone(channel: ContactChannel) {
-  return channel === 'WHATSAPP' ? 'bg-success-soft text-whatsapp' : 'bg-primary-soft text-sms'
+function tone() {
+  return 'bg-primary-soft text-sms'
 }

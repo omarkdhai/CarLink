@@ -42,25 +42,27 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader
-        title={t('dashboard.title')}
-        subtitle={t('dashboard.subtitle')}
-        actions={
-          <Link to="/vehicles/new" className={buttonClasses()}>
-            <Plus className="h-4 w-4" aria-hidden />
-            {t('vehicle.add')}
-          </Link>
-        }
-      />
+      <div className="mb-6">
+        <PageHeader
+          title={t('dashboard.title')}
+          subtitle={t('dashboard.subtitle')}
+          actions={
+            <Link to="/vehicles/new" className={buttonClasses({ size: 'sm' }) + ' sm:h-10 sm:px-4'}>
+              <Plus className="h-4 w-4" aria-hidden />
+              <span className="hidden sm:inline">{t('vehicle.add')}</span>
+            </Link>
+          }
+        />
+      </div>
 
       {error && <ErrorState message={t('errors.generic')} onRetry={() => vehiclesQuery.refetch()} />}
 
-      {/* Stat cards */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-8">
+      {/* Stat cards - mobile optimized */}
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
         <StatCard
           className="stagger-delay"
           style={{ '--stagger': 0 } as React.CSSProperties}
-          icon={<Car className="h-5 w-5" aria-hidden />}
+          icon={<Car className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
           tone="bg-primary-soft text-primary"
           label={t('dashboard.totalVehicles')}
           value={vehicles.length}
@@ -69,7 +71,7 @@ export default function DashboardPage() {
         <StatCard
           className="stagger-delay"
           style={{ '--stagger': 1 } as React.CSSProperties}
-          icon={<MessageSquare className="h-5 w-5" aria-hidden />}
+          icon={<MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
           tone="bg-success-soft text-success"
           label={t('dashboard.messages')}
           value={conversations.length}
@@ -78,7 +80,7 @@ export default function DashboardPage() {
         <StatCard
           className="stagger-delay"
           style={{ '--stagger': 2 } as React.CSSProperties}
-          icon={<MailOpen className="h-5 w-5" aria-hidden />}
+          icon={<MailOpen className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
           tone="bg-warning-soft text-warning"
           label={t('dashboard.unread')}
           value={unread}
@@ -87,29 +89,36 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick actions */}
-      <section className="mb-10">
-        <h2 className="text-lg font-bold text-heading mb-3">{t('dashboard.quickActions')}</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
+      <section className="mb-8 sm:mb-10">
+        <h2 className="text-base sm:text-lg font-bold text-heading mb-2.5 sm:mb-3">{t('dashboard.quickActions')}</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
           <QuickAction
             className="stagger-delay"
             style={{ '--stagger': 0 } as React.CSSProperties}
-            to="/vehicles"
-            icon={<Car className="h-5 w-5" aria-hidden />}
-            title={t('dashboard.addVehicle')}
+            to="/vehicles/new"
+            icon={<Plus className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
+            title={t('vehicle.add')}
           />
           <QuickAction
             className="stagger-delay"
             style={{ '--stagger': 1 } as React.CSSProperties}
             to="/stickers"
-            icon={<QrCode className="h-5 w-5" aria-hidden />}
+            icon={<QrCode className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
             title={t('stickers.title')}
           />
           <QuickAction
             className="stagger-delay"
             style={{ '--stagger': 2 } as React.CSSProperties}
             to="/messages"
-            icon={<Inbox className="h-5 w-5" aria-hidden />}
+            icon={<Inbox className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
             title={t('dashboard.viewMessages')}
+          />
+          <QuickAction
+            className="stagger-delay"
+            style={{ '--stagger': 3 } as React.CSSProperties}
+            to="/notifications"
+            icon={<MailOpen className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
+            title={t('notifications.title')}
           />
         </div>
       </section>
@@ -168,8 +177,6 @@ export default function DashboardPage() {
           </ul>
         )}
       </section>
-
-      <p className="text-sm text-muted-fg mt-8">{t('dashboard.scanStatNote')}</p>
     </div>
   )
 }
@@ -192,14 +199,14 @@ function StatCard({
   style?: React.CSSProperties
 }) {
   return (
-    <div className={cn('bg-surface border border-border rounded-lg p-5', className)} style={style}>
-      <div className={`h-11 w-11 rounded-lg flex items-center justify-center mb-4 ${tone}`}>{icon}</div>
+    <div className={cn('bg-surface border border-border rounded-xl p-3 sm:p-5 shadow-sm', className)} style={style}>
+      <div className={`h-9 w-9 sm:h-11 sm:w-11 rounded-lg flex items-center justify-center mb-2 sm:mb-4 ${tone}`}>{icon}</div>
       {loading ? (
-        <div className="h-8 w-16 rounded bg-muted animate-pulse" />
+        <div className="h-6 sm:h-8 w-12 sm:w-16 rounded bg-muted animate-pulse" />
       ) : (
-        <p className="text-3xl font-bold text-heading tabular-nums">{value}</p>
+        <p className="text-xl sm:text-3xl font-bold text-heading tabular-nums">{value}</p>
       )}
-      <p className="text-sm text-muted-fg mt-1">{label}</p>
+      <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-sm text-muted-fg leading-tight">{label}</p>
     </div>
   )
 }
@@ -221,21 +228,19 @@ function QuickAction({
     <Link
       to={to}
       className={cn(
-        'group flex items-center gap-3 rounded-lg border border-border bg-surface p-4 hover:border-primary hover:shadow-card transition-all',
+        'flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-3 bg-surface border border-border rounded-xl px-2 py-3 sm:px-4 sm:py-3 hover:border-primary/40 hover:bg-primary-soft/40 transition-all shadow-sm',
         className,
       )}
       style={style}
     >
-      <span className="h-11 w-11 rounded-lg bg-primary-soft text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-        {icon}
-      </span>
-      <span className="font-semibold text-heading">{title}</span>
+      <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">{icon}</div>
+      <span className="font-semibold text-heading text-xs sm:text-sm text-center sm:text-left leading-tight">{title}</span>
     </Link>
   )
 }
 
-function channelTone(channel: ContactChannel) {
-  return channel === 'WHATSAPP' ? 'bg-success-soft text-whatsapp' : 'bg-primary-soft text-sms'
+function channelTone(_channel: ContactChannel) {
+  return 'bg-primary-soft text-sms'
 }
 
 function formatDate(iso: string) {

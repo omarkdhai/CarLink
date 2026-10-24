@@ -21,8 +21,7 @@
   --color-accent-soft: #fff7ed;
 
   /* Communication channels */
-  --color-whatsapp: #25d366;
-  --color-whatsapp-hover: #1ebe5d;
+  --color-sms: #3b82f6;
   --color-sms: #3b82f6;
 
   /* Neutral surfaces (SaaS palette) */
@@ -120,6 +119,15 @@
   .touch-target {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Safe area padding for mobile devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   /* Liquid-glass navbar: frosted translucent with a soft blue tint + heavy blur/saturation */

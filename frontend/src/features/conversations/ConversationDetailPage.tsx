@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, MessageCircle, Smartphone, Clock, Lock } from 'lucide-react'
+import { ArrowLeft, Smartphone, Clock } from 'lucide-react'
 import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
 import { ChannelBadge, ConversationStatusBadge } from '@/features/conversations/ConversationBadges'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -55,7 +55,6 @@ export default function ConversationDetailPage() {
   }
 
   const conv = detail.data!
-  const channelLabel = t(`contact.${conv.channel.toLowerCase()}`)
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -72,11 +71,7 @@ export default function ConversationDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-11 w-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0">
-              {conv.channel === 'WHATSAPP' ? (
-                <MessageCircle className="h-5 w-5" aria-hidden />
-              ) : (
-                <Smartphone className="h-5 w-5" aria-hidden />
-              )}
+              <Smartphone className="h-5 w-5" aria-hidden />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -114,11 +109,7 @@ export default function ConversationDetailPage() {
         )}
       </div>
 
-      {/* Anonymous reply note */}
-      <div className="mt-4 flex items-start gap-3 rounded-xl border border-border bg-muted p-4">
-        <Lock className="h-4 w-4 text-muted-fg shrink-0 mt-0.5" aria-hidden />
-        <p className="text-sm text-muted-fg">{t('message.anonymousHint', { channel: channelLabel })}</p>
-      </div>
+
     </div>
   )
 }
