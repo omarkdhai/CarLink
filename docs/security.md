@@ -36,6 +36,13 @@ still omit it.
 - **Never** log phone numbers, raw QR tokens, passwords, or message bodies.
 - IP addresses are logged only for rate-limit/audit purposes.
 - Error responses never include stack traces or internal identifiers.
+- The order-confirmation email is the one place customer PII (name, phone,
+  address, notes) leaves the system, and it goes only to the address the buyer
+  supplied at checkout. The `mock` dev sender logs only the subject and body
+  length — never the HTML — and a delivery failure logs just the order
+  reference and exception type, so a broken SMTP setup cannot dump a customer's
+  address into the log file. Raw QR/sticker tokens are never included in the
+  email: they are shown exactly once in the checkout response.
 
 ## JWT lifecycle
 

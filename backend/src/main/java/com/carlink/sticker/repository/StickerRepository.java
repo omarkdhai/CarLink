@@ -27,5 +27,16 @@ public interface StickerRepository extends JpaRepository<Sticker, UUID> {
     @Query("select s from Sticker s where s.tokenHash = :tokenHash")
     Optional<Sticker> findByTokenHashForUpdate(@Param("tokenHash") String tokenHash);
 
+    Optional<Sticker> findByActivationCodeHash(String activationCodeHash);
+
+    /**
+     * Row-level write lock taken during registration/activation by short code,
+     * so two concurrent claims of the same sticker cannot both succeed.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Sticker s where s.activationCodeHash = :activationCodeHash")
+    Optional<Sticker> findByActivationCodeHashForUpdate(
+            @Param("activationCodeHash") String activationCodeHash);
+
     List<Sticker> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
 }

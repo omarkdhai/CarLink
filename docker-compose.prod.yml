@@ -75,9 +75,18 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
       MAIL_HOST: ${MAIL_HOST:?MAIL_HOST is required}
-      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_PORT: ${MAIL_PORT:-465}
       MAIL_USERNAME: ${MAIL_USERNAME:?MAIL_USERNAME is required}
       MAIL_PASSWORD: ${MAIL_PASSWORD:?MAIL_PASSWORD is required}
+      # Port 465 speaks implicit TLS, so STARTTLS must stay off unless the
+      # provider is reached on 587. Gmail needs auth either way.
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-false}
+      # Envelope sender + Reply-To. Gmail only accepts a sender the
+      # authenticated account owns, so this tracks MAIL_USERNAME until a
+      # branded mailbox exists.
+      MAIL_FROM: ${MAIL_FROM:-${MAIL_USERNAME}}
+      MAIL_REPLY_TO: ${MAIL_REPLY_TO:-${MAIL_USERNAME}}
       # The application default is the mock sender, which logs mail instead of
       # delivering it. Defaulting to smtp here means a forgotten variable
       # cannot silently swallow every verification and reset message.

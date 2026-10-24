@@ -27,7 +27,7 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: '', password: '', firstName: '', lastName: '', phoneCode: '+216', phoneNumber: '' },
+    defaultValues: { email: '', password: '', firstName: '', lastName: '', phoneCode: '+216', phoneNumber: '', stickerCode: '' },
   })
 
   async function onSubmit(values: RegisterValues) {
@@ -39,6 +39,7 @@ export default function RegisterPage() {
         firstName: values.firstName,
         lastName: values.lastName,
         phone: joinPhone(values.phoneCode, values.phoneNumber) || undefined,
+        stickerCode: values.stickerCode,
       })
       navigate(takeNextAfterAuth() ?? '/dashboard', { replace: true })
     } catch (err) {
@@ -94,6 +95,16 @@ export default function RegisterPage() {
             placeholder={t('auth.emailPlaceholder')}
             error={Boolean(errors.email)}
             {...register('email')}
+          />
+        </Field>
+        <Field label={t('validation.stickerCodeRequired')} error={errors.stickerCode?.message}>
+          <Input
+            placeholder={t('registerSticker.codePlaceholder')}
+            autoCapitalize="characters"
+            spellCheck={false}
+            maxLength={32}
+            error={Boolean(errors.stickerCode)}
+            {...register('stickerCode')}
           />
         </Field>
         <Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>

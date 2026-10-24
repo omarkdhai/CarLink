@@ -46,6 +46,9 @@ export const PACKS: {
 
 export const PACK_MAX_QTY = 50
 
+/** Flat delivery fee (TND) added once per order — mirrors OrderService.DELIVERY_FEE. */
+export const DELIVERY_FEE = 7
+
 export function packIsPreselect(value: string | null): value is StickerPackage {
   return value === 'SINGLE' || value === 'DOUBLE' || value === 'BUSINESS'
 }

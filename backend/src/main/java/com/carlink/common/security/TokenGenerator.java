@@ -22,6 +22,13 @@ public class TokenGenerator {
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~"
                     .toCharArray();
 
+    /**
+     * Ambiguity-free alphabet for short activation codes: no {@code O/0},
+     * {@code I/1/L}, so a code printed under a QR stays easy to read and type.
+     */
+    private static final char[] CODE_ALPHABET =
+            "ABCDEFGHJKMNPQRSTUVWXYZ23456789".toCharArray();
+
     private final SecureRandom secureRandom = new SecureRandom();
 
     /**
@@ -39,6 +46,31 @@ public class TokenGenerator {
             sb.append(URL_SAFE_ALPHABET[index]);
         }
         return sb.toString();
+    }
+
+    /**
+     * Generates a short, human-enterable activation code in {@code XXXX-XXXX}
+     * form (8 characters from the ambiguity-free alphabet). Printed under the
+     * QR so a buyer can register without scanning.
+     */
+    public String generateActivationCode() {
+        StringBuilder sb = new StringBuilder(9);
+        for (int i = 0; i < 8; i++) {
+            if (i == 4) {
+                sb.append('-');
+            }
+            sb.append(CODE_ALPHABET[secureRandom.nextInt(CODE_ALPHABET.length)]);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Canonicalizes a user-typed activation code for hashing: uppercases,
+     * strips every non-alphanumeric character, so "cl-4f7k 2m9q" and
+     * "CL4F7K2M9Q" hash identically.
+     */
+    public String normalizeActivationCode(String code) {
+        return code == null ? "" : code.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
     }
 
     /** Hex-encoded SHA-256 digest of the input. Used for storing token hashes. */

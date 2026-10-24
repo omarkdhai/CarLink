@@ -41,9 +41,11 @@ spring:
     properties:
       mail:
         smtp:
-          auth: false
+          # MailHog in dev needs neither; Gmail/other providers need both.
+          # Set MAIL_SMTP_AUTH=true and MAIL_SMTP_STARTTLS=true for Gmail.
+          auth: ${MAIL_SMTP_AUTH:false}
           starttls:
-            enable: false
+            enable: ${MAIL_SMTP_STARTTLS:false}
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
@@ -166,6 +168,11 @@ carlink:
   email:
     provider: ${EMAIL_PROVIDER:mock}
     token-expiry-minutes: ${EMAIL_TOKEN_EXPIRY_MINUTES:60}
+    # Envelope sender. Gmail only accepts the authenticated account (or an
+    # alias it owns), so this must stay omarkdhai@gmail.com until a branded
+    # mailbox is created. Change MAIL_FROM (and MAIL_REPLY_TO) at that point.
+    from: ${MAIL_FROM:omarkdhai@gmail.com}
+    reply-to: ${MAIL_REPLY_TO:omarkdhai@gmail.com}
 
   # Security
   security:

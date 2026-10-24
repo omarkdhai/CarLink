@@ -1,134 +1,106 @@
 import { useTranslation } from 'react-i18next'
-import {
-  Heart,
-  ShieldCheck,
-  Users,
-  Sparkles,
-  Lightbulb,
-  Target,
-  Handshake,
-  Eye,
-  BookOpen,
-} from 'lucide-react'
-import { buttonClasses } from '@/components/ui/Button'
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
+
+const KICKER =
+  'text-[0.72rem] font-semibold uppercase leading-4 tracking-[0.14em] text-primary/70 rtl:tracking-[0.04em]'
 
 const stats = [
-  { key: 'stats1Value', label: 'stats1Label', icon: ShieldCheck },
-  { key: 'stats2Value', label: 'stats2Label', icon: Users },
-  { key: 'stats3Value', label: 'stats3Label', icon: Eye },
-  { key: 'stats4Value', label: 'stats4Label', icon: Sparkles },
+  { key: 'stats1Value', label: 'stats1Label' },
+  { key: 'stats2Value', label: 'stats2Label' },
+  { key: 'stats3Value', label: 'stats3Label' },
+  { key: 'stats4Value', label: 'stats4Label' },
 ]
 
 const values = [
-  { icon: Heart, title: 'value1Title', text: 'value1Text' },
-  { icon: Lightbulb, title: 'value2Title', text: 'value2Text' },
-  { icon: Target, title: 'value3Title', text: 'value3Text' },
-  { icon: Handshake, title: 'value4Title', text: 'value4Text' },
+  { title: 'value1Title', text: 'value1Text' },
+  { title: 'value2Title', text: 'value2Text' },
+  { title: 'value3Title', text: 'value3Text' },
+  { title: 'value4Title', text: 'value4Text' },
 ]
 
 export default function AboutPage() {
   const { t } = useTranslation()
 
   return (
-    <div>
-      {/* Hero */}
-      <section className="mt-[-40px] py-20 sm:py-28">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-6">
-            <ShieldCheck className="h-4 w-4" aria-hidden />
-            {t('about.badge')}
-          </span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-heading leading-tight tracking-tight">
-            {t('about.heroTitle')}
-          </h1>
-          <p className="text-muted-fg mt-5 max-w-2xl mx-auto text-lg">
-            {t('about.heroSubtitle')}
-          </p>
-          <Link
-            to="/order?plan=single"
-            className={buttonClasses({ size: 'lg' }) + ' mt-8 inline-flex'}
-          >
-            {t('about.heroCta')}
-          </Link>
-        </div>
-      </section>
+    <div className="pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pb-24">
+      <div className="mx-auto w-[min(1120px,calc(100%_-_1.5rem))]">
+        <div className="overflow-hidden rounded-[1.5rem] border border-[#f1f5f9] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:rounded-[2rem]">
+          <div className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7 md:gap-8 md:px-8 md:py-10 lg:gap-10 lg:px-12 lg:py-14 xl:px-14 xl:py-16">
+            {/* Header */}
+            <div className="max-w-3xl space-y-3 lg:space-y-4">
+              <p className={KICKER}>{t('about.badge')}</p>
+              <h1 className="text-3xl font-bold tracking-tight text-heading sm:text-4xl md:text-6xl">
+                {t('about.heroTitle')}
+              </h1>
+              <p className="max-w-2xl text-sm leading-7 text-muted-fg sm:text-base md:text-lg">
+                {t('about.heroSubtitle')}
+              </p>
+              <div className="pt-2">
+                <Link
+                  to="/order?plan=single"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.24)] transition-colors hover:bg-primary-hover focus-visible:outline-none"
+                >
+                  {t('about.heroCta')}
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+                </Link>
+              </div>
+            </div>
 
-      {/* Statistics */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
-              {t('about.statsTitle')}
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {stats.map(({ key, label, icon: Icon }) => (
-              <div
-                key={key}
-                className="group bg-white rounded-2xl border border-border p-6 text-center hover:border-primary/40 hover:shadow-card transition-all"
-              >
-                <div className="h-12 w-12 rounded-xl bg-primary-soft text-primary flex items-center justify-center mx-auto mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
-                  <Icon className="h-6 w-6" aria-hidden />
+            <article className="mx-auto w-full max-w-3xl space-y-10 text-start">
+              {/* Statistics */}
+              <section className="space-y-5">
+                <h2 className="text-lg font-semibold tracking-tight text-heading sm:text-xl">
+                  {t('about.statsTitle')}
+                </h2>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {stats.map(({ key, label }) => (
+                    <div key={key} className="rounded-2xl bg-primary-soft/60 p-5">
+                      <p className="text-2xl font-semibold tracking-[-0.03em] text-heading sm:text-3xl">
+                        {t(`about.${key}`)}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-fg">{t(`about.${label}`)}</p>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-3xl font-extrabold text-heading">
-                  {t(`about.${key}`)}
+              </section>
+
+              {/* Origin story */}
+              <section className="space-y-3">
+                <p className={KICKER}>{t('about.originBadge')}</p>
+                <h2 className="text-lg font-semibold tracking-tight text-heading sm:text-xl">
+                  {t('about.originTitle')}
+                </h2>
+                <p className="text-sm leading-7 text-muted-fg sm:text-base">
+                  {t('about.originText1')}
                 </p>
-                <p className="text-sm text-muted-fg mt-1">{t(`about.${label}`)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+                <p className="text-sm leading-7 text-muted-fg sm:text-base">
+                  {t('about.originText2')}
+                </p>
+              </section>
 
-      {/* Origin story */}
-      <section className="py-16 sm:py-24">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
-              <BookOpen className="h-4 w-4" aria-hidden />
-              {t('about.originBadge')}
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
-              {t('about.originTitle')}
-            </h2>
-          </div>
-          <div className="space-y-4">
-            <p className="text-muted-fg leading-relaxed">{t('about.originText1')}</p>
-            <p className="text-muted-fg leading-relaxed">{t('about.originText2')}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="py-16 sm:py-24">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft text-primary text-sm font-semibold px-3 py-1 mb-4">
-              <Heart className="h-4 w-4" aria-hidden />
-              {t('about.valuesBadge')}
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading leading-tight">
-              {t('about.valuesTitle')}
-            </h2>
-            <p className="text-muted-fg mt-3">{t('about.valuesSubtitle')}</p>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            {values.map(({ icon: Icon, title, text }) => (
-              <div
-                key={title}
-                className="group bg-white rounded-2xl border border-border p-7 hover:border-primary/40 hover:shadow-card transition-all"
-              >
-                <div className="h-12 w-12 rounded-xl bg-primary-soft text-primary flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
-                  <Icon className="h-6 w-6" aria-hidden />
+              {/* Values */}
+              <section className="space-y-3">
+                <p className={KICKER}>{t('about.valuesBadge')}</p>
+                <h2 className="text-lg font-semibold tracking-tight text-heading sm:text-xl">
+                  {t('about.valuesTitle')}
+                </h2>
+                <p className="text-sm leading-7 text-muted-fg sm:text-base">
+                  {t('about.valuesSubtitle')}
+                </p>
+                <div className="grid gap-3 pt-2 sm:grid-cols-2">
+                  {values.map(({ title, text }) => (
+                    <div key={title} className="rounded-2xl border border-border bg-background p-5">
+                      <h3 className="text-sm font-semibold text-heading">{t(`about.${title}`)}</h3>
+                      <p className="mt-1.5 text-sm leading-7 text-muted-fg">{t(`about.${text}`)}</p>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="font-bold text-heading text-lg mb-1.5">{t(`about.${title}`)}</h3>
-                <p className="text-sm text-muted-fg leading-relaxed">{t(`about.${text}`)}</p>
-              </div>
-            ))}
+              </section>
+            </article>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   )
 }

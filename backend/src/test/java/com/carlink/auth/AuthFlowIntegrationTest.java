@@ -12,6 +12,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,7 +67,8 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                                 "password", "Secret123",
                                 "firstName", "Ali",
                                 "lastName", "Ben",
-                                "phone", ""))))
+                                "phone", "",
+                                "stickerCode", freshStickerCode()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(jsonPath("$.refreshToken").isNotEmpty())
@@ -144,7 +146,8 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                                 "password", "Secret123",
                                 "firstName", "X",
                                 "lastName", "Y",
-                                "phone", ""))))
+                                "phone", "",
+                                "stickerCode", freshStickerCode()))))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/auth/login")
@@ -164,7 +167,8 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                                 "password", "Secret123",
                                 "firstName", "A",
                                 "lastName", "B",
-                                "phone", ""))))
+                                "phone", "",
+                                "stickerCode", freshStickerCode()))))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/auth/password-reset")
@@ -215,5 +219,22 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
     private String json(Object value) throws Exception {
         return objectMapper.writeValueAsString(value);
+    }
+
+    /** Orders a SINGLE sticker as a guest and returns the printed activation code. */
+    private String freshStickerCode() throws Exception {
+        MvcResult r = mockMvc.perform(post("/api/v1/public/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of(
+                                "items", List.of(Map.of("stickerPackage", "SINGLE", "quantity", 1)),
+                                "customerName", "Test Buyer",
+                                "mobile", "+21655123456",
+                                "email", "buyer@example.com",
+                                "governorate", "TUNIS",
+                                "deliveryAddress", "1 Place de la République"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(r.getResponse().getContentAsString())
+                .get("stickers").get(0).get("activationCode").asText();
     }
 }

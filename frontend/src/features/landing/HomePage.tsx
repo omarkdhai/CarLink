@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   QrCode,
   ArrowRight,
-  ArrowUpRight,
   DoorOpen,
   BatteryFull,
   Lock,
@@ -14,7 +13,6 @@ import {
   AlertTriangle,
   Lightbulb,
   Zap,
-  ShoppingCart,
   MessageCircleWarning,
   Smartphone,
   Check,
@@ -42,7 +40,6 @@ const problems = [
   { icon: MessageCircleWarning, title: 'landing.problem2Title', text: 'landing.problem2Text' },
   { icon: Lightbulb, title: 'landing.problem3Title', text: 'landing.problem3Text' },
   { icon: AlertTriangle, title: 'landing.problem4Title', text: 'landing.problem4Text' },
-  { icon: ShoppingCart, title: 'landing.problem5Title', text: 'landing.problem5Text' },
   { icon: Zap, title: 'landing.problem6Title', text: 'landing.problem6Text' },
 ] as const
 
@@ -156,8 +153,8 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* CTA — pill with a circular arrow */}
-              <div className="flex w-full justify-center lg:justify-start">
+              {/* CTAs — order pill + how-it-works pill on one line */}
+              <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:flex-nowrap lg:justify-start">
                 <Link
                   to="/order?plan=single"
                   className="inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-primary py-2 pe-2 ps-[1.35rem] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
@@ -169,16 +166,17 @@ export default function HomePage() {
                     <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden />
                   </span>
                 </Link>
-              </div>
 
-              {/* Demo link */}
-              <Link
-                to="/#how"
-                className="inline-flex items-center gap-2 text-[13px] font-semibold text-primary underline-offset-4 hover:underline"
-              >
-                {t('landing.heroCtaSecondary')}
-                <ArrowUpRight className="h-4 w-4 rtl:-rotate-90" aria-hidden />
-              </Link>
+                <a
+                  href="#how"
+                  className="inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full border border-primary/25 bg-white/90 px-6 font-semibold text-primary shadow-[0_4px_14px_rgba(37,99,235,0.10)] transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary-soft active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
+                >
+                  <span className="whitespace-nowrap text-[clamp(0.9375rem,1.6vw,1rem)]">
+                    {t('landing.heroCtaSecondary')}
+                  </span>
+                  <ChevronDown className="h-4 w-4" aria-hidden />
+                </a>
+              </div>
 
               {/* Trust line — one line on mobile */}
               <div className="mt-0.5 flex w-full flex-nowrap items-center justify-between gap-x-2 border-t border-muted pt-3.5 text-[11px] text-muted-fg sm:gap-x-4 lg:justify-start lg:gap-x-5 lg:text-sm">
@@ -369,14 +367,14 @@ export default function HomePage() {
                     type="button"
                     onClick={() => pickHowStep(i)}
                     aria-current={howStep === i ? 'true' : undefined}
-                    className={`flex min-h-11 items-center gap-3.5 rounded-md px-2 py-2 text-start transition-colors duration-200 ${
+                    className={`flex min-h-[52px] items-center gap-4 rounded-lg px-2.5 py-2.5 text-start transition-colors duration-200 ${
                       howStep === i
                         ? 'bg-white/70 text-primary-active'
                         : 'text-muted-fg hover:bg-white/50 hover:text-heading'
                     }`}
                   >
                     <span
-                      className={`grid h-[25px] w-[25px] shrink-0 place-items-center rounded-full border font-mono text-[10px] font-medium leading-none transition-colors ${
+                      className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border font-mono text-[11px] font-medium leading-none transition-colors ${
                         howStep === i
                           ? 'border-primary bg-primary text-white'
                           : 'border-border bg-white'
@@ -385,8 +383,8 @@ export default function HomePage() {
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-xs font-bold leading-snug">{t(step.title)}</span>
-                      <span className="mt-0.5 block text-[11px] leading-relaxed text-muted-fg">
+                      <span className="block text-sm font-bold leading-snug">{t(step.title)}</span>
+                      <span className="mt-0.5 block text-[13px] leading-relaxed text-muted-fg">
                         {t(step.text)}
                       </span>
                     </span>
@@ -406,8 +404,8 @@ export default function HomePage() {
                       'radial-gradient(circle, rgba(37,99,235,0.16) 0%, rgba(37,99,235,0.06) 55%, transparent 72%)',
                   }}
                 />
-                <div className="relative w-[264px] rounded-[36px] bg-[#292724] p-[7px] shadow-[0_28px_70px_rgba(15,23,42,0.35)] sm:w-[288px]">
-                  <div className="relative h-[556px] overflow-hidden rounded-[30px] bg-white sm:h-[604px]">
+                <div className="relative w-[248px] rounded-[34px] bg-[#292724] p-[6px] shadow-[0_28px_70px_rgba(15,23,42,0.35)] sm:w-[268px]">
+                  <div className="relative h-[524px] overflow-hidden rounded-[29px] bg-white sm:h-[566px]">
                     {/* Status bar */}
                     <div className="flex h-8 items-center justify-between px-5 pt-2 text-[9px] font-semibold text-heading">
                       <span dir="ltr">9:41</span>
@@ -468,7 +466,7 @@ export default function HomePage() {
                         <div className="flex h-full flex-col">
                           {/* Vehicle panel */}
                           <div className="flex-none border-b border-border p-2.5">
-                            <div className="relative overflow-hidden rounded-xl bg-primary p-3 pt-[1.125rem] text-white shadow-[0_9px_22px_rgba(37,99,235,0.25)]">
+                            <div className="relative overflow-hidden rounded-xl bg-primary p-2.5 pt-[1rem] text-white shadow-[0_9px_22px_rgba(37,99,235,0.25)]">
                               <span
                                 aria-hidden
                                 className="pointer-events-none absolute -right-6 -top-7 h-[9rem] w-[9rem] rounded-full bg-white/10"
@@ -505,7 +503,7 @@ export default function HomePage() {
                           </div>
 
                           {/* Form body */}
-                          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-3 pt-2.5">
+                          <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden p-2.5 pt-2">
                             <div className="grid gap-1.5">
                               <p className="m-0 text-[0.82rem] font-bold text-heading">
                                 {t('contact.reason')}
@@ -516,7 +514,7 @@ export default function HomePage() {
                                   return (
                                     <span
                                       key={key}
-                                      className={`flex min-h-[2.15rem] items-center gap-[0.42rem] rounded-[0.85rem] border px-[0.42rem] py-[0.32rem] ${
+                                      className={`flex min-h-[2.05rem] items-center gap-[0.42rem] rounded-[0.85rem] border px-[0.42rem] py-[0.32rem] ${
                                         chosen ? 'border-primary bg-primary/10' : 'border-border bg-white'
                                       }`}
                                     >
@@ -551,7 +549,7 @@ export default function HomePage() {
                               <p className="m-0 text-[0.82rem] font-bold text-heading">
                                 {t('contact.note')}
                               </p>
-                              <div className="min-h-[2.35rem] rounded-[0.85rem] border border-border bg-white px-[0.55rem] py-[0.45rem]">
+                              <div className="min-h-[2.15rem] rounded-[0.85rem] border border-border bg-white px-[0.55rem] py-[0.45rem]">
                                 <p className="m-0 text-[0.6rem] leading-[1.35] text-muted-fg">
                                   {t('contact.notePlaceholder')}
                                 </p>

@@ -487,3 +487,27 @@ Commit: `dabcb72`.
 - Body text is kept ASCII-only to stay in GSM-7, and reuses `ContactReason.label()`
   rather than duplicating the label switch. New unit tests mock the Telnyx SDK
   (`TelnyxContactChannelSenderTest`, `TelnyxAnonymousCallSenderTest`).
+
+### Phase F — order confirmation email
+
+- **Buyers are emailed when their order is placed.** A new
+  `OrderConfirmationEmailComposer` renders a branded HTML email (blue header,
+  green check, "Your order is confirmed!", the `CL-XXXXXXXX` reference, item and
+  total breakdown, delivery details, and a "Need help? Reply to this email."
+  footer) plus a plain-text alternative for clients that cannot render HTML.
+- **Sent after commit, failure-safe.** The send is registered as a
+  `TransactionSynchronization.afterCommit` hook, so a rolled-back checkout can
+  never email a confirmation, and a delivery failure only logs a warning — the
+  order is never lost because SMTP is down.
+- **No token leakage.** Raw QR/sticker tokens are deliberately absent: they are
+  returned exactly once by the checkout response. Customer-supplied values are
+  HTML-escaped, and the mock dev sender logs only the subject and body length.
+- **`EmailSender` grew a `sendHtml` method**; `SmtpEmailSender` now sets a
+  configurable envelope sender and Reply-To (`carlink.email.from` /
+  `reply-to`), needed because Gmail rejects a sender the authenticated account
+  does not own. `MAIL_SMTP_AUTH` / `MAIL_SMTP_STARTTLS` are now configurable so
+  the same code speaks implicit-TLS port 465 (Gmail) and STARTTLS port 587.
+- **Verified end to end**: placed a live order against the dev backend and the
+  message was accepted by `smtp.gmail.com` (the first attempt exposed a real bug
+  — `MimeMessageHelper` must be constructed with `multipart=true` to set
+  alternative text). 227 backend tests pass.

@@ -17,6 +17,9 @@ import com.carlink.common.exception.BadRequestException;
 import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.notification.email.EmailSender;
+import com.carlink.sticker.model.Sticker;
+import com.carlink.sticker.model.StickerStatus;
+import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
 import com.carlink.user.repository.UserRepository;
@@ -52,6 +55,7 @@ class AuthServiceTest {
     @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
     @Mock private EmailSender emailSender;
     @Mock private LoginAttemptService loginAttemptService;
+    @Mock private StickerRepository stickerRepository;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
     private final TokenGenerator tokenGenerator = new TokenGenerator();
@@ -65,7 +69,17 @@ class AuthServiceTest {
         authService = new AuthService(
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, passwordEncoder, jwtService,
-                tokenGenerator, emailSender, properties, loginAttemptService);
+                tokenGenerator, emailSender, properties, loginAttemptService,
+                stickerRepository);
+    }
+
+    /** Stub a claimable sticker so register() can validate the supplied code. */
+    private void stubClaimableSticker() {
+        String hash = tokenGenerator.sha256(tokenGenerator.normalizeActivationCode("CL4F7K2M9Q"));
+        Sticker sticker = Sticker.newSticker(null, "tokhash", hash);
+        org.mockito.Mockito.lenient()
+                .when(stickerRepository.findByActivationCodeHash(hash))
+                .thenReturn(Optional.of(sticker));
     }
 
     private User savedUser() {
@@ -89,10 +103,11 @@ class AuthServiceTest {
     @Test
     void registerCreatesUserAndIssuesTokenPair() {
         savedUser();
+        stubClaimableSticker();
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
 
         AuthResponse response = authService.register(
-                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", ""));
+                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q"));
 
         assertThat(response.accessToken()).isNotBlank();
         assertThat(response.refreshToken()).isNotBlank();
@@ -107,7 +122,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(
-                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "")))
+                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("already registered");
         verify(userRepository, never()).save(any(User.class));
@@ -117,17 +132,31 @@ class AuthServiceTest {
     void registerNormalizesEmailAndHashesPassword() {
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         savedUser();
+        stubClaimableSticker();
         // Service normalizes the address before the existence check:
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
 
         authService.register(
-                new RegisterRequest("Owner@Example.COM", "Secret123", "Ali", "Ben", ""));
+                new RegisterRequest("Owner@Example.COM", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q"));
 
         verify(userRepository).save(captor.capture());
         User saved = captor.getValue();
         assertThat(saved.getEmail()).isEqualTo("owner@example.com");
         assertThat(saved.getPasswordHash()).isNotEqualTo("Secret123");
         assertThat(passwordEncoder.matches("Secret123", saved.getPasswordHash())).isTrue();
+    }
+
+    @Test
+    void registerRejectsUnknownStickerCode() {
+        when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
+        // No sticker stub → findByActivationCodeHash returns empty.
+
+        assertThatThrownBy(() -> authService.register(
+                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "",
+                        "ZZ-9999-9999")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("sticker code");
+        verify(userRepository, never()).save(any(User.class));
     }
 
     // ---------- Login ----------

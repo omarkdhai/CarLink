@@ -5,10 +5,12 @@ import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.exception.BadRequestException;
 import com.carlink.common.exception.NotFoundException;
 import com.carlink.common.security.TokenGenerator;
+import com.carlink.notification.email.EmailSender;
 import com.carlink.order.dto.OrderCreateRequest;
 import com.carlink.order.dto.OrderItemRequest;
 import com.carlink.order.dto.OrderResponse;
 import com.carlink.order.dto.OrderSummaryResponse;
+import com.carlink.order.email.OrderConfirmationEmailComposer;
 import com.carlink.order.model.Governorate;
 import com.carlink.order.model.Order;
 import com.carlink.order.model.OrderItem;
@@ -37,6 +39,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,15 +54,19 @@ class OrderServiceTest {
     @Mock private OrderItemRepository orderItemRepository;
     @Mock private StickerRepository stickerRepository;
     @Mock private QrImageGenerator imageGenerator;
+    @Mock private EmailSender emailSender;
 
     private final TokenGenerator tokenGenerator = new TokenGenerator();
     private final CarLinkProperties properties = TestProperties.minimal();
+    private final OrderConfirmationEmailComposer confirmationEmailComposer =
+            new OrderConfirmationEmailComposer();
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
         orderService = new OrderService(orderRepository, orderItemRepository,
-                stickerRepository, tokenGenerator, imageGenerator, properties);
+                stickerRepository, tokenGenerator, imageGenerator, properties,
+                emailSender, confirmationEmailComposer);
     }
 
     private OrderCreateRequest orderRequest(List<OrderItemRequest> items) {
@@ -84,14 +93,14 @@ class OrderServiceTest {
     @Test
     void createUsesServerSidePricesAndMintsExactNumberOfStickers() {
         stubPersistSucceeds();
-        // DOUBLE packs ×2 = 4 physical stickers, 35.00 × 2 = 70.00 TND.
+        // DOUBLE packs ×2 = 4 physical stickers, 35.00 × 2 + 7.00 delivery = 77.00 TND.
         OrderCreateRequest request = orderRequest(
                 List.of(new OrderItemRequest(StickerPackage.DOUBLE, 2)));
 
         OrderResponse response = orderService.create(request);
 
         assertThat(response.reference()).startsWith("CL-");
-        assertThat(response.totalAmount()).isEqualByComparingTo("70.00");
+        assertThat(response.totalAmount()).isEqualByComparingTo("77.00");
         assertThat(response.currency()).isEqualTo("TND");
         assertThat(response.status()).isEqualTo("PLACED");
         assertThat(response.items()).hasSize(1);
@@ -110,6 +119,25 @@ class OrderServiceTest {
             assertThat(sticker.getTokenHash()).hasSize(64);
             assertThat(sticker.getTokenHash()).matches("[0-9a-f]{64}");
         });
+
+        // Confirmation email is sent to the buyer with the reference and totals.
+        verify(emailSender).sendHtml(eq("buyer@example.com"), contains("is confirmed"),
+                contains("CL-"), contains("Aymen Ben Ali"));
+        verify(emailSender).sendHtml(eq("buyer@example.com"), anyString(),
+                contains("77.00 TND"), contains("Need help? Reply to this email."));
+    }
+
+    @Test
+    void createStillSucceedsWhenConfirmationEmailFails() {
+        stubPersistSucceeds();
+        doThrow(new RuntimeException("smtp unavailable"))
+                .when(emailSender).sendHtml(anyString(), anyString(), anyString(), anyString());
+
+        OrderResponse response = orderService.create(orderRequest(
+                List.of(new OrderItemRequest(StickerPackage.SINGLE, 1))));
+
+        assertThat(response.reference()).startsWith("CL-");
+        assertThat(response.status()).isEqualTo("PLACED");
     }
 
     @Test
@@ -160,7 +188,7 @@ class OrderServiceTest {
         assertThat(orderCaptor.getValue().getEmail()).isEqualTo("buyer@example.com");
         assertThat(orderCaptor.getValue().getDeliveryNotes()).isNull();
         assertThat(orderCaptor.getValue().getGovernorate()).isEqualTo(Governorate.SFAX);
-        assertThat(response.totalAmount()).isEqualByComparingTo("20.00");
+        assertThat(response.totalAmount()).isEqualByComparingTo("27.00");
     }
 
     // ---------- summary ----------

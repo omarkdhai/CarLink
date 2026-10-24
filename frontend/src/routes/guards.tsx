@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { FullPageLoader } from '@/components/shared/FullPageLoader'
 
-const AUTH_ROUTES = ['/login', '/register', '/verify-email']
+const AUTH_ROUTES = ['/login', '/register', '/verify-email', '/register-sticker']
 
 /**
  * Route guards. The frontend only controls *routing* to the UI —

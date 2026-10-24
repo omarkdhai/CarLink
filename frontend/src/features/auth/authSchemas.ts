@@ -28,6 +28,7 @@ export const registerSchema = z.object({
     .refine((v) => passwordRegex.test(v), t('auth.passwordNeedsLetterDigit')),
   firstName: z.string().min(1, t('validation.firstNameRequired')).max(100),
   lastName: z.string().min(1, t('validation.lastNameRequired')).max(100),
+  stickerCode: z.string().trim().min(1, t('validation.stickerCodeRequired')).max(32),
   phoneCode: z
     .string()
     .refine((v) => v.trim() === '' || phoneCode.test(v.trim()), t('validation.phoneCodeInvalid')),

@@ -8,5 +8,6 @@ package com.carlink.order.dto;
 public record StickerIssuedResponse(
         String rawToken,
         String publicUrl,
-        String imageDataUri
+        String imageDataUri,
+        String activationCode
 ) {}
