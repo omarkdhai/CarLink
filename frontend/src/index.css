@@ -72,6 +72,12 @@
     @apply text-foreground font-sans antialiased;
     font-size: 16px; /* Accessible base */
     line-height: 1.5;
+  }
+
+  html[dir='rtl'] mark {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
     /* White base with soft irregular sky-blue blob patterns */
     background-color: #ffffff;
     background-image:

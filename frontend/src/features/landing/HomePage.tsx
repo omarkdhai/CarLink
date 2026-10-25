@@ -146,10 +146,10 @@ export default function HomePage() {
                   className="h-px w-12 rounded-full bg-gradient-to-r from-primary-active to-accent shadow-[0_0_18px_rgba(37,99,235,0.15)]"
                   aria-hidden
                 />
-                <p className="m-0 text-[0.9375rem] leading-[1.65] text-muted-fg lg:text-[1.0625rem] lg:leading-[1.75]">
-                  <mark className="box-decoration-clone rounded-sm bg-primary-soft px-1 text-inherit">
+                <p className="m-0 text-[0.9375rem] leading-[1.65] text-muted-fg lg:text-[1.0625rem] lg:leading-[1.75] rtl:no-underline">
+                  <span className="text-inherit rtl:bg-transparent rtl:shadow-none">
                     {t('landing.heroSubtitle')}
-                  </mark>
+                  </span>
                 </p>
               </div>
 

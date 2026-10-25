@@ -10,9 +10,9 @@ import ar from '@/locales/ar.json'
  * is set on <html> by App.tsx based on the active language.
  */
 export const SUPPORTED_LANGUAGES = [
-  { code: 'fr', label: 'Français', short: 'fr' },
-  { code: 'en', label: 'English', short: 'en' },
-  { code: 'ar', label: 'العربية', short: 'ع' },
+  { code: 'fr', label: 'Français', short: 'FR' },
+  { code: 'en', label: 'English', short: 'EN' },
+  { code: 'ar', label: 'Arabic', short: 'AR' },
 ] as const
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code']
