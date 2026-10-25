@@ -23,13 +23,16 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 export function RequireAdmin({ children }: { children: ReactNode }) {
-  const { isAdmin, isRestoring } = useAuth()
+  const { isAdmin, isAuthenticated, isRestoring } = useAuth()
   const location = useLocation()
 
   if (isRestoring) return <FullPageLoader />
 
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
   if (!isAdmin) {
-    // Authenticated but not admin → show a forbidden state rather than bounce.
     return <Navigate to="/403" state={{ from: location }} replace />
   }
   return <>{children}</>
