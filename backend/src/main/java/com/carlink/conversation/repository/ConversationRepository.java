@@ -26,4 +26,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
 
     /** Admin analytics: conversations currently in a given state. */
     long countByStatus(ConversationStatus status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(c) FROM Conversation c WHERE EXTRACT(HOUR FROM c.createdAt) = :hour")
+    long countByHourOfDay(int hour);
 }

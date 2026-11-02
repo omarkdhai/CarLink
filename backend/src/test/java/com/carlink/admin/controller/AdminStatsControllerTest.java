@@ -30,8 +30,12 @@ class AdminStatsControllerTest {
 
     @Test
     void overviewDelegatesToService() {
-        AdminStatsResponse expected = new AdminStatsResponse(1, 1, 1, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0);
+        AdminStatsResponse expected = new AdminStatsResponse(
+                1, 1, 1, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0.0,
+                0, 0, 0, 0, java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO,
+                java.util.List.of(), java.util.List.of(), java.util.List.of(), java.util.List.of(), 0.0);
         when(adminStatsService.overview()).thenReturn(expected);
 
         AdminStatsResponse out = controller.overview(

@@ -25,26 +25,45 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<UserResponse | null>(() => tokenStore.getUser())
-  const [isRestoring, setIsRestoring] = useState<boolean>(() => tokenStore.hasSession() && !tokenStore.getUser())
+  // isRestoring is true whenever we have a refresh token but the in-memory
+  // access token is gone (page reload wipes it).  We must wait for /refresh
+  // to complete before letting any authenticated query fire.
+  const [isRestoring, setIsRestoring] = useState<boolean>(
+    () => tokenStore.hasSession() && !tokenStore.getAccessToken(),
+  )
 
-  // Restore session silently from the persisted refresh token.
+  // Restore the in-memory access token from the persisted refresh token.
+  // Runs whenever the access token is absent but a refresh token exists
+  // (primarily: every page reload, since the access token lives only in memory).
   useEffect(() => {
     let cancelled = false
     async function restore() {
-      if (!tokenStore.hasSession() || tokenStore.getUser()) {
+      // Nothing to restore if there is no session at all.
+      if (!tokenStore.hasSession()) {
         setIsRestoring(false)
         return
       }
+      // Access token already in memory — no round-trip needed.
+      if (tokenStore.getAccessToken()) {
+        setIsRestoring(false)
+        return
+      }
+      // Refresh token present but access token missing (page reload): silently
+      // obtain a fresh access token.  Keep the cached user visible so the UI
+      // does not flash blank while we wait.
+      // refreshSession() is a shared singleton — if the apiClient interceptor
+      // already started a /refresh call, we wait on the same Promise rather
+      // than issuing a second one (which would fail on a single-use token).
       setIsRestoring(true)
       try {
-        const { authApi } = await import('@/services/authApi')
-        const refreshed = await authApi.refresh(tokenStore.getRefreshToken()!)
+        const ok = await tokenStore.refreshSession()
         if (!cancelled) {
-          tokenStore.setSession(refreshed)
-          setUserState(refreshed.user)
+          if (ok) {
+            setUserState(tokenStore.getUser())
+          } else {
+            tokenStore.clearSession()
+          }
         }
-      } catch {
-        if (!cancelled) tokenStore.clearSession()
       } finally {
         if (!cancelled) setIsRestoring(false)
       }

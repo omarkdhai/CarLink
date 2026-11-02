@@ -1,3 +1,4 @@
+import axios from 'axios'
 import type { AuthResponse, UserResponse } from '@/types'
 
 /**
@@ -107,4 +108,42 @@ export function subscribe(listener: Subscriber): () => void {
 
 function emit() {
   for (const l of listeners) l(user)
+}
+
+// ---------------------------------------------------------------------------
+// Singleton session-restore
+// ---------------------------------------------------------------------------
+// A single shared Promise for any in-flight /auth/refresh call.
+// Both AuthContext and the apiClient request interceptor share this reference
+// so that a page reload (which wipes the in-memory access token) only ever
+// triggers ONE backend call, even if multiple callers notice the missing token
+// simultaneously.
+// Single-use refresh tokens mean a second concurrent call with the same token
+// would be rejected by the backend with 401 and the whole session revoked.
+let _refreshPromise: Promise<boolean> | null = null
+
+export function refreshSession(): Promise<boolean> {
+  if (!_refreshPromise) {
+    _refreshPromise = _doRefresh().finally(() => {
+      _refreshPromise = null
+    })
+  }
+  return _refreshPromise
+}
+
+async function _doRefresh(): Promise<boolean> {
+  const token = refreshToken
+  if (!token) return false
+  try {
+    // Use plain axios — NOT apiClient — to avoid re-entering the request
+    // interceptor that called us (which would recurse into refreshSession again).
+    const { data } = await axios.post<AuthResponse>('/api/v1/auth/refresh', {
+      refreshToken: token,
+    })
+    setSession(data)
+    return true
+  } catch {
+    clearSession()
+    return false
+  }
 }
