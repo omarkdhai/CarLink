@@ -78,6 +78,8 @@
     background: transparent !important;
     box-shadow: none !important;
   }
+
+  .public-page {
     /* White base with soft irregular sky-blue blob patterns */
     background-color: #ffffff;
     background-image:
@@ -119,6 +121,7 @@
     }
   }
 }
+
 
 @layer utilities {
   /* Touch targets ≥ 44px (mobile touch-first) */

@@ -4,6 +4,7 @@ import { QrCode, Info } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { adminApi, adminQueryKeys } from '@/services/adminApi'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
 export default function AdminQrCodesPage() {
   const { t } = useTranslation()
@@ -17,6 +18,11 @@ export default function AdminQrCodesPage() {
 
   const s = stats.data
 
+  const data = s ? [
+    { name: t('admin.statActiveQr'), value: s.qrActive },
+    { name: t('admin.statQr') + ' (inactive)', value: Math.max(0, s.qrTotal - s.qrActive) },
+  ] : []
+
   return (
     <div>
       <PageHeader title={t('admin.qrCodes')} subtitle={t('admin.subtitle')} />
@@ -26,7 +32,7 @@ export default function AdminQrCodesPage() {
         <p className="text-sm text-foreground">{t('admin.qrNote')}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
         {stats.isPending || !s ? (
           Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-lg p-5 space-y-3">
@@ -42,6 +48,22 @@ export default function AdminQrCodesPage() {
           </>
         )}
       </div>
+
+      {s && (
+        <div className="bg-surface border border-border rounded-xl p-5 shadow-sm">
+          <p className="text-sm font-semibold text-heading mb-4">Active vs Inactive QR Codes</p>
+          <ResponsiveContainer width="100%" height={260}>
+            <PieChart>
+              <Pie data={data} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                <Cell fill="#f59e0b" />
+                <Cell fill="#94a3b8" />
+              </Pie>
+              <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   )
 }

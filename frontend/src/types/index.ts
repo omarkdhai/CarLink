@@ -393,6 +393,21 @@ export interface AdminStatsResponse {
   reportsReviewed: number
   reportsClosed: number
   reportsOpenVsTotal: number
+  // Sales analytics
+  ordersTotal: number
+  ordersPlaced: number
+  ordersDelivered: number
+  ordersCancelled: number
+  totalRevenue: number
+  revenueThisMonth: number
+  // Time series
+  monthlySales: Array<{ month: string; orders: number; revenue: number }>
+  // Geographic
+  salesByGovernorate: Array<{ governorate: string; count: number; revenue: number }>
+  // User behavior
+  dailyRegistrations: Array<{ date: string; count: number }>
+  hourlyActivity: Array<{ hour: number; count: number }>
+  conversionRate: number
 }
 
 export interface AuditLogResponse {

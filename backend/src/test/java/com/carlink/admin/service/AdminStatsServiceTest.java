@@ -6,7 +6,9 @@ import com.carlink.admin.repository.ReportRepository;
 import com.carlink.conversation.model.ConversationStatus;
 import com.carlink.conversation.repository.ConversationRepository;
 import com.carlink.conversation.repository.MessageRepository;
+import com.carlink.order.repository.OrderRepository;
 import com.carlink.qr.repository.QrCodeRepository;
+import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.repository.UserRepository;
 import com.carlink.vehicle.model.VehicleStatus;
@@ -17,7 +19,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,16 +33,27 @@ class AdminStatsServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private VehicleRepository vehicleRepository;
     @Mock private QrCodeRepository qrCodeRepository;
+    @Mock private StickerRepository stickerRepository;
     @Mock private ConversationRepository conversationRepository;
     @Mock private MessageRepository messageRepository;
     @Mock private ReportRepository reportRepository;
+    @Mock private OrderRepository orderRepository;
 
     private AdminStatsService service;
 
     @BeforeEach
     void setUp() {
         service = new AdminStatsService(userRepository, vehicleRepository,
-                qrCodeRepository, conversationRepository, messageRepository, reportRepository);
+                qrCodeRepository, stickerRepository, conversationRepository, messageRepository, reportRepository, orderRepository);
+        when(orderRepository.count()).thenReturn(0L);
+        when(orderRepository.countByStatus(any())).thenReturn(0L);
+        when(orderRepository.sumRevenue()).thenReturn(BigDecimal.ZERO);
+        when(orderRepository.sumRevenueSince(any(Instant.class))).thenReturn(BigDecimal.ZERO);
+        when(orderRepository.countByCreatedAtBetween(any(Instant.class), any(Instant.class))).thenReturn(0L);
+        when(orderRepository.sumRevenueBetween(any(Instant.class), any(Instant.class))).thenReturn(BigDecimal.ZERO);
+        when(orderRepository.findGovernorateSales()).thenReturn(List.of());
+        when(userRepository.countByCreatedAtBetween(any(Instant.class), any(Instant.class))).thenReturn(0L);
+        when(conversationRepository.countByHourOfDay(any(int.class))).thenReturn(0L);
     }
 
     @Test

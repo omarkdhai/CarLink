@@ -19,12 +19,15 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("select u from User u where u.email = :email and u.active = true")
     Optional<User> findActiveByEmail(@Param("email") String email);
 
+    long countByActive(boolean active);
+
+    long countByRole(Role role);
+
+    long countByCreatedAtBetween(java.time.Instant start, java.time.Instant end);
+
     /**
      * Admin user search: optional freetext over email/names, optional active/role
-     * filters. Newest first. {@code :q} is {@code cast(... as text)} — inside
-     * {@code lower(...)} PostgreSQL can't infer its type and the JDBC driver
-     * would otherwise bind it as {@code bytea} ("function lower(bytea) does not
-     * exist").
+     * filters. Newest first.
      */
     @Query("""
             select u from User u
@@ -38,8 +41,4 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> search(@Param("q") String q,
                       @Param("active") Boolean active,
                       @Param("role") Role role);
-
-    long countByRole(Role role);
-
-    long countByActive(boolean active);
 }

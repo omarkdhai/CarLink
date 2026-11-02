@@ -1,11 +1,9 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import type { AuthResponse } from '@/types'
 import {
   getAccessToken,
   getRefreshToken,
-  setSession,
-  clearSession,
   isAccessTokenExpired,
+  refreshSession,
 } from '@/services/tokenStore'
 import { errorI18nKey, toApiError } from '@/services/errors'
 import i18n from '@/lib/i18n'
@@ -17,44 +15,26 @@ import i18n from '@/lib/i18n'
  *   failures enqueue behind a single /refresh call), then retries the request.
  * - If refresh fails, clears the session and lets the caller decide (redirects
  *   handled in the auth layer / route guards).
+ *
+ * The refresh singleton lives in tokenStore so AuthContext.restore() and this
+ * interceptor share the same Promise — a single-use refresh token can only be
+ * consumed once; two concurrent callers must not each fire their own call.
  */
 const apiClient = axios.create({
   baseURL: '/api/v1',
   headers: { 'Content-Type': 'application/json' },
 })
 
-let refreshPromise: Promise<boolean> | null = null
-
-async function performRefresh(): Promise<boolean> {
-  const token = getRefreshToken()
-  if (!token) return false
-  try {
-    const { data } = await axios.post<AuthResponse>('/api/v1/auth/refresh', {
-      refreshToken: token,
-    })
-    setSession(data)
-    return true
-  } catch {
-    clearSession()
-    return false
-  }
-}
-
-/** Serializes concurrent refresh attempts. */
-function refreshAccessToken(): Promise<boolean> {
-  if (!refreshPromise) {
-    refreshPromise = performRefresh().finally(() => {
-      refreshPromise = null
-    })
-  }
-  return refreshPromise
-}
-
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  // Ensure a valid token before sending authenticated requests.
-  if (getAccessToken() && isAccessTokenExpired() && getRefreshToken()) {
-    const ok = await refreshAccessToken()
-    if (!ok) return config // will fail 401 at server
+  // Proactively obtain a fresh access token when:
+  //   a) the token is null  — happens after every page reload since access
+  //      tokens live only in memory and are wiped on reload, OR
+  //   b) the token exists but is about to expire.
+  // refreshSession() is a singleton — if AuthContext.restore() already started
+  // a refresh, we wait on the same Promise instead of firing a second one.
+  if ((!getAccessToken() || isAccessTokenExpired()) && getRefreshToken()) {
+    const ok = await refreshSession()
+    if (!ok) return config // refresh failed — request will 401 at the server
   }
   const token = getAccessToken()
   if (token) {
@@ -75,7 +55,7 @@ apiClient.interceptors.response.use(
     // Only attempt a single refresh-on-401 for authenticated non-auth requests.
     if (status === 401 && original && !isAuthEndpoint && !wasRetried && getRefreshToken()) {
       original._retried = true
-      const ok = await refreshAccessToken()
+      const ok = await refreshSession()
       if (ok) {
         original.headers.Authorization = `Bearer ${getAccessToken()}`
         return apiClient(original)

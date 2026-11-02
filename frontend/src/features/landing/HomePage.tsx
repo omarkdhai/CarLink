@@ -654,7 +654,7 @@ export default function HomePage() {
                     dir="ltr"
                     className="whitespace-nowrap font-mono text-[clamp(18px,2vw,25px)] tracking-[0.03em] text-heading"
                   >
-                    01 ••• ••• •••
+                    +216 •• ••• •••
                   </span>
                   <LockKeyhole className="h-5 w-5 shrink-0 text-primary" aria-hidden />
                 </div>
