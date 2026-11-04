@@ -146,7 +146,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
         {/* Mobile drawer */}
         {menuOpen && (
-          <div className="lg:hidden absolute top-full start-0 end-0 navbar-glass border-b border-border/60 shadow-pop px-4 py-3 pb-4 page-enter">
+          <div className="lg:hidden absolute top-full start-0 end-0 bg-surface border-b border-border/60 shadow-pop px-4 py-3 pb-4 page-enter">
             <nav aria-label="Main" className="flex flex-col gap-1">
               {NAV_LINKS.map(({ to, key }) => (
                 <Link

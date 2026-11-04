@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +15,7 @@ import { Logo } from '@/components/layout/Logo'
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') ?? ''
   const [done, setDone] = useState(false)
@@ -22,15 +23,22 @@ export default function ResetPasswordPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { newPassword: '', confirmPassword: '' },
   })
 
-  const mutation = useMutation({
+  const password = watch('newPassword') ?? ''
+  const checks = [
+    { label: 'At least 8 characters', ok: password.length >= 8 },
+    { label: 'At least 1 number', ok: /\d/.test(password) },
+    { label: 'At least 1 special character', ok: /[^A-Za-z0-9]/.test(password) },
+  ]
+const mutation = useMutation({
     mutationFn: (newPassword: string) => confirmPasswordReset(token, newPassword),
-    onSuccess: () => setDone(true),
+    onSuccess: () => { setDone(true); setTimeout(() => navigate('/login'), 1500) },
   })
 
   function onSubmit(values: ResetPasswordValues) {
@@ -70,6 +78,13 @@ export default function ResetPasswordPage() {
                 error={Boolean(errors.newPassword)}
                 {...register('newPassword')}
               />
+<ul className="mt-2 space-y-1 text-xs">
+                {checks.map((c) => (
+                  <li key={c.label} className={c.ok ? 'text-success' : 'text-muted-fg'}>
+                    {c.ok ? '✓' : '•'} {c.label}
+                  </li>
+                ))}
+              </ul>
             </Field>
             <Field label={t('auth.confirmPassword')} error={errors.confirmPassword?.message}>
               <Input

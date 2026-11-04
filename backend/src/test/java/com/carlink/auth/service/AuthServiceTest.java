@@ -8,6 +8,7 @@ import com.carlink.auth.dto.ResetPasswordRequest;
 import com.carlink.auth.dto.VerifyEmailRequest;
 import com.carlink.auth.model.EmailVerificationToken;
 import com.carlink.auth.model.PasswordResetToken;
+import com.carlink.auth.email.PasswordResetEmailComposer;
 import com.carlink.auth.model.RefreshToken;
 import com.carlink.auth.repository.EmailVerificationTokenRepository;
 import com.carlink.auth.repository.PasswordResetTokenRepository;
@@ -68,7 +69,7 @@ class AuthServiceTest {
         authService = new AuthService(
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, passwordEncoder, jwtService,
-                tokenGenerator, emailSender, properties, loginAttemptService,
+                tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
                 stickerRepository);
     }
 
