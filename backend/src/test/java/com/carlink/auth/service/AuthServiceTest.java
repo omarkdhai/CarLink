@@ -113,7 +113,7 @@ class AuthServiceTest {
         assertThat(response.refreshToken()).isNotBlank();
         assertThat(response.user().email()).isEqualTo("owner@example.com");
         assertThat(response.user().role()).isEqualTo("USER");
-        verify(emailSender).sendHtml(anyString(), anyString(), anyString(), anyString());
+        verify(emailSender).send(anyString(), anyString(), anyString());
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
