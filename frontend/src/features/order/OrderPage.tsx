@@ -39,6 +39,7 @@ import {
   TN_DIAL_CODE,
   type OrderDetailsValues,
 } from '@/features/order/orderSchemas'
+import stickerImage from '@/assets/CarLink-Sticker.png'
 import { cn } from '@/lib/cn'
 import { GOVERNORATES } from '@/types'
 import type { Governorate, OrderResponse, StickerPackage } from '@/types'
@@ -746,43 +747,12 @@ function PlacingOrderOverlay() {
 /** Rounded sticker artwork used in the summary aside + mobile total. */
 function StickerArt({ className }: { className?: string }) {
   return (
-    <span
-      className={cn(
-        'block aspect-[1/2] w-[90px] rounded-[13%] bg-white p-2 shadow-[0_10px_24px_rgba(15,23,42,0.14)] ring-1 ring-black/5',
-        className,
-      )}
+    <img
+      src={stickerImage}
+      alt=""
+      className={cn('h-[48%] w-[48%] object-contain', className)}
       aria-hidden="true"
-    >
-      <span className="grid h-full w-full place-items-center rounded-[9%] bg-primary-soft">
-        <svg viewBox="0 0 33 33" className="h-[74%] w-[74%] text-primary" fill="currentColor">
-          <rect x="2" y="2" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2.2" />
-          <rect x="5.5" y="5.5" width="2" height="2" />
-          <rect x="22" y="2" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2.2" />
-          <rect x="25.5" y="5.5" width="2" height="2" />
-          <rect x="2" y="22" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2.2" />
-          <rect x="5.5" y="25.5" width="2" height="2" />
-          <rect x="14" y="3" width="2.4" height="2.4" />
-          <rect x="18" y="3" width="2.4" height="2.4" />
-          <rect x="14" y="7" width="2.4" height="2.4" />
-          <rect x="14" y="13" width="2.4" height="2.4" />
-          <rect x="18" y="13" width="2.4" height="2.4" />
-          <rect x="24" y="13" width="2.4" height="2.4" />
-          <rect x="28" y="13" width="2.4" height="2.4" />
-          <rect x="3" y="14" width="2.4" height="2.4" />
-          <rect x="7" y="14" width="2.4" height="2.4" />
-          <rect x="14" y="17" width="2.4" height="2.4" />
-          <rect x="20" y="17" width="2.4" height="2.4" />
-          <rect x="26" y="17" width="2.4" height="2.4" />
-          <rect x="14" y="22" width="2.4" height="2.4" />
-          <rect x="18" y="22" width="2.4" height="2.4" />
-          <rect x="24" y="23" width="2.4" height="2.4" />
-          <rect x="28" y="23" width="2.4" height="2.4" />
-          <rect x="14" y="27" width="2.4" height="2.4" />
-          <rect x="21" y="27" width="2.4" height="2.4" />
-          <rect x="27" y="27" width="2.4" height="2.4" />
-        </svg>
-      </span>
-    </span>
+    />
   )
 }
 
@@ -811,7 +781,7 @@ function OrderSummaryAside({
       aria-label={t('order.summary')}
     >
       <div className="text-center">
-        <div className="mb-5 grid min-h-[236px] place-items-center">
+        <div className="mb-4 grid min-h-[200px] place-items-center">
           <StickerArt className="-rotate-[8deg]" />
         </div>
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
@@ -1031,7 +1001,7 @@ function DetailsForm({
                     type="tel"
                     inputMode="numeric"
                     autoComplete="tel-national"
-                    placeholder="22 001 122"
+                    placeholder="22 222 222"
                     maxLength={8}
                     aria-invalid={Boolean(errors.mobile)}
                     className="min-w-0 flex-1 bg-transparent px-3.5 text-foreground placeholder:text-muted-fg focus:outline-none"

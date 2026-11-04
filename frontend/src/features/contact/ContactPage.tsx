@@ -71,7 +71,7 @@ export default function ContactPage() {
   return (
     <div className="pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pb-24">
       <div className="mx-auto w-[min(1120px,calc(100%_-_1.5rem))]">
-        <div className="overflow-hidden rounded-[1.5rem] border border-[#f1f5f9] bg-white shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:rounded-[2rem]">
+        <div className="overflow-hidden rounded-[1.5rem] border border-border bg-surface shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:rounded-[2rem]">
           <div className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7 md:gap-8 md:px-8 md:py-10 lg:gap-10 lg:px-12 lg:py-14 xl:px-14 xl:py-16">
             {/* Header */}
             <div className="max-w-3xl space-y-3 lg:space-y-4">

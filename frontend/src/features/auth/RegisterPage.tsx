@@ -24,13 +24,20 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { email: '', password: '', firstName: '', lastName: '', phoneCode: '+216', phoneNumber: '', stickerCode: '' },
   })
 
-  async function onSubmit(values: RegisterValues) {
+  const password = watch('password') ?? ''
+  const checks = [
+    { label: 'At least 8 characters', ok: password.length >= 8 },
+    { label: 'At least 1 number', ok: /\d/.test(password) },
+    { label: 'At least 1 special character', ok: /[^A-Za-z0-9]/.test(password) },
+  ]
+async function onSubmit(values: RegisterValues) {
     setSubmissionError(null)
     try {
       await signUp({
@@ -107,15 +114,22 @@ export default function RegisterPage() {
             {...register('stickerCode')}
           />
         </Field>
-        <Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>
-          <Input
-            type="password"
-            autoComplete="new-password"
-            placeholder={t('auth.passwordPlaceholder')}
-            error={Boolean(errors.password)}
-            {...register('password')}
-          />
-        </Field>
+<Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>
+            <Input
+              type="password"
+              autoComplete="new-password"
+              placeholder={t('auth.passwordPlaceholder')}
+              error={Boolean(errors.password)}
+              {...register('password')}
+            />
+            <ul className="mt-2 space-y-1 text-xs">
+              {checks.map((c) => (
+                <li key={c.label} className={c.ok ? 'text-success' : 'text-muted-fg'}>
+                  {c.ok ? '✓' : '•'} {c.label}
+                </li>
+              ))}
+            </ul>
+          </Field>
         <Field label={t('auth.phone')} optional={t('common.optional')} hint={t('auth.phoneHint')} error={errors.phoneCode?.message || errors.phoneNumber?.message}>
           <PhoneFields
             register={register}

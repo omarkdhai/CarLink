@@ -3,6 +3,7 @@ package com.carlink.auth.service;
 import com.carlink.auth.dto.AuthResponse;
 import com.carlink.auth.dto.LoginRequest;
 import com.carlink.auth.dto.PasswordResetRequest;
+import com.carlink.auth.email.PasswordResetEmailComposer;
 import com.carlink.auth.dto.RegisterRequest;
 import com.carlink.auth.dto.ResetPasswordRequest;
 import com.carlink.auth.model.EmailVerificationToken;
@@ -59,6 +60,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final TokenGenerator tokenGenerator;
     private final EmailSender emailSender;
+    private final PasswordResetEmailComposer passwordResetEmailComposer;
     private final CarLinkProperties properties;
     private final LoginAttemptService loginAttemptService;
     private final StickerRepository stickerRepository;
@@ -226,13 +228,8 @@ public class AuthService {
                     tokenGenerator.sha256(raw),
                     nowPlus(Duration.ofMinutes(properties.email().tokenExpiryMinutes())));
             passwordResetTokenRepository.save(token);
-            emailSender.send(user.getEmail(),
-                    "Réinitialisation de votre mot de passe",
-                    "Bonjour " + user.getFirstName() + ",\n\n"
-                            + "Cliquez sur ce lien pour réinitialiser votre mot de passe :\n"
-                            + resetUrl(raw)
-                            + "\n\nCe lien expire dans "
-                            + properties.email().tokenExpiryMinutes() + " minutes.");
+            var content = passwordResetEmailComposer.compose(user.getFirstName(), resetUrl(raw), (int) properties.email().tokenExpiryMinutes());
+            emailSender.sendHtml(user.getEmail(), content.subject(), content.html(), content.text());
         });
         // Identical answer whether or not the account exists.
     }

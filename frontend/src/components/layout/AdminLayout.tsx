@@ -102,7 +102,7 @@ export function AdminLayout() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-heading/40 backdrop-blur-[1px] drawer-backdrop-enter" onClick={() => setMobileOpen(false)} />
+          <div className="absolute inset-0 bg-heading/40 drawer-backdrop-enter" onClick={() => setMobileOpen(false)} />
           <aside className="absolute inset-y-0 start-0 w-72 bg-surface shadow-pop flex flex-col drawer-panel-enter">
             <button
               className="absolute end-3 top-4 h-9 w-9 rounded-lg text-muted-fg hover:bg-muted flex items-center justify-center"

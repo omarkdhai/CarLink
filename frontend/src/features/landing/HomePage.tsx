@@ -26,7 +26,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
-import heroImage from '@/assets/hero.png'
+import heroImage from '@/assets/Sticker-Windshield.png'
 
 /** Icon-only trust pills shown above the hero headline. */
 const HERO_TRAITS = [
