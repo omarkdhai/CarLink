@@ -113,7 +113,7 @@ class AuthServiceTest {
         assertThat(response.refreshToken()).isNotBlank();
         assertThat(response.user().email()).isEqualTo("owner@example.com");
         assertThat(response.user().role()).isEqualTo("USER");
-        verify(emailSender).send(anyString(), anyString(), anyString());
+        verify(emailSender).sendHtml(anyString(), anyString(), anyString(), anyString());
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
@@ -313,7 +313,7 @@ class AuthServiceTest {
         authService.requestPasswordReset(
                 new PasswordResetRequest("nobody@example.com"));
 
-        verify(emailSender, never()).send(anyString(), anyString(), anyString());
+        verify(emailSender, never()).sendHtml(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -324,7 +324,7 @@ class AuthServiceTest {
 
         authService.requestPasswordReset(new PasswordResetRequest("owner@example.com"));
 
-        verify(emailSender).send(anyString(), anyString(), anyString());
+        verify(emailSender).sendHtml(anyString(), anyString(), anyString(), anyString());
         verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
     }
 
