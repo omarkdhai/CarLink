@@ -37,7 +37,7 @@ export default function RegisterPage() {
     { label: 'At least 1 number', ok: /\d/.test(password) },
     { label: 'At least 1 special character', ok: /[^A-Za-z0-9]/.test(password) },
   ]
-async function onSubmit(values: RegisterValues) {
+  async function onSubmit(values: RegisterValues) {
     setSubmissionError(null)
     try {
       await signUp({
@@ -55,103 +55,117 @@ async function onSubmit(values: RegisterValues) {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col gap-6 justify-center my-auto py-8">
-      <div className="text-center">
-        <Logo className="justify-center" />
-        <h1 className="text-2xl font-bold text-heading mt-5">{t('auth.registerTitle')}</h1>
-        <p className="text-sm text-muted-fg mt-1">{t('auth.registerSubtitle')}</p>
-      </div>
-
-      {submissionError?.code === 'EMAIL_ALREADY_REGISTERED' ? (
-        <Alert tone="error" title={t('auth.emailAlreadyRegistered')}>
-          <Link
-            to="/login"
-            className={buttonClasses({ variant: 'outline', size: 'sm' }) + ' mt-2'}
-            data-cy="sign-in-instead"
-          >
-            {t('auth.signInInstead')}
-          </Link>
-        </Alert>
-      ) : (
-        submissionError && <Alert tone="error">{submissionError.message}</Alert>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-surface border border-border rounded-xl p-6 shadow-card" noValidate>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label={t('auth.firstName')} error={errors.firstName?.message}>
-            <Input
-              placeholder={t('auth.firstNamePlaceholder')}
-              autoComplete="given-name"
-              error={Boolean(errors.firstName)}
-              {...register('firstName')}
-            />
-          </Field>
-          <Field label={t('auth.lastName')} error={errors.lastName?.message}>
-            <Input
-              placeholder={t('auth.lastNamePlaceholder')}
-              autoComplete="family-name"
-              error={Boolean(errors.lastName)}
-              {...register('lastName')}
-            />
-          </Field>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-surface">
+      <aside className="hidden lg:flex flex-col justify-between bg-primary text-primary-foreground p-10">
+        <Logo className="text-primary-foreground" />
+        <div>
+          <h2 className="text-3xl font-bold leading-tight">Join CarLink today.</h2>
+          <p className="mt-3 text-primary-foreground/80 text-sm max-w-sm">
+            Create your account, activate your sticker and start managing your vehicles.
+          </p>
         </div>
-        <Field label={t('auth.email')} error={errors.email?.message}>
-          <Input
-            type="email"
-            autoComplete="email"
-            placeholder={t('auth.emailPlaceholder')}
-            error={Boolean(errors.email)}
-            {...register('email')}
-          />
-        </Field>
-        <Field label={t('validation.stickerCodeRequired')} error={errors.stickerCode?.message}>
-          <Input
-            placeholder={t('registerSticker.codePlaceholder')}
-            autoCapitalize="characters"
-            spellCheck={false}
-            maxLength={32}
-            error={Boolean(errors.stickerCode)}
-            {...register('stickerCode')}
-          />
-        </Field>
-<Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>
-            <Input
-              type="password"
-              autoComplete="new-password"
-              placeholder={t('auth.passwordPlaceholder')}
-              error={Boolean(errors.password)}
-              {...register('password')}
-            />
-            <ul className="mt-2 space-y-1 text-xs">
-              {checks.map((c) => (
-                <li key={c.label} className={c.ok ? 'text-success' : 'text-muted-fg'}>
-                  {c.ok ? '✓' : '•'} {c.label}
-                </li>
-              ))}
-            </ul>
-          </Field>
-        <Field label={t('auth.phone')} optional={t('common.optional')} hint={t('auth.phoneHint')} error={errors.phoneCode?.message || errors.phoneNumber?.message}>
-          <PhoneFields
-            register={register}
-            codeName="phoneCode"
-            nationalName="phoneNumber"
-            codeError={errors.phoneCode?.message}
-            nationalError={errors.phoneNumber?.message}
-            nationalPlaceholder={t('auth.phoneNumberPlaceholder')}
-          />
-        </Field>
+        <p className="text-xs text-primary-foreground/60">© CarLink</p>
+      </aside>
+      <main className="flex items-center justify-center p-6 sm:p-10">
+        <div className="w-full max-w-md flex flex-col gap-6">
+          <div className="text-center lg:text-start">
+            <Logo className="justify-center lg:justify-start" />
+            <h1 className="text-2xl font-bold text-heading mt-5">{t('auth.registerTitle')}</h1>
+            <p className="text-sm text-muted-fg mt-1">{t('auth.registerSubtitle')}</p>
+          </div>
 
-        <Button type="submit" fullWidth loading={isSubmitting} className="mt-2">
-          {t('auth.register')}
-        </Button>
-      </form>
+          {submissionError?.code === 'EMAIL_ALREADY_REGISTERED' ? (
+            <Alert tone="error" title={t('auth.emailAlreadyRegistered')}>
+              <Link
+                to="/login"
+                className={buttonClasses({ variant: 'outline', size: 'sm' }) + ' mt-2'}
+                data-cy="sign-in-instead"
+              >
+                {t('auth.signInInstead')}
+              </Link>
+            </Alert>
+          ) : (
+            submissionError && <Alert tone="error">{submissionError.message}</Alert>
+          )}
 
-      <p className="text-center text-sm text-muted-fg">
-        {t('auth.haveAccount')}{' '}
-        <Link to="/login" className="font-semibold text-primary hover:underline">
-          {t('auth.signIn')}
-        </Link>
-      </p>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-surface border border-border rounded-xl p-6 shadow-card" noValidate>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field label={t('auth.firstName')} error={errors.firstName?.message}>
+                <Input
+                  placeholder={t('auth.firstNamePlaceholder')}
+                  autoComplete="given-name"
+                  error={Boolean(errors.firstName)}
+                  {...register('firstName')}
+                />
+              </Field>
+              <Field label={t('auth.lastName')} error={errors.lastName?.message}>
+                <Input
+                  placeholder={t('auth.lastNamePlaceholder')}
+                  autoComplete="family-name"
+                  error={Boolean(errors.lastName)}
+                  {...register('lastName')}
+                />
+              </Field>
+            </div>
+            <Field label={t('auth.email')} error={errors.email?.message}>
+              <Input
+                type="email"
+                autoComplete="email"
+                placeholder={t('auth.emailPlaceholder')}
+                error={Boolean(errors.email)}
+                {...register('email')}
+              />
+            </Field>
+            <Field label={t('validation.stickerCodeRequired')} error={errors.stickerCode?.message}>
+              <Input
+                placeholder={t('registerSticker.codePlaceholder')}
+                autoCapitalize="characters"
+                spellCheck={false}
+                maxLength={32}
+                error={Boolean(errors.stickerCode)}
+                {...register('stickerCode')}
+              />
+            </Field>
+            <Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>
+              <Input
+                type="password"
+                autoComplete="new-password"
+                placeholder={t('auth.passwordPlaceholder')}
+                error={Boolean(errors.password)}
+                {...register('password')}
+              />
+              <ul className="mt-2 space-y-1 text-xs">
+                {checks.map((c) => (
+                  <li key={c.label} className={c.ok ? 'text-success' : 'text-muted-fg'}>
+                    {c.ok ? '✓' : '•'} {c.label}
+                  </li>
+                ))}
+              </ul>
+            </Field>
+            <Field label={t('auth.phone')} optional={t('common.optional')} hint={t('auth.phoneHint')} error={errors.phoneCode?.message || errors.phoneNumber?.message}>
+              <PhoneFields
+                register={register}
+                codeName="phoneCode"
+                nationalName="phoneNumber"
+                codeError={errors.phoneCode?.message}
+                nationalError={errors.phoneNumber?.message}
+                nationalPlaceholder={t('auth.phoneNumberPlaceholder')}
+              />
+            </Field>
+
+            <Button type="submit" fullWidth loading={isSubmitting} className="mt-2">
+              {t('auth.register')}
+            </Button>
+          </form>
+
+          <p className="text-center text-sm text-muted-fg">
+            {t('auth.haveAccount')}{' '}
+            <Link to="/login" className="font-semibold text-primary hover:underline">
+              {t('auth.signIn')}
+            </Link>
+          </p>
+        </div>
+      </main>
     </div>
   )
 }
