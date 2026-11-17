@@ -67,15 +67,15 @@ function BrandPanel({ variant }: { variant: Variant }) {
     { icon: Smartphone, key: 'point3' },
   ]
   return (
-    <aside className="relative hidden overflow-hidden bg-primary text-white lg:flex lg:flex-col lg:justify-between lg:p-12 xl:p-14">
+    <aside className="relative hidden overflow-hidden bg-primary text-white lg:flex lg:flex-col lg:justify-between lg:gap-14 lg:p-12 xl:p-14">
       {/* Background texture */}
       <div className="auth-grid pointer-events-none absolute inset-0" aria-hidden />
       <div className="pointer-events-none absolute -end-24 -top-24 h-80 w-80 rounded-full bg-white/10 blur-2xl" aria-hidden />
       <div className="pointer-events-none absolute -bottom-32 -start-16 h-96 w-96 rounded-full bg-primary-active/60 blur-3xl" aria-hidden />
 
       <div className="relative">
-        <span className="inline-flex rounded-2xl bg-white px-4 py-2.5 shadow-lg">
-          <Logo size="md" />
+        <span className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 shadow-lg [&>a]:flex [&>a]:items-center">
+          <Logo size="md" className="items-center justify-center" />
         </span>
       </div>
 
@@ -98,7 +98,7 @@ function BrandPanel({ variant }: { variant: Variant }) {
       </div>
 
       {/* Product moment: the alert an owner receives */}
-      <div className="relative">
+      <div className="relative pt-6">
         <div className="auth-pop" style={{ animationDelay: '650ms' }}>
           <div className="auth-float w-full max-w-sm rounded-2xl bg-white p-4 text-heading shadow-[0_24px_60px_rgba(15,23,42,0.35)]">
             <div className="flex items-start gap-3">
