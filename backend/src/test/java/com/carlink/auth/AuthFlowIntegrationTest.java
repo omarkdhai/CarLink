@@ -50,6 +50,12 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
             capturedEmailBody = inv.getArgument(2, String.class);
             return null;
         }).when(emailSender).send(anyString(), anyString(), anyString());
+        // Templated emails (password reset) go through sendHtml: keep the latest
+        // email's text + HTML so the token link is found whichever is used.
+        doAnswer(inv -> {
+            capturedEmailBody = inv.getArgument(3, String.class) + "\n" + inv.getArgument(2, String.class);
+            return null;
+        }).when(emailSender).sendHtml(anyString(), anyString(), anyString(), anyString());
     }
 
     @AfterEach
