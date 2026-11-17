@@ -1,38 +1,117 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
-import { Users, Car, QrCode, Flag, ScrollText, ShoppingCart, DollarSign, TrendingUp, Activity } from 'lucide-react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import {
+  Area,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Legend,
+  Line,
+  Pie,
+  PieChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
+  Banknote,
+  CarFront,
+  Flag,
+  MessageSquare,
+  MessageSquareWarning,
+  Package,
+  QrCode,
+  Receipt,
+  ShoppingCart,
+  Sticker,
+  UserPlus,
+  Link2,
+} from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ErrorState } from '@/components/shared/ErrorState'
+import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { adminApi, adminQueryKeys } from '@/services/adminApi'
+import type { DashboardDays, OrderStatus } from '@/types'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend,
-} from 'recharts'
+  AttentionCard,
+  BarRow,
+  C,
+  ChartCard,
+  KpiCard,
+  LiveIndicator,
+  PALETTE,
+  RangePicker,
+  SectionTitle,
+  axisProps,
+  gridProps,
+  tooltipProps,
+  useFormatters,
+} from './overview/parts'
 
-const COLORS = ['#2563eb', '#ea580c', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6']
+/** Dashboard refresh cadence while the tab is visible. */
+const REFRESH_MS = 30_000
+
+const ORDER_TONE: Record<OrderStatus, BadgeTone> = {
+  PLACED: 'warning',
+  DELIVERED: 'success',
+  CANCELLED: 'danger',
+}
+
+const ORDER_COLOR: Record<string, string> = {
+  PLACED: C.warning,
+  DELIVERED: C.success,
+  CANCELLED: C.danger,
+}
 
 export default function AdminOverviewPage() {
   const { t } = useTranslation()
+  const f = useFormatters()
+  const [days, setDays] = useState<DashboardDays>(30)
 
-  const stats = useQuery({
-    queryKey: adminQueryKeys.stats,
-    queryFn: () => adminApi.stats.overview(),
+  const q = useQuery({
+    queryKey: adminQueryKeys.dashboard(days),
+    queryFn: () => adminApi.stats.dashboard(days),
+    placeholderData: keepPreviousData,
+    refetchInterval: REFRESH_MS,
+    refetchOnWindowFocus: true,
   })
 
-  if (stats.isError) {
-    return <ErrorState message={t('errors.generic')} onRetry={() => stats.refetch()} />
-  }
+  const header = (
+    <PageHeader
+      title={t('admin.overview')}
+      subtitle={t('admin.dash.subtitle')}
+      actions={
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {q.data && <LiveIndicator updatedAt={q.dataUpdatedAt} fetching={q.isFetching} onRefresh={() => q.refetch()} />}
+          <RangePicker value={days} onChange={setDays} />
+        </div>
+      }
+    />
+  )
 
-  if (stats.isPending || !stats.data) {
+  if (q.isError && !q.data) {
     return (
       <div>
-        <PageHeader title={t('admin.overview')} subtitle={t('admin.subtitle')} />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-surface border border-border rounded-lg p-5 space-y-3">
-              <div className="h-11 w-11 rounded-lg bg-muted animate-pulse" />
-              <div className="h-8 w-16 rounded bg-muted animate-pulse" />
+        {header}
+        <ErrorState message={t('errors.generic')} onRetry={() => q.refetch()} />
+      </div>
+    )
+  }
+
+  if (!q.data) {
+    return (
+      <div>
+        {header}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className={`bg-surface border border-border rounded-xl p-4 space-y-3 ${i >= 8 ? 'h-64 lg:col-span-2' : ''}`}>
               <div className="h-4 w-1/2 rounded bg-muted animate-pulse" />
+              <div className="h-7 w-24 rounded bg-muted animate-pulse" />
+              <div className="h-3 w-2/3 rounded bg-muted animate-pulse" />
             </div>
           ))}
         </div>
@@ -40,170 +119,407 @@ export default function AdminOverviewPage() {
     )
   }
 
-  const s = stats.data
-  const convData = [
-    { name: t('admin.statConversations'), value: s.conversationsTotal },
-    { name: t('admin.statestPending'), value: s.conversationsPending },
-    { name: t('admin.statSent'), value: s.conversationsSent },
-    { name: t('admin.statFailed'), value: s.conversationsFailed },
-    { name: t('admin.statExpired'), value: s.conversationsExpired },
-  ]
-  const orderData = [
-    { name: 'Placed', value: s.ordersPlaced },
-    { name: 'Delivered', value: s.ordersDelivered },
-    { name: 'Cancelled', value: s.ordersCancelled },
-  ]
+  const d = q.data
+  const k = d.kpis
+  const g = d.granularity
+  const label = (iso: string) => f.bucket(iso, g)
+
+  const sales = d.sales.map((p) => ({ ...p, revenue: Number(p.revenue), label: label(p.bucket) }))
+  const growth = d.growth.map((p) => ({ ...p, label: label(p.bucket) }))
+  const contacts = d.contacts.map((p) => ({ ...p, label: label(p.bucket) }))
+  const hours = d.contactsByHour.map((n, h) => ({ hour: `${String(h).padStart(2, '0')}h`, n }))
+  const packages = d.packageMix.map((s) => ({ ...s, label: t(`admin.dash.packages.${s.name}`, s.name) }))
+  const statuses = d.ordersByStatus.map((s) => ({ ...s, label: t(`admin.dash.orderStatus.${s.name}`, s.name) }))
+  const governorates = d.governorates.map((s) => ({
+    ...s,
+    amountN: Number(s.amount),
+    label: t(`order.governorates.${s.name}`, s.name.replace(/_/g, ' ')),
+  }))
+  const reasonsTotal = d.contactReasons.reduce((sum, r) => sum + r.count, 0)
+  const funnelMax = Math.max(1, d.stickers.issued)
+  const activationRate = d.stickers.issued ? (d.stickers.everActivated / d.stickers.issued) * 100 : 0
+  const periodHint = t(`admin.dash.periodHint.${g}`)
+  const rangeLabel = t(`admin.dash.kpiTitle.${days}`)
+
+  const hasSales = sales.some((p) => p.orders > 0)
+  const hasGrowth = growth.some((p) => p.users + p.vehicles + p.activations > 0)
+  const hasContacts = contacts.some((p) => p.sent + p.failed + p.other > 0)
 
   return (
-    <div>
-      <PageHeader title={t('admin.overview')} subtitle={t('admin.subtitle')} />
+    <div className={q.isPlaceholderData ? 'opacity-70 transition-opacity' : 'transition-opacity'}>
+      {header}
 
-      <Section title={t('admin.statUsers')}>
-        <Stat icon={<Users className="h-5 w-5" />} tone="bg-primary-soft text-primary" label={t('admin.statUsers')} value={s.usersTotal} />
-        <Stat icon={<Users className="h-5 w-5" />} tone="bg-success-soft text-success" label={t('admin.statActiveUsers')} value={s.usersActive} />
-        <Stat icon={<Users className="h-5 w-5" />} tone="bg-accent-soft text-accent" label={t('admin.statAdmins')} value={s.usersAdmins} />
-        <Stat icon={<Activity className="h-5 w-5" />} tone="bg-primary-soft text-primary" label="Conversion Rate" value={Number(s.conversionRate || 0).toFixed(1) + '%'} />
-      </Section>
+      {/* Needs attention */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <AttentionCard
+          icon={Package}
+          label={t('admin.dash.pendingOrders')}
+          value={f.num(d.snapshot.ordersPending)}
+          detail={d.snapshot.ordersPending ? f.tnd(d.snapshot.ordersPendingValue) : undefined}
+          to="/admin/orders?status=PLACED"
+          alert={d.snapshot.ordersPending > 0}
+        />
+        <AttentionCard
+          icon={Flag}
+          label={t('admin.dash.openReports')}
+          value={f.num(d.snapshot.reportsOpen)}
+          to="/admin/reports"
+          alert={d.snapshot.reportsOpen > 0}
+        />
+        <AttentionCard
+          icon={MessageSquareWarning}
+          label={t('admin.dash.failedContacts')}
+          value={f.num(d.snapshot.contactsFailed)}
+          alert={d.snapshot.contactsFailed > 0}
+        />
+        <AttentionCard
+          icon={QrCode}
+          label={t('admin.dash.unclaimedStickers')}
+          value={f.num(d.stickers.unbound)}
+          to="/admin/qr-codes?status=UNBOUND"
+          alert={false}
+        />
+      </div>
 
-      <Section title={t('admin.statVehicles')}>
-        <Stat icon={<Car className="h-5 w-5" />} tone="bg-primary-soft text-primary" label={t('admin.statVehicles')} value={s.vehiclesTotal} />
-        <Stat icon={<Car className="h-5 w-5" />} tone="bg-success-soft text-success" label={t('admin.statActiveVehicles')} value={s.vehiclesActive} />
-        <Stat icon={<QrCode className="h-5 w-5" />} tone="bg-warning-soft text-warning" label={t('admin.statQr')} value={s.qrTotal} />
-        <Stat icon={<QrCode className="h-5 w-5" />} tone="bg-success-soft text-success" label={t('admin.statActiveQr')} value={s.qrActive} />
-      </Section>
+      {/* KPIs */}
+      <SectionTitle>{t(`admin.dash.kpiTitle.${days}`)}</SectionTitle>
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          icon={Banknote}
+          tone="bg-success-soft text-success"
+          label={t('admin.dash.kpi.revenue')}
+          value={f.tnd(k.revenue.value)}
+          kpi={k.revenue}
+          hint={t('admin.dash.kpi.delivered', { amount: f.tnd(k.deliveredRevenue.value) })}
+        />
+        <KpiCard
+          icon={ShoppingCart}
+          tone="bg-primary-soft text-primary"
+          label={t('admin.dash.kpi.orders')}
+          value={f.num(k.orders.value)}
+          kpi={k.orders}
+        />
+        <KpiCard
+          icon={Receipt}
+          tone="bg-accent-soft text-accent"
+          label={t('admin.dash.kpi.aov')}
+          value={f.tnd(k.averageOrderValue.value)}
+          kpi={k.averageOrderValue}
+        />
+        <KpiCard
+          icon={Sticker}
+          tone="bg-warning-soft text-warning"
+          label={t('admin.dash.kpi.stickersSold')}
+          value={f.num(k.stickersSold.value)}
+          kpi={k.stickersSold}
+        />
+        <KpiCard
+          icon={Link2}
+          tone="bg-success-soft text-success"
+          label={t('admin.dash.kpi.activations')}
+          value={f.num(k.activations.value)}
+          kpi={k.activations}
+          hint={t('admin.dash.kpi.activationRate', { rate: f.pct(activationRate) })}
+        />
+        <KpiCard
+          icon={UserPlus}
+          tone="bg-primary-soft text-primary"
+          label={t('admin.dash.kpi.newUsers')}
+          value={f.num(k.newUsers.value)}
+          kpi={k.newUsers}
+          hint={t('admin.dash.kpi.totalActive', {
+            total: f.num(d.snapshot.usersTotal),
+            active: f.num(d.snapshot.usersActive),
+          })}
+        />
+        <KpiCard
+          icon={CarFront}
+          tone="bg-accent-soft text-accent"
+          label={t('admin.dash.kpi.newVehicles')}
+          value={f.num(k.newVehicles.value)}
+          kpi={k.newVehicles}
+          hint={t('admin.dash.kpi.totalActive', {
+            total: f.num(d.snapshot.vehiclesTotal),
+            active: f.num(d.snapshot.vehiclesActive),
+          })}
+        />
+        <KpiCard
+          icon={MessageSquare}
+          tone="bg-primary-soft text-primary"
+          label={t('admin.dash.kpi.contacts')}
+          value={f.num(k.contacts.value)}
+          kpi={k.contacts}
+          hint={t('admin.dash.kpi.deliveryRate', { rate: f.pct(k.deliveryRate.value) })}
+        />
+      </div>
 
-      <Section title="Sales & Revenue">
-        <Stat icon={<ShoppingCart className="h-5 w-5" />} tone="bg-primary-soft text-primary" label="Total Orders" value={s.ordersTotal} />
-        <Stat icon={<DollarSign className="h-5 w-5" />} tone="bg-success-soft text-success" label="Total Revenue (TND)" value={Number(s.totalRevenue || 0).toFixed(2)} />
-        <Stat icon={<TrendingUp className="h-5 w-5" />} tone="bg-warning-soft text-warning" label="Revenue This Month (TND)" value={Number(s.revenueThisMonth || 0).toFixed(2)} />
-        <Stat icon={<ScrollText className="h-5 w-5" />} tone="bg-primary-soft text-primary" label={t('admin.statMessages')} value={s.messagesTotal} />
-      </Section>
+      {/* Sales */}
+      <SectionTitle>{t('admin.dash.sections.sales')}</SectionTitle>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard
+          title={t('admin.dash.charts.revenueOrders')}
+          subtitle={periodHint}
+          empty={!hasSales}
+          className="lg:col-span-2"
+          height={280}
+        >
+          <ComposedChart data={sales} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+            <defs>
+              <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={C.primary} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid {...gridProps} />
+            <XAxis dataKey="label" {...axisProps} minTickGap={16} />
+            <YAxis yAxisId="rev" {...axisProps} tickFormatter={f.compact} />
+            <YAxis yAxisId="orders" orientation="right" {...axisProps} allowDecimals={false} />
+            <Tooltip
+              {...tooltipProps}
+              formatter={(value, name) =>
+                name === 'revenue'
+                  ? [f.tnd(Number(value)), t('admin.dash.kpi.revenue')]
+                  : [f.num(Number(value)), t(name === 'orders' ? 'admin.dash.kpi.orders' : 'admin.dash.kpi.stickersSold')]
+              }
+            />
+            <Legend
+              iconType="circle"
+              wrapperStyle={{ fontSize: 12 }}
+              formatter={(name) =>
+                t(name === 'revenue' ? 'admin.dash.kpi.revenue' : name === 'orders' ? 'admin.dash.kpi.orders' : 'admin.dash.kpi.stickersSold')
+              }
+            />
+            <Bar yAxisId="orders" dataKey="orders" fill={C.accent} radius={[4, 4, 0, 0]} maxBarSize={28} />
+            <Area yAxisId="rev" type="linear" dataKey="revenue" stroke={C.primary} strokeWidth={2} fill="url(#revFill)" />
+            <Line yAxisId="orders" type="linear" dataKey="stickers" stroke={C.success} strokeWidth={2} dot={false} />
+          </ComposedChart>
+        </ChartCard>
 
-      {s.monthlySales && s.monthlySales.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-lg font-bold text-heading mb-3">Revenue & Orders Trend</h2>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ChartCard title="Monthly Revenue (TND)">
-              <LineChart data={s.monthlySales}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
-                <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2} dot={{ fill: '#2563eb' }} />
-              </LineChart>
-            </ChartCard>
-            <ChartCard title="Monthly Orders">
-              <BarChart data={s.monthlySales}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
-                <Bar dataKey="orders" fill="#ea580c" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartCard>
+        <ChartCard
+          title={t('admin.dash.charts.packageMix')}
+          subtitle={t('admin.dash.charts.packageMixHint')}
+          empty={packages.length === 0}
+          height={180}
+          footer={
+            <ul className="mt-4 space-y-2">
+              {packages.map((p, i) => (
+                <li key={p.name} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PALETTE[i % PALETTE.length] }} />
+                    <span className="truncate">{p.label}</span>
+                  </span>
+                  <span className="text-muted-fg tabular-nums whitespace-nowrap">
+                    {f.num(p.count)} · {f.tnd(p.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          }
+        >
+          <PieChart>
+            <Pie data={packages} dataKey="count" nameKey="label" innerRadius={50} outerRadius={80} paddingAngle={2} stroke="none">
+              {packages.map((p, i) => (
+                <Cell key={p.name} fill={PALETTE[i % PALETTE.length]} />
+              ))}
+            </Pie>
+            <Tooltip {...tooltipProps} formatter={(v) => f.num(Number(v))} />
+          </PieChart>
+        </ChartCard>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3 mt-4">
+        <ChartCard
+          title={t('admin.dash.charts.governorates')}
+          subtitle={t('admin.dash.charts.governoratesHint')}
+          empty={governorates.length === 0}
+          className="lg:col-span-2"
+          height={Math.max(160, governorates.length * 34)}
+        >
+          <BarChart data={governorates} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+            <CartesianGrid {...gridProps} horizontal={false} vertical />
+            <XAxis type="number" {...axisProps} tickFormatter={f.compact} />
+            <YAxis type="category" dataKey="label" {...axisProps} width={90} />
+            <Tooltip
+              {...tooltipProps}
+              formatter={(v, _n, item) => [
+                `${f.tnd(Number(v))} · ${f.num((item.payload as { count: number }).count)} ${t('admin.dash.ordersUnit')}`,
+                t('admin.dash.kpi.revenue'),
+              ]}
+            />
+            <Bar dataKey="amountN" fill={C.primary} radius={[0, 4, 4, 0]} maxBarSize={22} />
+          </BarChart>
+        </ChartCard>
+
+        <ChartCard title={t('admin.dash.charts.orderStatus')} subtitle={rangeLabel} empty={statuses.length === 0} height={200}
+          footer={
+            <ul className="mt-4 space-y-2">
+              {statuses.map((s) => (
+                <li key={s.name} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ORDER_COLOR[s.name] ?? C.slate }} />
+                    {s.label}
+                  </span>
+                  <span className="text-muted-fg tabular-nums">{f.num(s.count)} · {f.tnd(s.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          }
+        >
+          <PieChart>
+            <Pie data={statuses} dataKey="count" nameKey="label" innerRadius={55} outerRadius={85} paddingAngle={2} stroke="none">
+              {statuses.map((s) => (
+                <Cell key={s.name} fill={ORDER_COLOR[s.name] ?? C.slate} />
+              ))}
+            </Pie>
+            <Tooltip {...tooltipProps} formatter={(v) => f.num(Number(v))} />
+          </PieChart>
+        </ChartCard>
+      </div>
+
+      {/* Growth */}
+      <SectionTitle>{t('admin.dash.sections.growth')}</SectionTitle>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard
+          title={t('admin.dash.charts.growth')}
+          subtitle={periodHint}
+          empty={!hasGrowth}
+          className="lg:col-span-2"
+          height={260}
+        >
+          <BarChart data={growth} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <CartesianGrid {...gridProps} />
+            <XAxis dataKey="label" {...axisProps} minTickGap={16} />
+            <YAxis {...axisProps} allowDecimals={false} />
+            <Tooltip
+              {...tooltipProps}
+              formatter={(v, name) => [f.num(Number(v)), t(`admin.dash.series.${String(name)}`)]}
+            />
+            <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} formatter={(name) => t(`admin.dash.series.${String(name)}`)} />
+            <Bar dataKey="users" fill={C.primary} radius={[3, 3, 0, 0]} maxBarSize={14} />
+            <Bar dataKey="vehicles" fill={C.accent} radius={[3, 3, 0, 0]} maxBarSize={14} />
+            <Bar dataKey="activations" fill={C.success} radius={[3, 3, 0, 0]} maxBarSize={14} />
+          </BarChart>
+        </ChartCard>
+
+        <div className="bg-surface border border-border rounded-xl p-5 flex flex-col">
+          <p className="text-sm font-semibold text-heading">{t('admin.dash.charts.funnel')}</p>
+          <p className="text-xs text-muted-fg mt-0.5 mb-5">{t('admin.dash.charts.funnelHint')}</p>
+          <div className="space-y-4">
+            <BarRow label={t('admin.dash.funnel.issued')} value={d.stickers.issued} max={funnelMax} color={C.primary} right={f.num(d.stickers.issued)} />
+            <BarRow
+              label={t('admin.dash.funnel.activated')}
+              value={d.stickers.everActivated}
+              max={funnelMax}
+              color={C.success}
+              right={`${f.num(d.stickers.everActivated)} · ${f.pct(activationRate)}`}
+            />
+            <BarRow label={t('admin.dash.funnel.live')} value={d.stickers.bound} max={funnelMax} color={C.accent} right={f.num(d.stickers.bound)} />
           </div>
-        </section>
-      )}
-
-      <section className="mb-8">
-        <h2 className="text-lg font-bold text-heading mb-3">Status Distribution</h2>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <ChartCard title="Conversations">
-            <PieChart>
-              <Pie data={convData} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                {convData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
-              <Legend />
-            </PieChart>
-          </ChartCard>
-          <ChartCard title="Orders">
-            <PieChart>
-              <Pie data={orderData} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                {orderData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
-              <Legend />
-            </PieChart>
-          </ChartCard>
+          <div className="mt-auto pt-5 grid grid-cols-2 gap-3 text-center">
+            <div className="rounded-lg bg-muted/50 p-3">
+              <p className="text-lg font-bold text-heading tabular-nums">{f.num(d.stickers.unbound)}</p>
+              <p className="text-xs text-muted-fg">{t('stickers.status.UNBOUND')}</p>
+            </div>
+            <div className="rounded-lg bg-muted/50 p-3">
+              <p className="text-lg font-bold text-heading tabular-nums">{f.num(d.stickers.deactivated)}</p>
+              <p className="text-xs text-muted-fg">{t('stickers.status.DEACTIVATED')}</p>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
 
-      {s.salesByGovernorate && s.salesByGovernorate.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-lg font-bold text-heading mb-3">Stickers Sold by Governorate</h2>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ChartCard title="Orders by Governorate">
-              <BarChart data={s.salesByGovernorate.slice(0, 8)} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis dataKey="governorate" type="category" tick={{ fontSize: 11 }} width={100} tickFormatter={(v: string) => v.replace(/_/g, ' ')} />
-                <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
-                <Bar dataKey="count" fill="#2563eb" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ChartCard>
-            <ChartCard title="Share by Governorate">
-              <PieChart>
-                <Pie data={s.salesByGovernorate.slice(0, 6)} cx="50%" cy="50%" outerRadius={90} dataKey="count" nameKey="governorate" label={({ governorate, count }: any) => `${String(governorate).replace(/_/g, ' ')}: ${count}`}>
-                  {s.salesByGovernorate.slice(0, 6).map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
-              </PieChart>
-            </ChartCard>
+      {/* Contacts */}
+      <SectionTitle>{t('admin.dash.sections.contacts')}</SectionTitle>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard
+          title={t('admin.dash.charts.contacts')}
+          subtitle={periodHint}
+          empty={!hasContacts}
+          className="lg:col-span-2"
+          height={240}
+        >
+          <BarChart data={contacts} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <CartesianGrid {...gridProps} />
+            <XAxis dataKey="label" {...axisProps} minTickGap={16} />
+            <YAxis {...axisProps} allowDecimals={false} />
+            <Tooltip {...tooltipProps} formatter={(v, name) => [f.num(Number(v)), t(`admin.dash.series.${String(name)}`)]} />
+            <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} formatter={(name) => t(`admin.dash.series.${String(name)}`)} />
+            <Bar dataKey="sent" stackId="c" fill={C.success} maxBarSize={28} />
+            <Bar dataKey="failed" stackId="c" fill={C.danger} maxBarSize={28} />
+            <Bar dataKey="other" stackId="c" fill={C.slate} radius={[4, 4, 0, 0]} maxBarSize={28} />
+          </BarChart>
+        </ChartCard>
+
+        <div className="bg-surface border border-border rounded-xl p-5">
+          <p className="text-sm font-semibold text-heading">{t('admin.dash.charts.reasons')}</p>
+          <p className="text-xs text-muted-fg mt-0.5 mb-5">{rangeLabel}</p>
+          {d.contactReasons.length === 0 ? (
+            <p className="text-sm text-muted-fg py-10 text-center">{t('admin.dash.noData')}</p>
+          ) : (
+            <div className="space-y-3">
+              {d.contactReasons.map((r, i) => (
+                <BarRow
+                  key={r.name}
+                  label={t(`contact.reasons.${r.name}`, r.name)}
+                  value={r.count}
+                  max={d.contactReasons[0].count}
+                  color={PALETTE[i % PALETTE.length]}
+                  right={`${f.num(r.count)} · ${f.pct((r.count / reasonsTotal) * 100)}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2 mt-4">
+        <ChartCard
+          title={t('admin.dash.charts.hours')}
+          subtitle={t('admin.dash.charts.hoursHint', { tz: d.timeZone })}
+          empty={!hasContacts}
+          height={220}
+        >
+          <BarChart data={hours} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <CartesianGrid {...gridProps} />
+            <XAxis dataKey="hour" {...axisProps} interval={2} />
+            <YAxis {...axisProps} allowDecimals={false} />
+            <Tooltip {...tooltipProps} formatter={(v) => [f.num(Number(v)), t('admin.dash.kpi.contacts')]} />
+            <Bar dataKey="n" fill={C.violet} radius={[3, 3, 0, 0]} />
+          </BarChart>
+        </ChartCard>
+
+        {/* Recent orders */}
+        <div className="bg-surface border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-heading">{t('admin.dash.recentOrders')}</p>
+            <Link to="/admin/orders" className="text-xs font-medium text-primary hover:underline">
+              {t('admin.dash.viewAll')}
+            </Link>
           </div>
-        </section>
-      )}
-
-      {s.dailyRegistrations && s.dailyRegistrations.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-lg font-bold text-heading mb-3">New Registrations (Last 30 Days)</h2>
-<div className="bg-surface border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={s.dailyRegistrations}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
-                <Line type="monotone" dataKey="count" stroke="#22c55e" strokeWidth={2} dot={{ fill: '#22c55e', r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
-      )}
-
-      <Section title={t('admin.statReportsOpen')}>
-        <Stat icon={<Flag className="h-5 w-5" />} tone="bg-destructive-soft text-destructive" label={t('admin.reportStatus.OPEN')} value={s.reportsOpen} />
-        <Stat icon={<Flag className="h-5 w-5" />} tone="bg-warning-soft text-warning" label={t('admin.reportStatus.REVIEWED')} value={s.reportsReviewed} />
-        <Stat icon={<Flag className="h-5 w-5" />} tone="bg-success-soft text-success" label={t('admin.reportStatus.CLOSED')} value={s.reportsClosed} />
-      </Section>
-    </div>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mb-8">
-      <h2 className="text-lg font-bold text-heading mb-3">{title}</h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
-    </section>
-  )
-}
-
-function Stat({ icon, tone, label, value }: { icon: React.ReactNode; tone: string; label: string; value: number | string }) {
-  return (
-    <div className="bg-surface border border-border rounded-lg p-5">
-      <div className={`h-11 w-11 rounded-lg flex items-center justify-center mb-4 ${tone}`}>{icon}</div>
-      <p className="text-3xl font-bold text-heading tabular-nums">{value}</p>
-      <p className="text-sm text-muted-fg mt-1">{label}</p>
-    </div>
-  )
-}
-
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-surface border border-border rounded-lg p-5">
-      <p className="text-sm font-semibold text-heading mb-4">{title}</p>
-      <ResponsiveContainer width="100%" height={260}>{children as any}</ResponsiveContainer>
+          {d.recentOrders.length === 0 ? (
+            <p className="text-sm text-muted-fg py-10 text-center">{t('admin.dash.noData')}</p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {d.recentOrders.map((o) => (
+                <li key={o.reference} className="py-2.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-heading truncate">
+                      {o.reference} · <span className="font-normal">{o.customerName}</span>
+                    </p>
+                    <p className="text-xs text-muted-fg truncate">
+                      {t(`order.governorates.${o.governorate}`, o.governorate)} · {f.dateTime(o.createdAt)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm tabular-nums text-heading">{f.tnd(o.totalAmount)}</span>
+                    <Badge tone={ORDER_TONE[o.status]}>{t(`admin.dash.orderStatus.${o.status}`)}</Badge>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
