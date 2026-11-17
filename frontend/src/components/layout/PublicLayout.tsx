@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LayoutGrid, LogIn, Menu, ShoppingBag, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
@@ -16,28 +16,18 @@ const NAV_LINKS = [
   { to: '/contact', key: 'contact' },
 ] as const
 
-const FOOTER_LABEL = 'mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary/80 rtl:tracking-normal'
-const FOOTER_LINK = 'inline-flex min-h-9 items-center text-sm text-heading transition-colors hover:text-primary'
+const FOOTER_LABEL = 'mb-2 sm:mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary/80 rtl:tracking-normal'
+const FOOTER_LINK = 'inline-flex min-h-8 items-center py-0.5 text-[13px] leading-snug sm:min-h-9 sm:text-sm text-heading transition-colors hover:text-primary'
 
 /** Centered marketing links (desktop). Client-side links with an active state. */
 function LandingNav() {
   const { t } = useTranslation()
   return (
-    <nav aria-label={t('nav.main')} className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
+    <nav aria-label={t('nav.main')} className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
       {NAV_LINKS.map(({ to, key }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end
-          className={({ isActive }) =>
-            cn(
-              'h-10 px-3.5 inline-flex items-center rounded-lg text-sm font-semibold transition-colors',
-              isActive ? 'text-primary bg-primary-soft' : 'text-muted-fg hover:text-heading hover:bg-muted/60',
-            )
-          }
-        >
+        <Link key={to} to={to} className="text-sm font-medium text-muted-fg hover:text-primary transition-colors">
           {t(`navbar.${key}`)}
-        </NavLink>
+        </Link>
       ))}
     </nav>
   )
@@ -145,20 +135,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <div id="public-menu" className="lg:hidden absolute top-full start-0 end-0 bg-surface border-b border-border/60 shadow-pop px-4 pt-3 pb-5 page-enter">
             <nav aria-label={t('nav.main')} className="flex flex-col gap-1">
               {NAV_LINKS.map(({ to, key }) => (
-                <NavLink
+                <Link
                   key={to}
                   to={to}
-                  end
                   onClick={() => setMenuOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      'px-3 h-12 flex items-center rounded-lg text-base font-semibold transition-colors',
-                      isActive ? 'bg-primary-soft text-primary' : 'text-foreground hover:bg-muted',
-                    )
-                  }
+                  className="px-3 h-11 flex items-center rounded-lg text-sm font-medium text-muted-fg hover:bg-muted hover:text-foreground transition-colors"
                 >
                   {t(`navbar.${key}`)}
-                </NavLink>
+                </Link>
               ))}
             </nav>
             <div className="mt-4 grid grid-cols-2 gap-2">
@@ -185,16 +169,19 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       </main>
       {/* Footer */}
       <footer className="mt-auto border-t border-border bg-surface">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-12">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
-            <div>
-              <Logo size="md" />
-              <p className="mt-3 max-w-[28ch] text-sm leading-relaxed text-muted-fg">{t('landing.footerTagline')}</p>
-              <Link to="/order" className={cn(buttonClasses({ size: 'sm' }), 'mt-5')}>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
+          <div className="grid gap-8 lg:grid-cols-[1.3fr_3fr] lg:gap-10">
+            <div className="flex items-start justify-between gap-4 lg:block">
+              <div>
+                <Logo size="md" />
+                <p className="mt-2 max-w-[28ch] text-sm leading-relaxed text-muted-fg lg:mt-3">{t('landing.footerTagline')}</p>
+              </div>
+              <Link to="/order" className={cn(buttonClasses({ size: 'sm' }), 'shrink-0 lg:mt-5')}>
                 <ShoppingBag className="h-4 w-4" aria-hidden />
                 {t('navbar.order')}
               </Link>
             </div>
+            <div className="grid grid-cols-3 gap-4 sm:gap-8">
             <FooterColumn
               title={t('footer.pagesTitle')}
               links={[
@@ -209,7 +196,6 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               links={[
                 { to: '/login', label: t('navbar.login') },
                 { to: '/register', label: t('auth.createAccount') },
-                { to: '/order', label: t('navbar.order') },
               ]}
             />
             <FooterColumn
@@ -220,8 +206,9 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                 { to: '/communication', label: t('footer.commsLink') },
               ]}
             />
+            </div>
           </div>
-          <p className="mt-10 border-t border-border pt-6 text-sm text-muted-fg tabular-nums">
+          <p className="mt-8 border-t border-border pt-5 text-xs text-muted-fg tabular-nums sm:mt-10 sm:pt-6 sm:text-sm">
             &copy; {new Date().getFullYear()} CarLink. {t('footer.rightsReserved')}
           </p>
         </div>
