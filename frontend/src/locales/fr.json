@@ -41,7 +41,10 @@
     "pricing": "Tarifs",
     "about": "À propos",
     "contact": "Contact",
-    "login": "Connexion"
+    "login": "Connexion",
+    "mySpace": "Mon espace",
+    "order": "Commander",
+    "menu": "Menu"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -268,7 +271,7 @@
     "mobileHint": "8 chiffres après le +216 — pour contacter le livreur uniquement. Jamais affiché publiquement.",
     "orderAnother": "Commander à nouveau",
     "paymentMethod": "Mode de paiement",
-    "qtyHint": "{{plan}} · {{price}} DT / an l’unité",
+    "qtyHint": "{{plan}} · {{price}} TND / an l’unité",
     "quantity": "Quantité",
     "reference": "Référence",
     "reviewPayment": "Vérifier et choisir le paiement",
@@ -368,7 +371,27 @@
     "activateTitle": "Activer ce sticker",
     "activateGuestHint": "Créez un compte pour lier ce sticker à votre voiture.",
     "activateHint": "Lie ce sticker à ta voiture pour que les visiteurs puissent te contacter — sans jamais voir ton numéro.",
-    "activatePrivacy": "Vos données personnelles restent privées. Rien n'est affiché publiquement."
+    "activatePrivacy": "Vos données personnelles restent privées. Rien n'est affiché publiquement.",
+    "responseTitle": "Réponse par e-mail",
+    "responseText": "Nous lisons chaque message et répondons à l'adresse e-mail indiquée.",
+    "orderHelpTitle": "Une question sur une commande ?",
+    "orderHelpText": "Indiquez votre référence de commande (CL-…) pour que nous la retrouvions tout de suite.",
+    "faqTitle": "Réponses rapides",
+    "faqText": "Tarifs, confidentialité, activation — les questions fréquentes sont traitées sur la page d'accueil.",
+    "faqCta": "Lire la FAQ",
+    "formPrivacy": "Vos coordonnées servent uniquement à répondre à votre message.",
+    "topicsLabel": "Sujets fréquents",
+    "topics": {
+      "order": "Ma commande",
+      "sticker": "Mon sticker",
+      "account": "Mon compte",
+      "partnership": "Partenariat",
+      "other": "Autre"
+    },
+    "requiredNote": "Tous les champs sont obligatoires, sauf le téléphone.",
+    "scanTitle": "Contacter le propriétaire",
+    "scanSubtitle": "Choisissez un motif. Le propriétaire est prévenu immédiatement — aucun de vous ne voit le numéro de l'autre.",
+    "deliveredBy": "Le propriétaire est prévenu par {{method}}."
   },
   "message": {
     "title": "Messages",
@@ -899,9 +922,9 @@
     "how1Title": "Collez le QR code",
     "how1Text": "Imprimez votre QR code et collez-le sur le pare-brise de votre véhicule.",
     "how2Title": "Un passant le scanne",
-    "how2Text": "Il scanne le QR avec son téléphone, choisit WhatsApp ou SMS, et envoie un message — sans jamais afficher votre numéro.",
+    "how2Text": "Il scanne le QR avec son téléphone, choisit un motif et envoie un message — sans jamais voir votre numéro.",
     "how3Title": "Recevez le message",
-    "how3Text": "Le message arrive dans votre espace CarLink. Répondez directement via WhatsApp ou SMS.",
+    "how3Text": "Vous recevez aussitôt une alerte par SMS, et le message vous attend dans votre espace CarLink.",
     "howPhoneVehName": "Toyota RAV4",
     "howPhoneVehCode": "TUN-24757E",
     "howPhoneDoneEyebrow": "MESSAGE REMIS",
@@ -1100,7 +1123,17 @@
     "pricingCompareDeliveryBoth": "SMS + appel anonyme",
     "pricingCompareRelay": "Relais de contact anonyme",
     "pricingCompareIncluded": "Inclus",
-    "pricingCompareNewSticker": "Nouveau sticker au renouvellement"
+    "pricingCompareNewSticker": "Nouveau sticker au renouvellement",
+    "finalTitle": "Soyez joignable — sans donner votre numéro",
+    "finalText": "Commandez votre sticker aujourd'hui, collez-le sur votre pare-brise et recevez vos premières alertes. Paiement à la livraison partout en Tunisie.",
+    "finalSecondary": "Voir les tarifs",
+    "pricingStickers": "Stickers",
+    "pricingStickerCount_one": "{{count}} sticker",
+    "pricingStickerCount_other": "{{count}} stickers",
+    "pricingPerSticker": "Prix par sticker",
+    "pricingCtaPack": "Commander ce pack",
+    "pricingDeliveryTitle": "Livraison : {{fee}} TND par commande",
+    "pricingDeliveryText": "Livré partout en Tunisie, avec un guide d'activation dans l'enveloppe."
   },
   "footer": {
     "pagesTitle": "Pages",
@@ -1128,7 +1161,7 @@
     "originBadge": "L'idée",
     "originTitle": "D'où vient l'idée",
     "originText1": "Un soir, un conducteur a trouvé sa voiture bloquée par un autre véhicule. Aucun propriétaire en vue, aucun moyen de l'appeler et aucun mot laissé — juste des heures d'attente. Cette nuit-là, la question était simple : et si une voiture garée pouvait indiquer comment joindre son propriétaire sans révéler son numéro ?",
-    "originText2": "Nous nous sommes lancés pour construire exactement cela : un sticker QR, un relais privé et des alertes instantanées. Pas d'application à installer, aucune donnée personnelle exposée, pas d'abonnement — juste une façon plus intelligente d'être joignable quand votre voiture en a besoin.",
+    "originText2": "Nous nous sommes lancés pour construire exactement cela : un sticker QR, un relais privé et des alertes instantanées. Pas d'application à installer, aucune donnée personnelle exposée — juste une façon plus intelligente d'être joignable quand votre voiture en a besoin.",
     "valuesBadge": "Nos valeurs",
     "valuesTitle": "Ce qui nous anime",
     "valuesSubtitle": "Quatre principes guident chacune de nos décisions.",
@@ -1137,7 +1170,7 @@
     "value2Title": "La simplicité",
     "value2Text": "Pas d'application à télécharger, pas de configuration compliquée. Si cela prend plus de 30 secondes, nous n'avons pas fini notre travail.",
     "value3Title": "L'honnêteté",
-    "value3Text": "Un prix unique, sans frais cachés, sans abonnements imposés. Ce que nous promettons est ce que vous obtenez.",
+    "value3Text": "Un prix annuel clair, sans frais cachés. Ce que nous promettons est ce que vous obtenez.",
     "value4Title": "La communauté",
     "value4Text": "Chaque conducteur qui aide un autre rend nos routes — et nos espaces partagés — plus bienveillants."
   },
@@ -1193,5 +1226,10 @@
     "governorateRequired": "Choisissez un gouvernorat",
     "addressRequired": "L'adresse de livraison est obligatoire",
     "birthDateRequired": "La date de naissance est obligatoire"
+  },
+  "legal": {
+    "contents": "Sommaire",
+    "otherPolicies": "Autres politiques",
+    "questions": "Une question sur cette politique ?"
   }
 }

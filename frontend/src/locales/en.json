@@ -41,7 +41,10 @@
     "pricing": "Pricing",
     "about": "About us",
     "contact": "Contact",
-    "login": "Log in"
+    "login": "Log in",
+    "mySpace": "My space",
+    "order": "Order",
+    "menu": "Menu"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -368,7 +371,27 @@
     "activateTitle": "Activate this sticker",
     "activateGuestHint": "Create an account to link this sticker to your car.",
     "activateHint": "Link this sticker to your car so visitors can contact you — without ever seeing your number.",
-    "activatePrivacy": "Your personal data stays private. Nothing is shown publicly."
+    "activatePrivacy": "Your personal data stays private. Nothing is shown publicly.",
+    "responseTitle": "Reply by email",
+    "responseText": "We read every message and reply to the email address you give us.",
+    "orderHelpTitle": "About an order?",
+    "orderHelpText": "Include your order reference (CL-…) so we can find it right away.",
+    "faqTitle": "Quick answers",
+    "faqText": "Pricing, privacy, activation — the most common questions are answered on our home page.",
+    "faqCta": "Read the FAQ",
+    "formPrivacy": "Your details are only used to answer your message.",
+    "topicsLabel": "Common topics",
+    "topics": {
+      "order": "My order",
+      "sticker": "My sticker",
+      "account": "My account",
+      "partnership": "Partnership",
+      "other": "Other"
+    },
+    "requiredNote": "All fields except phone are required.",
+    "scanTitle": "Contact the owner",
+    "scanSubtitle": "Pick a reason. The owner gets an alert right away — neither of you sees the other's number.",
+    "deliveredBy": "The owner is alerted by {{method}}."
   },
   "message": {
     "title": "Messages",
@@ -879,9 +902,9 @@
     "how1Title": "Stick the QR on your car",
     "how1Text": "Print your QR code and stick it on your vehicle's windshield.",
     "how2Title": "A passer-by scans it",
-    "how2Text": "They scan the QR with their phone, choose WhatsApp or SMS, and send a message — without ever seeing your number.",
+    "how2Text": "They scan the QR with their phone, pick a reason and send a message — without ever seeing your number.",
     "how3Title": "Receive the message",
-    "how3Text": "The message arrives in your CarLink space. Reply directly via WhatsApp or SMS.",
+    "how3Text": "You get an SMS alert right away, and the message is waiting in your CarLink space.",
     "howPhoneVehName": "Toyota RAV4",
     "howPhoneVehCode": "TUN-24757E",
     "howPhoneDoneEyebrow": "DELIVERED",
@@ -1080,7 +1103,17 @@
     "pricingCompareDeliveryBoth": "SMS",
     "pricingCompareRelay": "Anonymous contact relay",
     "pricingCompareIncluded": "Included",
-    "pricingCompareNewSticker": "New sticker with renewal"
+    "pricingCompareNewSticker": "New sticker with renewal",
+    "finalTitle": "Be reachable — without giving out your number",
+    "finalText": "Order your sticker today, stick it on your windscreen and start receiving alerts. Cash on delivery anywhere in Tunisia.",
+    "finalSecondary": "See pricing",
+    "pricingStickers": "Stickers",
+    "pricingStickerCount_one": "{{count}} sticker",
+    "pricingStickerCount_other": "{{count}} stickers",
+    "pricingPerSticker": "Price per sticker",
+    "pricingCtaPack": "Order this pack",
+    "pricingDeliveryTitle": "Delivery: {{fee}} TND per order",
+    "pricingDeliveryText": "Delivered anywhere in Tunisia, with an activation guide in the envelope."
   },
   "footer": {
     "pagesTitle": "Pages",
@@ -1108,7 +1141,7 @@
     "originBadge": "The idea",
     "originTitle": "Where the idea comes from",
     "originText1": "One evening, a driver found their car blocked by another vehicle. No owner in sight, no way to call them, and no paper note — just hours of waiting. That night, the question was simple: what if a parked car could tell you how to reach its owner without revealing their number?",
-    "originText2": "We set out to build exactly that: a QR sticker, a private relay, and instant alerts. No app to install, no personal data exposed, no subscription — just a smarter way to be reachable when your car needs it.",
+    "originText2": "We set out to build exactly that: a QR sticker, a private relay, and instant alerts. No app to install, no personal data exposed — just a smarter way to be reachable when your car needs it.",
     "valuesBadge": "Our values",
     "valuesTitle": "What drives us",
     "valuesSubtitle": "Four principles guide every decision we make.",
@@ -1117,7 +1150,7 @@
     "value2Title": "Simplicity",
     "value2Text": "No app to download, no complicated setup. If it takes more than 30 seconds, we haven't finished our job.",
     "value3Title": "Honesty",
-    "value3Text": "One-time pricing, no hidden fees, no forced subscriptions. What we promise is what you get.",
+    "value3Text": "One clear yearly price, no hidden fees. What we promise is what you get.",
     "value4Title": "Community",
     "value4Text": "Every driver who helps another keeps our roads — and our shared spaces — kinder."
   },
@@ -1173,5 +1206,10 @@
     "governorateRequired": "Choose a governorate",
     "addressRequired": "The delivery address is required",
     "birthDateRequired": "The birth date is required"
+  },
+  "legal": {
+    "contents": "Contents",
+    "otherPolicies": "Other policies",
+    "questions": "A question about this policy?"
   }
 }

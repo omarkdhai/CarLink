@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogIn, Menu, X } from 'lucide-react'
+import { LayoutGrid, LogIn, Menu, ShoppingBag, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { PageTransition } from '@/components/shared/PageTransition'
+import { buttonClasses } from '@/components/ui/Button'
+import { useAuth } from '@/features/auth/AuthContext'
+import { cn } from '@/lib/cn'
 
 const NAV_LINKS = [
   { to: '/', key: 'home' },
@@ -13,41 +16,29 @@ const NAV_LINKS = [
   { to: '/contact', key: 'contact' },
 ] as const
 
-const FOOTER_LABEL =
-  'mb-2.5 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-primary/70 rtl:tracking-[0.04em]'
+const FOOTER_LABEL = 'mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary/80 rtl:tracking-normal'
+const FOOTER_LINK = 'inline-flex min-h-9 items-center text-sm text-heading transition-colors hover:text-primary'
 
-/** Centered anchor links for the public marketing navbar (desktop only). */
+/** Centered marketing links (desktop). Client-side links with an active state. */
 function LandingNav() {
   const { t } = useTranslation()
   return (
-    <nav
-      aria-label="Main"
-      className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6"
-    >
-      <a
-        href="/"
-        className="text-sm font-medium text-muted-fg hover:text-primary transition-colors"
-      >
-        {t('navbar.home')}
-      </a>
-      <a
-        href="/pricing"
-        className="text-sm font-medium text-muted-fg hover:text-primary transition-colors"
-      >
-        {t('navbar.pricing')}
-      </a>
-      <a
-        href="/about"
-        className="text-sm font-medium text-muted-fg hover:text-primary transition-colors"
-      >
-        {t('navbar.about')}
-      </a>
-      <a
-        href="/contact"
-        className="text-sm font-medium text-muted-fg hover:text-primary transition-colors"
-      >
-        {t('navbar.contact')}
-      </a>
+    <nav aria-label={t('nav.main')} className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1">
+      {NAV_LINKS.map(({ to, key }) => (
+        <NavLink
+          key={to}
+          to={to}
+          end
+          className={({ isActive }) =>
+            cn(
+              'h-10 px-3.5 inline-flex items-center rounded-lg text-sm font-semibold transition-colors',
+              isActive ? 'text-primary bg-primary-soft' : 'text-muted-fg hover:text-heading hover:bg-muted/60',
+            )
+          }
+        >
+          {t(`navbar.${key}`)}
+        </NavLink>
+      ))}
     </nav>
   )
 }
@@ -55,6 +46,7 @@ function LandingNav() {
 /** Minimal chrome for non-app pages (landing, auth). */
 export function PublicLayout({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
+  const { isAuthenticated } = useAuth()
   const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -114,59 +106,77 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:m-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg"
       >
-        Skip to content
+        {t('nav.skipToContent')}
       </a>
       <header className="sticky top-0 z-40 navbar-glass border-b border-border/60">
-        <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-9">
-          <Logo />
+        <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Logo size="md" />
           <LandingNav />
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <div className="hidden sm:block">
               <LanguageSwitcher />
             </div>
             <Link
-              to="/login"
-              className="hidden lg:inline-flex items-center gap-2 h-10 px-3.5 rounded-xl border border-border bg-surface text-sm font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-colors"
+              to={isAuthenticated ? '/dashboard' : '/login'}
+              className="hidden lg:inline-flex items-center gap-2 h-10 px-3.5 rounded-xl text-sm font-semibold text-foreground hover:bg-muted/60 hover:text-primary transition-colors"
             >
-              <LogIn className="h-4 w-4" aria-hidden />
-              {t('navbar.login')}
+              {isAuthenticated ? <LayoutGrid className="h-4 w-4" aria-hidden /> : <LogIn className="h-4 w-4" aria-hidden />}
+              {isAuthenticated ? t('navbar.mySpace') : t('navbar.login')}
+            </Link>
+            <Link to="/order" className={cn(buttonClasses({ size: 'sm' }), 'hidden sm:inline-flex h-10')}>
+              <ShoppingBag className="h-4 w-4" aria-hidden />
+              {t('navbar.order')}
             </Link>
             <button
               type="button"
-              className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-border bg-surface text-foreground hover:border-primary/50 hover:text-primary transition-colors"
+              className="lg:hidden inline-flex items-center justify-center h-11 w-11 rounded-xl border border-border bg-surface text-foreground hover:border-primary/50 hover:text-primary transition-colors"
               onClick={() => setMenuOpen((o) => !o)}
-              aria-label={menuOpen ? t('common.close') : 'Menu'}
+              aria-label={menuOpen ? t('common.close') : t('navbar.menu')}
               aria-expanded={menuOpen}
-              aria-haspopup="menu"
+              aria-controls="public-menu"
             >
               {menuOpen ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
             </button>
           </div>
         </div>
 
-        {/* Mobile drawer */}
+        {/* Mobile menu */}
         {menuOpen && (
-          <div className="lg:hidden absolute top-full start-0 end-0 bg-surface border-b border-border/60 shadow-pop px-4 py-3 pb-4 page-enter">
-            <nav aria-label="Main" className="flex flex-col gap-1">
+          <div id="public-menu" className="lg:hidden absolute top-full start-0 end-0 bg-surface border-b border-border/60 shadow-pop px-4 pt-3 pb-5 page-enter">
+            <nav aria-label={t('nav.main')} className="flex flex-col gap-1">
               {NAV_LINKS.map(({ to, key }) => (
-                <Link
+                <NavLink
                   key={to}
                   to={to}
+                  end
                   onClick={() => setMenuOpen(false)}
-                  className="px-3 h-11 flex items-center rounded-lg text-sm font-medium text-muted-fg hover:bg-muted hover:text-foreground transition-colors"
+                  className={({ isActive }) =>
+                    cn(
+                      'px-3 h-12 flex items-center rounded-lg text-base font-semibold transition-colors',
+                      isActive ? 'bg-primary-soft text-primary' : 'text-foreground hover:bg-muted',
+                    )
+                  }
                 >
                   {t(`navbar.${key}`)}
-                </Link>
+                </NavLink>
               ))}
             </nav>
-            <Link
-              to="/login"
-              onClick={() => setMenuOpen(false)}
-              className="mt-2 flex items-center justify-center gap-2 w-full h-11 rounded-xl border border-border bg-surface text-sm font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-colors"
-            >
-              <LogIn className="h-4 w-4" aria-hidden />
-              {t('navbar.login')}
-            </Link>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Link
+                to={isAuthenticated ? '/dashboard' : '/login'}
+                onClick={() => setMenuOpen(false)}
+                className={buttonClasses({ variant: 'outline' })}
+              >
+                {isAuthenticated ? t('navbar.mySpace') : t('navbar.login')}
+              </Link>
+              <Link to="/order" onClick={() => setMenuOpen(false)} className={buttonClasses()}>
+                {t('navbar.order')}
+              </Link>
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4 sm:hidden">
+              <span className="text-sm text-muted-fg">{t('settings.language')}</span>
+              <LanguageSwitcher />
+            </div>
           </div>
         )}
       </header>
@@ -174,87 +184,63 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         <PageTransition key={location.pathname} className="flex-1 flex flex-col">{children}</PageTransition>
       </main>
       {/* Footer */}
-      <footer className="mt-auto pb-7 pt-3 sm:pb-9 sm:pt-4 lg:pb-10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-9">
-          <div className="overflow-hidden rounded-[1.75rem] border border-border bg-white shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:rounded-[2rem]">
-            <div className="grid gap-6 bg-[radial-gradient(circle_at_100%_0,rgba(37,99,235,0.07),transparent_42%),linear-gradient(to_bottom,#fff,#f8fafc)] px-5 py-5 sm:grid-cols-2 sm:gap-8 sm:px-6 sm:py-6 md:px-7">
-              <div>
-                <Logo />
-                <p className="mt-3 max-w-[22ch] text-xs leading-5 text-muted-fg">
-                  {t('landing.footerTagline')}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-5">
-                  <div>
-                    <p className={FOOTER_LABEL}>{t('footer.pagesTitle')}</p>
-                    <nav className="flex flex-col gap-1.5">
-                      {[
-                        { to: '/', label: t('navbar.home') },
-                        { to: '/pricing', label: t('navbar.pricing') },
-                        { to: '/about', label: t('navbar.about') },
-                        { to: '/contact', label: t('navbar.contact') },
-                      ].map(({ to, label }) => (
-                        <Link
-                          key={to}
-                          to={to}
-                          className="text-sm text-heading transition-colors hover:text-primary"
-                        >
-                          {label}
-                        </Link>
-                      ))}
-                    </nav>
-                  </div>
-
-                  <div>
-                    <p className={FOOTER_LABEL}>{t('footer.accountTitle')}</p>
-                    <nav className="flex flex-col gap-1.5">
-                      <Link
-                        to="/login"
-                        className="text-sm text-heading transition-colors hover:text-primary"
-                      >
-                        {t('navbar.login')}
-                      </Link>
-                      <Link
-                        to="/register"
-                        className="text-sm text-heading transition-colors hover:text-primary"
-                      >
-                        {t('auth.createAccount')}
-                      </Link>
-                    </nav>
-                  </div>
-                </div>
-
-                <div>
-                  <p className={FOOTER_LABEL}>{t('footer.legalTitle')}</p>
-                  <nav className="flex flex-col gap-1.5">
-                    {[
-                      { to: '/privacy', label: t('footer.privacyLink') },
-                      { to: '/terms', label: t('footer.termsLink') },
-                      { to: '/communication', label: t('footer.commsLink') },
-                    ].map(({ to, label }) => (
-                      <Link
-                        key={to}
-                        to={to}
-                        className="text-sm text-heading transition-colors hover:text-primary"
-                      >
-                        {label}
-                      </Link>
-                    ))}
-                  </nav>
-                </div>
-              </div>
+      <footer className="mt-auto border-t border-border bg-surface">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-12">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+            <div>
+              <Logo size="md" />
+              <p className="mt-3 max-w-[28ch] text-sm leading-relaxed text-muted-fg">{t('landing.footerTagline')}</p>
+              <Link to="/order" className={cn(buttonClasses({ size: 'sm' }), 'mt-5')}>
+                <ShoppingBag className="h-4 w-4" aria-hidden />
+                {t('navbar.order')}
+              </Link>
             </div>
-
-            <div className="border-t border-border bg-primary-soft/50 px-5 py-4 sm:px-6 md:px-7">
-              <p className="text-xs leading-5 text-muted-fg tabular-nums">
-                &copy; {new Date().getFullYear()} CarLink. {t('footer.rightsReserved')}
-              </p>
-            </div>
+            <FooterColumn
+              title={t('footer.pagesTitle')}
+              links={[
+                { to: '/', label: t('navbar.home') },
+                { to: '/pricing', label: t('navbar.pricing') },
+                { to: '/about', label: t('navbar.about') },
+                { to: '/contact', label: t('navbar.contact') },
+              ]}
+            />
+            <FooterColumn
+              title={t('footer.accountTitle')}
+              links={[
+                { to: '/login', label: t('navbar.login') },
+                { to: '/register', label: t('auth.createAccount') },
+                { to: '/order', label: t('navbar.order') },
+              ]}
+            />
+            <FooterColumn
+              title={t('footer.legalTitle')}
+              links={[
+                { to: '/privacy', label: t('footer.privacyLink') },
+                { to: '/terms', label: t('footer.termsLink') },
+                { to: '/communication', label: t('footer.commsLink') },
+              ]}
+            />
           </div>
+          <p className="mt-10 border-t border-border pt-6 text-sm text-muted-fg tabular-nums">
+            &copy; {new Date().getFullYear()} CarLink. {t('footer.rightsReserved')}
+          </p>
         </div>
       </footer>
+    </div>
+  )
+}
+
+function FooterColumn({ title, links }: { title: string; links: { to: string; label: string }[] }) {
+  return (
+    <div>
+      <p className={FOOTER_LABEL}>{title}</p>
+      <nav aria-label={title} className="flex flex-col">
+        {links.map(({ to, label }) => (
+          <Link key={to} to={to} className={FOOTER_LINK}>
+            {label}
+          </Link>
+        ))}
+      </nav>
     </div>
   )
 }

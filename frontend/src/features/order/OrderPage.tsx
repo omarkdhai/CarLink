@@ -91,7 +91,7 @@ function packNum(key: StickerPackage) {
 export default function OrderPage() {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
-  const planParam = searchParams.get('plan')
+  const planParam = searchParams.get('plan')?.toUpperCase() ?? null
   const preselect: StickerPackage | null = packIsPreselect(planParam) ? planParam : null
 
   const initial = loadDraft()
@@ -203,7 +203,7 @@ export default function OrderPage() {
                   <PackageCheck className="h-5 w-5" aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-fg">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">
                     {t('order.reference')}
                   </p>
                   <p className="truncate font-mono text-base font-bold tracking-wide text-heading">
@@ -212,7 +212,7 @@ export default function OrderPage() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-[11px] font-semibold text-success">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-xs font-semibold text-success">
                   <Truck className="h-3.5 w-3.5" aria-hidden />
                   {t('order.statusPlaced')}
                 </span>
@@ -360,10 +360,10 @@ export default function OrderPage() {
       <div className="px-5 pb-[22px] pt-5 sm:px-8 sm:pb-[26px] sm:pt-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           <div className="min-w-0">
-            <h1 className="max-w-[25ch] text-3xl font-black leading-tight text-heading sm:text-4xl">
+            <h1 className="max-w-[25ch] text-[2.25rem] font-black leading-[1.08] tracking-[-0.03em] text-heading sm:text-5xl">
               {t('order.title')}
             </h1>
-            <p className="mt-3 max-w-[620px] text-[13px] leading-7 text-muted-fg">
+            <p className="mt-3 max-w-[620px] text-base leading-relaxed text-muted-fg sm:text-lg">
               {t('order.subtitle')}
             </p>
             <ul className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -382,11 +382,11 @@ export default function OrderPage() {
             </ul>
           </div>
           <p className="flex shrink-0 items-baseline gap-1.5 sm:mt-2">
-            <span className="text-[9px] text-muted-fg">{t('order.fromPrice')}</span>
-            <strong className="text-lg font-semibold tabular-nums text-primary">
+            <span className="text-sm text-muted-fg">{t('order.fromPrice')}</span>
+            <strong className="text-2xl font-bold tabular-nums text-primary">
               {minPrice} TND
             </strong>
-            <span className="text-[9px] text-muted-fg">/ {t('landing.pricingPerYear')}</span>
+            <span className="text-sm text-muted-fg">/ {t('landing.pricingPerYear')}</span>
           </p>
         </div>
       </div>
@@ -456,7 +456,7 @@ export default function OrderPage() {
                 <h2 className="text-[27px] font-semibold leading-snug tracking-[-0.03em] text-heading">
                   {t('order.choosePack')}
                 </h2>
-                <p className="mt-2 text-xs leading-5 text-muted-fg">{t('order.choosePackHint')}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-fg">{t('order.choosePackHint')}</p>
               </header>
 
               <div className="grid gap-2.5">
@@ -499,7 +499,7 @@ export default function OrderPage() {
                             </span>
                           )}
                         </span>
-                        <span className="mt-1 block text-[11px] leading-5 text-muted-fg">
+                        <span className="mt-1 block text-xs leading-5 text-muted-fg">
                           {t(`landing.pricingPack${packNum(p.key)}Subtitle`)}
                         </span>
                       </span>
@@ -508,7 +508,7 @@ export default function OrderPage() {
                         <span className="block text-[23px] font-semibold leading-none tabular-nums tracking-[-0.04em] text-heading">
                           {p.price}
                         </span>
-                        <span className="mt-1 block text-[10px] font-medium text-muted-fg">
+                        <span className="mt-1 block text-xs font-medium text-muted-fg">
                           TND / {t('landing.pricingPerYear')}
                         </span>
                       </span>
@@ -532,13 +532,13 @@ export default function OrderPage() {
                     <span className="block text-sm font-semibold text-heading">
                       {t('order.quantity')}
                     </span>
-                    <p className="mt-1.5 text-[10px] leading-5 text-muted-fg">
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-fg">
                       {t('order.qtyHint', {
                         plan: t(`landing.pricingPack${packNum(pkg)}Name`),
                         price: pack.price,
                       })}
                       {' · '}
-                      {totalStickers} {t('order.stickerCount')}
+                      {t('landing.pricingStickerCount', { count: totalStickers })}
                     </p>
                   </div>
                   <div className="flex h-11 w-[138px] shrink-0 items-center rounded-2xl border border-input-border bg-white transition-colors hover:border-primary/40 focus-within:ring-2 focus-within:ring-primary/25">
@@ -690,7 +690,7 @@ export default function OrderPage() {
               </nav>
 
               {/* Trust */}
-              <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted-fg">
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-fg">
                 <ShieldCheck className="h-3.5 w-3.5 text-success" aria-hidden />
                 {t('order.trustHint')}
               </p>
@@ -707,8 +707,8 @@ export default function OrderPage() {
 /** Photo band + shade + slide dots, mirroring ewsali's order backdrop. */
 function OrderShell({ children }: { children: ReactNode }) {
   return (
-    <div className="px-3 py-8 sm:px-6 sm:py-12">
-      <section className="mx-auto w-full max-w-[1120px] overflow-hidden rounded-[24px] border border-border bg-background shadow-[0_18px_60px_rgba(15,23,42,0.08)] sm:rounded-[32px]">
+    <div className="pt-4 pb-16 sm:px-2 sm:pt-8 sm:pb-20">
+      <section className="mx-auto w-full max-w-6xl">
         {children}
       </section>
     </div>
@@ -717,7 +717,7 @@ function OrderShell({ children }: { children: ReactNode }) {
 
 function BenefitChip({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
-    <li className="flex h-full min-h-[36px] w-full items-center justify-center gap-1.5 rounded-full bg-white/85 px-2.5 py-2 text-center text-[10px] font-semibold leading-tight text-muted-fg ring-1 ring-white/70 sm:inline-flex sm:min-h-0 sm:w-auto sm:justify-start">
+    <li className="flex h-full min-h-[36px] w-full items-center justify-center gap-1.5 rounded-full bg-white/85 px-2.5 py-2 text-center text-sm font-medium leading-tight text-foreground ring-1 ring-border sm:inline-flex sm:min-h-0 sm:w-auto sm:justify-start">
       <span className="shrink-0 text-primary">{icon}</span>
       {children}
     </li>
@@ -784,7 +784,7 @@ function OrderSummaryAside({
         <div className="mb-4 grid min-h-[200px] place-items-center">
           <StickerArt className="-rotate-[8deg]" />
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
           {t('order.summaryEyebrow')}
         </p>
         <h3 className="mt-2 text-[22px] font-semibold leading-snug tracking-[-0.02em] text-heading">
@@ -793,7 +793,7 @@ function OrderSummaryAside({
         <p className="text-xs leading-5 text-muted-fg">{t('order.summaryIncludes')}</p>
       </div>
 
-      <dl className="mt-7 grid gap-3.5 border-t border-border pt-6 text-[13px]">
+      <dl className="mt-7 grid gap-3.5 border-t border-border pt-6 text-sm">
         <div className="flex items-baseline justify-between gap-4">
           <dt className="text-muted-fg">
             {qty} × {planName}
@@ -812,7 +812,7 @@ function OrderSummaryAside({
         </div>
       </dl>
 
-      <ul className="mt-6 grid gap-3 text-[11px] text-muted-fg">
+      <ul className="mt-6 grid gap-3 text-sm text-muted-fg">
         <li className="flex items-center gap-2.5">
           <Truck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
           {t('order.summaryBenefit1')}
@@ -848,22 +848,22 @@ function MobileTotal({
   return (
     <div className="mt-4 rounded-2xl border border-border bg-primary-soft p-3.5 lg:hidden">
       <div className="flex items-start gap-3">
-        <StickerArt className="w-6 shrink-0 -rotate-[7deg]" />
-        <div className="min-w-0 flex-1 space-y-2 text-xs">
+        <StickerArt className="h-14! w-11! shrink-0 -rotate-[7deg]" />
+        <div className="min-w-0 flex-1 space-y-2 text-sm">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="truncate font-bold text-heading">
+            <span className="font-bold text-heading">
               {planName} × {qty}
             </span>
             <strong className="shrink-0 font-bold text-heading">{subtotal.toFixed(2)} TND</strong>
           </div>
           <div className="flex items-baseline justify-between gap-3 text-muted-fg">
             <span>{t('order.deliveryRow')}</span>
-            <strong className="shrink-0 text-[11px] font-semibold text-muted-fg">
+            <strong className="shrink-0 text-xs font-semibold text-muted-fg">
               {DELIVERY_FEE.toFixed(2)} TND
             </strong>
           </div>
           <div className="flex items-baseline justify-between gap-3 border-t border-border pt-2.5">
-            <span className="text-[11px] font-bold text-heading">{t('order.total')}</span>
+            <span className="text-sm font-bold text-heading">{t('order.total')}</span>
             <strong className="shrink-0 text-lg font-bold tabular-nums tracking-[-0.03em] text-heading">
               {total.toFixed(2)} TND
             </strong>
@@ -907,7 +907,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
             </span>
             <span
               className={cn(
-                'text-center text-[11px] font-medium leading-tight',
+                'text-center text-xs font-medium leading-tight',
                 active || done ? 'text-primary' : 'text-muted-fg',
               )}
             >
