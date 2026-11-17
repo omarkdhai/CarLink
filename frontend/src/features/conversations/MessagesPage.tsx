@@ -1,140 +1,152 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MessageSquare, Smartphone } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { MessageSquare, ShieldCheck } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SkeletonGrid } from '@/components/shared/SkeletonGrid'
 import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
-import { ConversationStatusBadge } from '@/features/conversations/ConversationBadges'
+import { useAccountStatus } from '@/features/account/useAccountStatus'
+import { ConversationRow, InlineEmpty } from '@/features/account/OwnerUI'
 import { cn } from '@/lib/cn'
-import { formatRelative } from '@/lib/format'
-import type { ContactChannel } from '@/types'
+import type { ConversationSummaryResponse } from '@/types'
 
-type Filter = 'ALL' | 'UNREAD' | 'SMS'
-const FILTERS: Filter[] = ['ALL', 'UNREAD', 'SMS']
+type Filter = 'ALL' | 'UNREAD'
+
+function dayGroup(iso: string): 'today' | 'yesterday' | 'earlier' {
+  const d = new Date(iso)
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(today.getDate() - 1)
+  if (d.toDateString() === today.toDateString()) return 'today'
+  if (d.toDateString() === yesterday.toDateString()) return 'yesterday'
+  return 'earlier'
+}
 
 export default function MessagesPage() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const status = useAccountStatus()
   const [filter, setFilter] = useState<Filter>('ALL')
-
-  const conversationsQuery = useQuery({
-    queryKey: conversationQueryKeys.list(),
-    queryFn: () => conversationApi.list(),
-  })
+  const [vehicle, setVehicle] = useState('')
 
   const markRead = useMutation({
     mutationFn: (id: string) => conversationApi.markRead(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: conversationQueryKeys.all }),
   })
 
-  const all = conversationsQuery.data ?? []
-  const conversations = all
-    .filter((c) => (filter === 'UNREAD' ? c.unread : true))
-    .filter((c) => (filter === 'SMS' ? c.channel === filter : true))
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const all = status.conversations.data ?? []
+  const vehicles = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const c of all) m.set(c.vehicleId, c.vehicleNickname ?? t('message.conversation'))
+    return [...m.entries()]
+  }, [all, t])
 
-  const loading = conversationsQuery.isPending
-  const error = conversationsQuery.error
-  const isEmpty = !loading && !error && conversations.length === 0
+  const groups = useMemo(() => {
+    const list = all
+      .filter((c) => (filter === 'UNREAD' ? c.unread : true))
+      .filter((c) => (vehicle ? c.vehicleId === vehicle : true))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    const out: Record<'today' | 'yesterday' | 'earlier', ConversationSummaryResponse[]> = { today: [], yesterday: [], earlier: [] }
+    for (const c of list) out[dayGroup(c.createdAt)].push(c)
+    return out
+  }, [all, filter, vehicle])
 
-  function open(convId: string, unread: boolean) {
-    if (unread) markRead.mutate(convId)
-    navigate(`/messages/${convId}`)
-  }
+  const shown = groups.today.length + groups.yesterday.length + groups.earlier.length
+  const loading = status.conversations.isPending
+  const error = status.conversations.error
 
   return (
-    <div>
-      <div className="mb-6">
-        <PageHeader title={t('message.title')} subtitle={t('message.subtitle')} />
-      </div>
+    <div className="space-y-6">
+      <PageHeader title={t('message.title')} subtitle={t('message.subtitle')} />
 
-      {/* Filters - mobile scrollable */}
-      <div className="mb-6 -mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto">
-        <div className="inline-flex rounded-xl border border-border bg-surface p-1 min-w-max" role="tablist" aria-label={t('message.channel')}>
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              role="tab"
-              aria-selected={filter === f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                'px-4 h-10 rounded-lg text-sm font-semibold transition-colors touch-target whitespace-nowrap',
-                filter === f ? 'bg-primary text-white shadow-sm' : 'text-muted-fg hover:text-foreground hover:bg-muted/50',
-              )}
-            >
-              {filterLabel(f)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {error && <ErrorState message={t('errors.generic')} onRetry={() => conversationsQuery.refetch()} />}
-      {loading && <SkeletonGrid count={3} />}
-
-      {isEmpty && (
-        <div className="bg-surface border border-border rounded-lg">
-          <EmptyState
-            icon={<MessageSquare className="h-7 w-7" aria-hidden />}
-            title={t('message.empty')}
-            hint={t('message.emptyHint')}
-          />
-        </div>
-      )}
-
-      {!loading && !error && conversations.length > 0 && (
-        <ul className="bg-surface border border-border rounded-xl shadow-sm divide-y divide-border overflow-hidden">
-          {conversations.map((conv) => (
-            <li key={conv.id}>
-              <Link
-                to={`/messages/${conv.id}`}
-                onClick={() => open(conv.id, conv.unread)}
-                className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-muted/50 transition-colors touch-target"
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div role="group" aria-label={t('message.filter')} className="inline-flex self-start gap-1 rounded-xl bg-muted/60 p-1">
+          {(['ALL', 'UNREAD'] as Filter[]).map((f) => {
+            const count = f === 'ALL' ? all.length : status.unread
+            return (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                className={cn(
+                  'inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold transition-colors',
+                  filter === f ? 'bg-surface text-heading shadow-sm' : 'text-muted-fg hover:text-foreground',
+                )}
               >
-                <div className={cn('h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0', channelTone(conv.channel))}>
-                  <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
-                </div>
+                {f === 'ALL' ? t('common.all') : t('message.unreadFilter')}
+                <span className={cn('min-w-6 rounded-full px-1.5 text-xs tabular-nums', filter === f ? 'bg-primary-soft text-primary' : 'bg-surface/70')}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        {vehicles.length > 1 && (
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-muted-fg">{t('message.vehicle')}</span>
+            <select
+              value={vehicle}
+              onChange={(e) => setVehicle(e.target.value)}
+              className="h-11 rounded-lg border border-input-border bg-surface px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">{t('message.allVehicles')}</option>
+              {vehicles.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className={cn('truncate', conv.unread ? 'font-bold text-heading' : 'font-semibold text-foreground')}>
-                      {conv.vehicleNickname ?? t('message.conversation')}
-                    </p>
-                    {conv.unread && <span className="h-2 w-2 rounded-full bg-primary shrink-0" aria-hidden />}
-                  </div>
-                  <p className={cn('truncate text-sm', conv.unread ? 'text-foreground' : 'text-muted-fg')}>
-                    {conv.lastMessagePreview ?? t('message.pending')}
-                  </p>
-                </div>
+      {error && <ErrorState message={t('errors.generic')} onRetry={() => status.conversations.refetch()} />}
 
-                <div className="text-right shrink-0 space-y-1.5">
-                  <ConversationStatusBadge status={conv.status} />
-                  <p className="text-xs text-muted-fg">{formatRelative(conv.createdAt)}</p>
-                </div>
-              </Link>
-            </li>
+      {loading ? (
+        <div className="bg-surface border border-border rounded-2xl divide-y divide-border" aria-busy="true">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3 px-5 py-4">
+              <div className="h-10 w-10 rounded-xl bg-muted animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 w-1/2 rounded bg-muted animate-pulse" />
+                <div className="h-3 w-3/4 rounded bg-muted animate-pulse" />
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
+      ) : shown === 0 && !error ? (
+        <InlineEmpty
+          icon={MessageSquare}
+          title={filter === 'UNREAD' ? t('message.allRead') : t('message.empty')}
+          hint={filter === 'UNREAD' ? undefined : t('message.emptyHint')}
+        />
+      ) : (
+        <div className="space-y-6">
+          {(['today', 'yesterday', 'earlier'] as const).map(
+            (g) =>
+              groups[g].length > 0 && (
+                <section key={g} aria-labelledby={`group-${g}`}>
+                  <h2 id={`group-${g}`} className="text-xs font-semibold uppercase tracking-wide text-muted-fg mb-2 px-1">
+                    {t(`message.groups.${g}`)}
+                  </h2>
+                  <ul className="bg-surface border border-border rounded-2xl shadow-card divide-y divide-border overflow-hidden">
+                    {groups[g].map((conv) => (
+                      <li key={conv.id}>
+                        <ConversationRow conv={conv} onOpen={() => conv.unread && markRead.mutate(conv.id)} />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ),
+          )}
+        </div>
       )}
+
+      <p className="flex items-start gap-2 text-sm text-muted-fg leading-relaxed max-w-prose">
+        <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0 text-success" aria-hidden />
+        {t('message.anonymousHint')}
+      </p>
     </div>
   )
-
-  function filterLabel(f: Filter) {
-    switch (f) {
-      case 'ALL':
-        return t('common.all')
-      case 'UNREAD':
-        return t('message.unread')
-      case 'SMS':
-        return t('contact.sms')
-    }
-  }
-}
-
-function channelTone(_channel: ContactChannel) {
-  return 'bg-primary-soft text-sms'
 }

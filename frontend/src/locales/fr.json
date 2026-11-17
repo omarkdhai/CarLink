@@ -60,7 +60,15 @@
     "adminAuditLogs": "Journal d'audit",
     "adminDashboard": "Vue d'ensemble",
     "addVehicle": "Ajouter un véhicule",
-    "stickers": "Mes stickers"
+    "stickers": "Mes stickers",
+    "home": "Accueil",
+    "stickersShort": "Stickers",
+    "vehiclesShort": "Véhicules",
+    "account": "Compte",
+    "main": "Navigation principale",
+    "skipToContent": "Aller au contenu",
+    "badge_one": "{{count}} nouveau",
+    "badge_other": "{{count}} nouveaux"
   },
   "auth": {
     "loginTitle": "Connexion",
@@ -156,7 +164,8 @@
     "allStatuses": "Tous les statuts",
     "sortNewest": "Plus récents",
     "sortOldest": "Plus anciens",
-    "noMatch": "Aucun véhicule ne correspond à votre recherche"
+    "noMatch": "Aucun véhicule ne correspond à votre recherche",
+    "addedOn": "Ajouté le {{date}}"
   },
   "qr": {
     "title": "QR code du véhicule",
@@ -381,13 +390,37 @@
     "sent": "Envoyé",
     "failed": "Échec",
     "conversationExpiredHint": "Cette conversation a expiré. Le contact peut encore être uniquement consulté.",
-    "anonymousHint": "Ce contact est anonyme : le visiteur vous joindra sur %{channel}. Répondez-y directement depuis l'application."
+    "anonymousHint": "Ce contact est anonyme : le visiteur vous joindra sur %{channel}. Répondez-y directement depuis l'application.",
+    "filter": "Filtrer les messages",
+    "unreadFilter": "Non lus",
+    "allVehicles": "Tous les véhicules",
+    "allRead": "Vous avez lu tous vos messages",
+    "groups": {
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "earlier": "Plus tôt"
+    }
   },
   "notifications": {
     "title": "Notifications",
     "subtitle": "Les événements récents de votre compte",
     "empty": "Aucune notification",
-    "emptyHint": "Les notifications importantes apparaîtront ici."
+    "emptyHint": "Les notifications importantes apparaîtront ici.",
+    "actionNeeded": "Action requise",
+    "caughtUp": "Vous êtes à jour",
+    "newMessages_one": "{{count}} nouveau message",
+    "newMessages_other": "{{count}} nouveaux messages",
+    "notice": {
+      "addPhone": "Ajoutez votre numéro de téléphone",
+      "addPhoneHint": "Les personnes qui scannent votre sticker ne peuvent pas vous joindre tant qu'aucun numéro n'est enregistré. Il reste privé.",
+      "addPhoneCta": "Ajouter un numéro",
+      "activateSticker": "Un sticker attend d'être activé",
+      "activateStickerHint": "Liez-le à votre voiture avec le code imprimé sous le QR.",
+      "activateStickerCta": "Activer le sticker",
+      "verifyEmail": "Vérifiez votre adresse e-mail",
+      "verifyEmailHint": "Ouvrez le lien de vérification envoyé pour sécuriser votre compte.",
+      "verifyEmailCta": "Voir le profil"
+    }
   },
   "profile": {
     "title": "Profil",
@@ -404,16 +437,34 @@
     "phoneOptional": "Téléphone (facultatif)",
     "phoneNumberPlaceholder": "22 222 222",
     "save": "Enregistrer les modifications",
-    "deleteNotAvailable": "La suppression de compte en libre-service n'est pas encore disponible. Contactez le support pour toute demande."
+    "deleteNotAvailable": "La suppression de compte en libre-service n'est pas encore disponible. Contactez le support pour toute demande.",
+    "memberSinceDate": "Membre depuis le {{date}}",
+    "personalInfo": "Informations personnelles",
+    "personalInfoHint": "Votre nom et le numéro qui reçoit les alertes.",
+    "phoneHint": "Utilisé uniquement pour vous transmettre les alertes par SMS. Jamais affiché aux visiteurs.",
+    "unsaved": "Modifications non enregistrées",
+    "privacyTitle": "Votre numéro reste privé",
+    "privacyHint": "Les personnes qui scannent votre sticker ne voient jamais votre numéro ni votre nom — CarLink relaie leur message."
   },
   "settings": {
     "title": "Paramètres",
     "subtitle": "Préférences du compte",
     "language": "Langue",
-    "languageHint": "La langue de l'interface. L'arabe sera disponible en version RTL.",
+    "languageHint": "Choisissez la langue de l'interface.",
     "dangerZone": "Zone sensible",
     "deleteAccount": "Supprimer mon compte",
-    "deleteAccountHint": "Cette action est irréversible."
+    "deleteAccountHint": "Cette action est irréversible.",
+    "security": "Sécurité",
+    "securityHint": "Protégez votre compte.",
+    "password": "Mot de passe",
+    "passwordHint": "Nous vous enverrons un lien sécurisé pour choisir un nouveau mot de passe.",
+    "changePassword": "Changer le mot de passe",
+    "resetSent": "Lien de réinitialisation envoyé",
+    "resetSentShort": "Lien envoyé",
+    "resetSentHint": "Consultez {{email}} pour choisir un nouveau mot de passe.",
+    "alertsHint": "Comment CarLink vous prévient quand on a besoin de vous.",
+    "alertsPhone": "Alertes par SMS",
+    "alertsPhoneHint": "Les alertes de contact sont envoyées par SMS au numéro de votre profil."
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -431,7 +482,25 @@
     "noConversationsYet": "Aucune conversation récente",
     "noConversationsWait": "Scannez votre QR pour recevoir votre premier message.",
     "viewAll": "Tout voir",
-    "scanStatNote": "Le suivi des scans sera disponible bientôt."
+    "scanStatNote": "Le suivi des scans sera disponible bientôt.",
+    "greeting": "Bonjour, {{name}}",
+    "stickerLinked": "Sticker lié",
+    "noSticker": "Sans sticker",
+    "setup": {
+      "title": "Terminez la configuration de CarLink",
+      "almost": "Vous êtes joignable. Il reste quelques étapes facultatives.",
+      "notReachable": "Les visiteurs ne peuvent pas encore vous joindre. Complétez les étapes ci-dessous.",
+      "order": "Commander un sticker",
+      "orderHint": "Recevez un sticker QR livré chez vous.",
+      "activate": "Activer votre sticker",
+      "activateHint": "Saisissez le code imprimé dessous pour le lier à votre voiture.",
+      "phone": "Ajouter votre numéro",
+      "phoneHint": "Les alertes vous sont envoyées par SMS. Il n'est jamais affiché.",
+      "email": "Vérifier votre e-mail",
+      "emailHint": "Ouvrez le lien reçu par e-mail pour sécuriser votre compte.",
+      "done": "Terminé",
+      "todo": "À faire"
+    }
   },
   "stickers": {
     "title": "Mes stickers",
@@ -458,7 +527,23 @@
     "birthDate": "Date de naissance",
     "licensePlate": "Plaque d'immatriculation",
     "licensePlateHint": "Le numéro d'immatriculation de votre voiture.",
-    "activate": "Activer le sticker"
+    "activate": "Activer le sticker",
+    "activateCta": "Activer un sticker",
+    "activateTitle": "Activer un sticker",
+    "activateSubtitle": "Saisissez le code imprimé sous le QR et la voiture concernée.",
+    "codeHint": "Le code court imprimé sous le QR de votre sticker.",
+    "moreDetails": "Ajouter les détails de la voiture (facultatif)",
+    "viewVehicle": "Voir la voiture",
+    "howTitle": "Comment fonctionnent les stickers CarLink",
+    "stepLabel": "Étape {{n}}",
+    "how": {
+      "step1": "Commander",
+      "step1Hint": "Choisissez un pack et payez à la livraison.",
+      "step2": "Coller & activer",
+      "step2Hint": "Collez-le sur votre pare-brise et activez-le avec son code.",
+      "step3": "Recevoir les alertes",
+      "step3Hint": "Toute personne qui le scanne peut vous joindre par SMS, sans voir votre numéro."
+    }
   },
   "registerSticker": {
     "title": "Enregistrez votre sticker",

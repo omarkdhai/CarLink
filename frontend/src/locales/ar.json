@@ -60,7 +60,14 @@
     "adminAuditLogs": "سجل المراقبة",
     "adminDashboard": "نظرة عامة",
     "addVehicle": "إضافة سيارة",
-    "stickers": "ملصقاتي"
+    "stickers": "ملصقاتي",
+    "home": "الرئيسية",
+    "stickersShort": "الملصقات",
+    "vehiclesShort": "المركبات",
+    "account": "الحساب",
+    "main": "التنقل الرئيسي",
+    "skipToContent": "الانتقال إلى المحتوى",
+    "badge": "{{count}} جديد"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -156,7 +163,8 @@
     "allStatuses": "كل الحالات",
     "sortNewest": "الأحدث",
     "sortOldest": "الأقدم",
-    "noMatch": "لا توجد سيارات تطابق بحثك"
+    "noMatch": "لا توجد سيارات تطابق بحثك",
+    "addedOn": "أُضيفت في {{date}}"
   },
   "qr": {
     "title": "رمز QR للسيارة",
@@ -381,13 +389,36 @@
     "sent": "تم الإرسال",
     "failed": "فشل",
     "conversationExpiredHint": "انتهت هذه المحادثة. يمكنك مشاهدتها فقط",
-    "anonymousHint": "هذا التواصل مجهول: سيتواصل الزائر معك عبر %{channel}. يمكنك الرد من هنا"
+    "anonymousHint": "هذا التواصل مجهول: سيتواصل الزائر معك عبر %{channel}. يمكنك الرد من هنا",
+    "filter": "تصفية الرسائل",
+    "unreadFilter": "غير مقروءة",
+    "allVehicles": "كل المركبات",
+    "allRead": "لقد قرأت كل رسائلك",
+    "groups": {
+      "today": "اليوم",
+      "yesterday": "أمس",
+      "earlier": "سابقًا"
+    }
   },
   "notifications": {
     "title": "الإشعارات",
     "subtitle": "آخر النشاطات على حسابك",
     "empty": "لا توجد إشعارات",
-    "emptyHint": "ستظهر الإشعارات المهمة هنا"
+    "emptyHint": "ستظهر الإشعارات المهمة هنا",
+    "actionNeeded": "إجراء مطلوب",
+    "caughtUp": "لا جديد لديك",
+    "newMessages": "{{count}} رسالة جديدة",
+    "notice": {
+      "addPhone": "أضف رقم هاتفك",
+      "addPhoneHint": "لا يمكن لمن يمسح ملصقك الوصول إليك حتى تضيف رقم هاتف إلى ملفك. يبقى خاصًا.",
+      "addPhoneCta": "إضافة رقم",
+      "activateSticker": "ملصق بانتظار التفعيل",
+      "activateStickerHint": "اربطه بسيارتك بالرمز المطبوع أسفل رمز QR.",
+      "activateStickerCta": "تفعيل الملصق",
+      "verifyEmail": "وثّق بريدك الإلكتروني",
+      "verifyEmailHint": "افتح رابط التوثيق المرسل إليك لتأمين حسابك.",
+      "verifyEmailCta": "عرض الملف الشخصي"
+    }
   },
   "profile": {
     "title": "ملفي الشخصي",
@@ -404,16 +435,34 @@
     "phoneOptional": "رقم الهاتف (اختياري)",
     "phoneNumberPlaceholder": "22 222 222",
     "save": "حفظ التغييرات",
-    "deleteNotAvailable": "حذف الحساب غير متاح حالياً. يرجى التواصل مع الدعم"
+    "deleteNotAvailable": "حذف الحساب غير متاح حالياً. يرجى التواصل مع الدعم",
+    "memberSinceDate": "عضو منذ {{date}}",
+    "personalInfo": "المعلومات الشخصية",
+    "personalInfoHint": "اسمك ورقم الهاتف الذي تصله التنبيهات.",
+    "phoneHint": "يُستخدم فقط لإرسال تنبيهات التواصل عبر SMS. لا يظهر للزوار أبدًا.",
+    "unsaved": "لديك تغييرات غير محفوظة",
+    "privacyTitle": "رقمك يبقى خاصًا",
+    "privacyHint": "من يمسح ملصقك لا يرى رقمك أو اسمك أبدًا — CarLink ينقل رسالته إليك."
   },
   "settings": {
     "title": "الإعدادات",
     "subtitle": "خيارات الحساب",
     "language": "اللغة",
-    "languageHint": "لغة الواجهة",
+    "languageHint": "اختر لغة الواجهة.",
     "dangerZone": "منطقة الخطر",
     "deleteAccount": "حذف حسابي",
-    "deleteAccountHint": "لا يمكن التراجع عن هذا الإجراء"
+    "deleteAccountHint": "لا يمكن التراجع عن هذا الإجراء",
+    "security": "الأمان",
+    "securityHint": "حافظ على حماية حسابك.",
+    "password": "كلمة المرور",
+    "passwordHint": "سنرسل إليك رابطًا آمنًا لاختيار كلمة مرور جديدة.",
+    "changePassword": "تغيير كلمة المرور",
+    "resetSent": "تم إرسال رابط إعادة التعيين",
+    "resetSentShort": "تم الإرسال",
+    "resetSentHint": "تحقق من {{email}} لاختيار كلمة مرور جديدة.",
+    "alertsHint": "كيف يخبرك CarLink أن أحدًا يحتاجك.",
+    "alertsPhone": "تنبيهات SMS",
+    "alertsPhoneHint": "تُرسل تنبيهات التواصل عبر SMS إلى الرقم المسجل في ملفك."
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -431,7 +480,25 @@
     "noConversationsYet": "لا توجد محادثات بعد",
     "noConversationsWait": "عندما يمسح أحدهم رمز QR الخاص بك، ستصلك أول رسالة",
     "viewAll": "عرض الكل",
-    "scanStatNote": "ستتوفر إحصائيات المسح قريباً"
+    "scanStatNote": "ستتوفر إحصائيات المسح قريباً",
+    "greeting": "مرحبًا، {{name}}",
+    "stickerLinked": "ملصق مرتبط",
+    "noSticker": "بدون ملصق",
+    "setup": {
+      "title": "أكمل إعداد CarLink",
+      "almost": "يمكن الوصول إليك. تبقّت بعض الخطوات الاختيارية.",
+      "notReachable": "لا يمكن للزوار الوصول إليك بعد. أكمل الخطوات أدناه.",
+      "order": "اطلب ملصقًا",
+      "orderHint": "احصل على ملصق QR يصلك إلى بابك.",
+      "activate": "فعّل ملصقك",
+      "activateHint": "أدخل الرمز المطبوع أسفله لربطه بسيارتك.",
+      "phone": "أضف رقم هاتفك",
+      "phoneHint": "تُرسل التنبيهات إليه عبر SMS. لا يظهر لأحد أبدًا.",
+      "email": "وثّق بريدك الإلكتروني",
+      "emailHint": "افتح الرابط المرسل إليك لتأمين حسابك.",
+      "done": "تم",
+      "todo": "للقيام به"
+    }
   },
   "stickers": {
     "title": "ملصقاتي",
@@ -458,7 +525,23 @@
     "birthDate": "تاريخ الميلاد",
     "licensePlate": "رقم اللوحة",
     "licensePlateHint": "رقم تسجيل السيارة",
-    "activate": "تفعيل الملصق"
+    "activate": "تفعيل الملصق",
+    "activateCta": "تفعيل ملصق",
+    "activateTitle": "تفعيل ملصق",
+    "activateSubtitle": "أدخل الرمز المطبوع أسفل رمز QR والسيارة المعنية.",
+    "codeHint": "الرمز القصير المطبوع أسفل رمز QR على ملصقك.",
+    "moreDetails": "إضافة تفاصيل السيارة (اختياري)",
+    "viewVehicle": "عرض السيارة",
+    "howTitle": "كيف تعمل ملصقات CarLink",
+    "stepLabel": "الخطوة {{n}}",
+    "how": {
+      "step1": "اطلب",
+      "step1Hint": "اختر باقة وادفع عند الاستلام.",
+      "step2": "الصق وفعّل",
+      "step2Hint": "ضعه على الزجاج الأمامي وفعّله برمزه.",
+      "step3": "استقبل التنبيهات",
+      "step3Hint": "يمكن لمن يمسحه التواصل معك عبر SMS دون رؤية رقمك."
+    }
   },
   "registerSticker": {
     "title": "تسجيل ملصقك",

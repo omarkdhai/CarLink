@@ -1,135 +1,145 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Languages, Trash2, Info, Bell, Check } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
+import { Bell, Check, ChevronRight, Info, KeyRound, Languages, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
+import { SectionCard } from '@/features/account/OwnerUI'
+import { useAuth } from '@/features/auth/AuthContext'
+import { authApi } from '@/services/authApi'
+import { http } from '@/services/apiClient'
 import { cn } from '@/lib/cn'
 
 const languages = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'ar', label: 'العربية', flag: '🇹🇳' },
+  { code: 'fr', label: 'Français', region: 'FR' },
+  { code: 'en', label: 'English', region: 'EN' },
+  { code: 'ar', label: 'العربية', region: 'AR' },
 ]
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const { user } = useAuth()
+  const toast = useToast()
+  const [resetSent, setResetSent] = useState(false)
 
-  const currentLang = i18n.language?.split('-')[0] || 'en'
+  const currentLang = i18n.language?.split('-')[0] || 'fr'
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng)
+  const changeLanguage = (code: string) => {
+    void i18n.changeLanguage(code)
+    try {
+      localStorage.setItem('carlink.lang', code)
+    } catch {
+      /* storage unavailable: the choice still applies for this session */
+    }
   }
 
-  return (
-    <div>
-      <div className="mb-6">
-        <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
-      </div>
+  const reset = useMutation({
+    mutationFn: () => authApi.requestPasswordReset(user?.email ?? ''),
+    onSuccess: () => {
+      setResetSent(true)
+      toast.show(t('settings.resetSent'))
+    },
+    onError: (err) => toast.show(http.humanizeError(err), true),
+  })
 
-      <div className="max-w-2xl space-y-6">
-        {/* Language */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center">
-                <Languages className="h-5 w-5" aria-hidden />
-              </div>
-              <div>
-                <CardTitle>{t('settings.language')}</CardTitle>
-                <CardDescription>{t('settings.languageHint')}</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {languages.map((lang) => (
+  return (
+    <div className="space-y-6 sm:space-y-8 max-w-3xl">
+      <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
+
+      <SettingsSection icon={Languages} tone="bg-primary-soft text-primary" title={t('settings.language')} description={t('settings.languageHint')}>
+        <div role="radiogroup" aria-label={t('settings.language')} className="grid gap-3 sm:grid-cols-3">
+          {languages.map((lang) => {
+            const active = currentLang === lang.code
+            return (
               <button
                 key={lang.code}
+                type="button"
+                role="radio"
+                aria-checked={active}
                 onClick={() => changeLanguage(lang.code)}
                 className={cn(
-                  'w-full flex items-center justify-between p-3 rounded-lg border transition-all touch-target',
-                  currentLang === lang.code
-                    ? 'border-primary bg-primary-soft/50'
-                    : 'border-border hover:border-primary/40 hover:bg-muted/50'
+                  'flex items-center gap-3 h-14 px-4 rounded-xl border-2 text-start transition-colors',
+                  active ? 'border-primary bg-primary-soft/50' : 'border-border hover:border-primary/40',
                 )}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{lang.flag}</span>
-                  <span className={cn('text-sm font-medium', currentLang === lang.code ? 'text-primary' : 'text-foreground')}>
-                    {lang.label}
-                  </span>
-                </div>
-                {currentLang === lang.code && <Check className="h-4 w-4 text-primary" />}
-              </button>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Notifications */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center">
-                <Bell className="h-5 w-5" aria-hidden />
-              </div>
-              <div>
-                <CardTitle>{t('notifications.title') || 'Notifications'}</CardTitle>
-                <CardDescription>{t('notifications.subtitle') || 'Manage notification preferences'}</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-foreground">{t('notifications.title') || 'Notifications'}</p>
-                <p className="text-xs text-muted-fg">{t('notifications.subtitle') || 'Receive alerts for new messages'}</p>
-              </div>
-              <button
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                className={cn(
-                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                  notificationsEnabled ? 'bg-primary' : 'bg-muted'
-                )}
-                role="switch"
-                aria-checked={notificationsEnabled}
               >
                 <span
                   className={cn(
-                    'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                    notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                    'h-8 w-8 shrink-0 rounded-lg flex items-center justify-center text-xs font-bold',
+                    active ? 'bg-primary text-white' : 'bg-muted text-muted-fg',
                   )}
-                />
+                  aria-hidden
+                >
+                  {lang.region}
+                </span>
+                <span className={cn('flex-1 text-sm font-semibold', active ? 'text-primary' : 'text-foreground')} lang={lang.code}>
+                  {lang.label}
+                </span>
+                {active && <Check className="h-5 w-5 text-primary" aria-hidden />}
               </button>
-            </div>
-          </CardContent>
-        </Card>
+            )
+          })}
+        </div>
+      </SettingsSection>
 
-        {/* Danger zone */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-destructive-soft text-destructive flex items-center justify-center">
-                <Trash2 className="h-5 w-5" aria-hidden />
-              </div>
-              <div>
-                <CardTitle>{t('settings.dangerZone')}</CardTitle>
-                <CardDescription>{t('settings.deleteAccountHint')}</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-3 rounded-lg bg-muted p-4 mb-4">
-              <Info className="h-4 w-4 text-muted-fg shrink-0 mt-0.5" aria-hidden />
-              <p className="text-sm text-muted-fg">{t('profile.deleteNotAvailable')}</p>
-            </div>
-            <Button variant="danger" disabled>
-              <Trash2 className="h-4 w-4" aria-hidden />
-              {t('settings.deleteAccount')}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <SettingsSection icon={KeyRound} tone="bg-accent-soft text-accent" title={t('settings.security')} description={t('settings.securityHint')}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-border p-4">
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-heading">{t('settings.password')}</p>
+            <p className="text-sm text-muted-fg mt-1 leading-relaxed">
+              {resetSent ? t('settings.resetSentHint', { email: user?.email }) : t('settings.passwordHint')}
+            </p>
+          </div>
+          <Button variant="outline" loading={reset.isPending} disabled={resetSent || !user?.email} onClick={() => reset.mutate()}>
+            {resetSent ? t('settings.resetSentShort') : t('settings.changePassword')}
+          </Button>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection icon={Bell} tone="bg-success-soft text-success" title={t('notifications.title')} description={t('settings.alertsHint')}>
+        <Link to="/profile" className="flex items-center gap-3 rounded-xl border border-border p-4 hover:border-primary/40 hover:bg-primary-soft/30 transition-colors">
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-heading">{t('settings.alertsPhone')}</p>
+            <p className="text-sm text-muted-fg mt-1 leading-relaxed">{t('settings.alertsPhoneHint')}</p>
+          </div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-muted-fg rtl:rotate-180" aria-hidden />
+        </Link>
+      </SettingsSection>
+
+      <SettingsSection icon={Trash2} tone="bg-destructive-soft text-destructive" title={t('settings.dangerZone')} description={t('settings.deleteAccountHint')} danger>
+        <div className="flex items-start gap-3 rounded-xl bg-muted/60 p-4 mb-4">
+          <Info className="h-4 w-4 text-muted-fg shrink-0 mt-0.5" aria-hidden />
+          <p className="text-sm text-muted-fg leading-relaxed">{t('profile.deleteNotAvailable')}</p>
+        </div>
+        <Button variant="danger" disabled>
+          <Trash2 className="h-4 w-4" aria-hidden />
+          {t('settings.deleteAccount')}
+        </Button>
+      </SettingsSection>
+      {toast.node}
     </div>
+  )
+}
+
+function SettingsSection({
+  icon: Icon,
+  tone,
+  title,
+  description,
+  danger,
+  children,
+}: {
+  icon: typeof Bell
+  tone: string
+  title: string
+  description: string
+  danger?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <SectionCard title={title} description={description} icon={Icon} iconTone={tone} className={danger ? 'border-destructive/30' : undefined}>
+      {children}
+    </SectionCard>
   )
 }

@@ -1,189 +1,205 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { Plus, CarFront } from 'lucide-react'
+import { CarFront, ChevronRight, MessageSquareText, Plus, QrCode, Search, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PlateChip } from '@/components/shared/PlateChip'
 import { buttonClasses } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SkeletonGrid } from '@/components/shared/SkeletonGrid'
-import { Badge, type BadgeTone } from '@/components/ui/Badge'
-import { Input } from '@/components/ui/Input'
 import { vehicleApi, vehicleQueryKeys } from '@/services/vehicleApi'
+import { useAccountStatus } from '@/features/account/useAccountStatus'
+import { InlineEmpty, VehicleAvatar } from '@/features/account/OwnerUI'
+import { formatDate } from '@/lib/format'
+import { cn } from '@/lib/cn'
 import type { VehicleResponse, VehicleStatus } from '@/types'
 
-function formatDate(value: string, locale: string) {
-  return new Date(value).toLocaleString(locale, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
-
-// Map vehicle status to badge tone – reuse pattern from orders page
-const STATUS_TONE: Record<VehicleStatus, BadgeTone> = {
-  ACTIVE: 'success',
-  ARCHIVED: 'danger',
-}
-
 export default function VehiclesPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const status = useAccountStatus()
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<VehicleStatus | ''>('')
-  const [sort, setSort] = useState('createdAt,desc')
+  const [tab, setTab] = useState<VehicleStatus>('ACTIVE')
 
   const vehiclesQuery = useQuery({
-    queryKey: vehicleQueryKeys.list(status || undefined),
-    queryFn: () => vehicleApi.list(status || undefined),
+    queryKey: vehicleQueryKeys.list(tab),
+    queryFn: () => vehicleApi.list(tab),
   })
 
-  const loading = vehiclesQuery.isPending
-  const error = vehiclesQuery.error
-  const vehicles = useMemo(() => vehiclesQuery.data ?? [], [vehiclesQuery.data])
-
-  // Apply client‑side search & sorting
-  const filtered = useMemo(() => {
-    let list = vehicles
-    if (search) {
-      const term = search.toLowerCase()
-      list = list.filter(v =>
-        (v.nickname ?? '').toLowerCase().includes(term) ||
-        (v.brand ?? '').toLowerCase().includes(term) ||
-        (v.model ?? '').toLowerCase().includes(term) ||
-        v.licensePlate.toLowerCase().includes(term)
-      )
+  // Per-vehicle activity from data the shell already loads.
+  const activity = useMemo(() => {
+    const map = new Map<string, { total: number; unread: number }>()
+    for (const c of status.conversations.data ?? []) {
+      const a = map.get(c.vehicleId) ?? { total: 0, unread: 0 }
+      a.total += 1
+      if (c.unread) a.unread += 1
+      map.set(c.vehicleId, a)
     }
-    const [field, dir] = sort.split(',') as [keyof VehicleResponse, 'asc' | 'desc']
-    list = [...list].sort((a, b) => {
-      const av = a[field] as any
-      const bv = b[field] as any
-      if (av < bv) return dir === 'asc' ? -1 : 1
-      if (av > bv) return dir === 'asc' ? 1 : -1
-      return 0
-    })
-    return list
-  }, [vehicles, search, sort])
+    return map
+  }, [status.conversations.data])
+  const linked = useMemo(
+    () => new Set((status.stickers.data ?? []).filter((s) => s.status === 'BOUND').map((s) => s.vehicle?.id)),
+    [status.stickers.data],
+  )
+
+  const vehicles = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    return (vehiclesQuery.data ?? [])
+      .filter(
+        (v) =>
+          !term ||
+          [v.nickname, v.brand, v.model, v.licensePlate, v.color].some((x) => (x ?? '').toLowerCase().includes(term)),
+      )
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  }, [vehiclesQuery.data, search])
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title={t('vehicle.title')}
         subtitle={t('vehicle.subtitle')}
         actions={
-          <Link
-            to="/vehicles/new"
-            className={buttonClasses({ size: 'sm' }) + ' sm:h-10 sm:px-4'}
-          >
+          <Link to="/vehicles/new" className={buttonClasses()}>
             <Plus className="h-4 w-4" aria-hidden />
-            <span className="hidden sm:inline">{t('vehicle.add')}</span>
+            {t('vehicle.add')}
           </Link>
         }
       />
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-4 items-center">
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('vehicle.searchPlaceholder')}
-          className="flex-1 max-w-sm"
-        />
-        <select
-          value={status}
-          onChange={e => setStatus(e.target.value as VehicleStatus | '')}
-          className="px-3 py-2 border border-input-border rounded-lg bg-surface hover:border-primary/50 focus-visible:border-primary"
-        >
-          <option value="">{t('vehicle.allStatuses')}</option>
-          {['ACTIVE', 'ARCHIVED'].map(s => (
-            <option key={s} value={s}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div role="group" aria-label={t('vehicle.status')} className="inline-flex self-start gap-1 rounded-xl bg-muted/60 p-1">
+          {(['ACTIVE', 'ARCHIVED'] as VehicleStatus[]).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setTab(s)}
+              aria-pressed={tab === s}
+              className={cn(
+                'h-9 px-4 rounded-lg text-sm font-semibold transition-colors',
+                tab === s ? 'bg-surface text-heading shadow-sm' : 'text-muted-fg hover:text-foreground',
+              )}
+            >
               {s === 'ACTIVE' ? t('vehicle.active') : t('vehicle.archived')}
-            </option>
+            </button>
           ))}
-        </select>
-        <select
-          value={sort}
-          onChange={e => setSort(e.target.value)}
-          className="px-3 py-2 border border-input-border rounded-lg bg-surface hover:border-primary/50 focus-visible:border-primary"
-        >
-          <option value="createdAt,desc">{t('vehicle.sortNewest')}</option>
-          <option value="createdAt,asc">{t('vehicle.sortOldest')}</option>
-        </select>
+        </div>
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-fg" aria-hidden />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('vehicle.searchPlaceholder')}
+            aria-label={t('vehicle.searchPlaceholder')}
+            className="w-full h-11 rounded-lg border border-input-border bg-surface ps-9 pe-10 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent [&::-webkit-search-cancel-button]:hidden"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              aria-label={t('admin.list.clearSearch')}
+              className="absolute end-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-md flex items-center justify-center text-muted-fg hover:bg-muted"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          )}
+        </div>
       </div>
 
-      {error && <ErrorState message={t('errors.generic')} onRetry={() => vehiclesQuery.refetch()} />}
-      {loading && <SkeletonGrid count={3} />}
+      {vehiclesQuery.error && <ErrorState message={t('errors.generic')} onRetry={() => vehiclesQuery.refetch()} />}
 
-      {filtered.length === 0 && !loading && !error && status === 'ARCHIVED' && !search && (
-        <EmptyState icon={<CarFront className="h-7 w-7" aria-hidden />} title={t('vehicle.emptyArchived')} />
-      )}
-
-      {filtered.length === 0 && !loading && !error && search && (
-        <EmptyState icon={<CarFront className="h-7 w-7" aria-hidden />} title={t('vehicle.noMatch')} />
-      )}
-
-      {filtered.length === 0 && !loading && !error && status !== 'ARCHIVED' && !search && (
-        <EmptyState
-          icon={<CarFront className="h-7 w-7" aria-hidden />}
-          title={t('vehicle.noVehicles')}
-          hint={t('vehicle.noVehiclesHint')}
+      {vehiclesQuery.isPending ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-48 rounded-2xl border border-border bg-surface p-5 space-y-4">
+              <div className="flex gap-3">
+                <div className="h-12 w-12 rounded-xl bg-muted animate-pulse" />
+                <div className="flex-1 space-y-2 pt-1">
+                  <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+                </div>
+              </div>
+              <div className="h-6 w-24 rounded bg-muted animate-pulse" />
+            </div>
+          ))}
+        </div>
+      ) : vehicles.length === 0 && !vehiclesQuery.error ? (
+        <InlineEmpty
+          icon={CarFront}
+          title={search ? t('vehicle.noMatch') : tab === 'ARCHIVED' ? t('vehicle.emptyArchived') : t('vehicle.noVehicles')}
+          hint={search ? t('admin.list.noResultsHint') : tab === 'ACTIVE' ? t('vehicle.noVehiclesHint') : undefined}
           action={
-            <Link to="/vehicles/new" className={buttonClasses()}>
-              <Plus className="h-4 w-4" aria-hidden />
-              {t('vehicle.add')}
-            </Link>
+            search ? (
+              <button type="button" onClick={() => setSearch('')} className={buttonClasses({ variant: 'outline', size: 'sm' })}>
+                {t('admin.list.clearSearch')}
+              </button>
+            ) : tab === 'ACTIVE' ? (
+              <Link to="/vehicles/new" className={buttonClasses()}>
+                <Plus className="h-4 w-4" aria-hidden />
+                {t('vehicle.add')}
+              </Link>
+            ) : undefined
           }
         />
-      )}
-
-      {filtered.length > 0 && (
-        <div className="overflow-x-auto bg-surface border border-border rounded-xl">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="text-start p-3">{t('vehicle.nickname')}</th>
-                <th className="text-start p-3">{t('vehicle.brandModel')}</th>
-                <th className="text-start p-3">{t('vehicle.licensePlate')}</th>
-                <th className="text-start p-3">{t('vehicle.color')}</th>
-                <th className="text-start p-3">{t('vehicle.status')}</th>
-                <th className="text-start p-3">{t('vehicle.created')}</th>
-                <th className="text-start p-3">{t('vehicle.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((v, i) => (
-                <tr key={v.id} className="border-t border-border hover:bg-muted/30" style={{ '--stagger': i } as React.CSSProperties}>
-                  <td className="p-3 font-medium text-heading whitespace-nowrap">
-                    {v.nickname ?? `${v.brand ?? ''} ${v.model ?? ''}`.trim()}
-                  </td>
-                  <td className="p-3 whitespace-nowrap">
-                    {v.brand ?? ''} {v.model ?? ''}
-                  </td>
-                  <td className="p-3 whitespace-nowrap">
-                    {v.licensePlate}
-                  </td>
-                  <td className="p-3 whitespace-nowrap">
-                    {v.color ?? '—'}
-                  </td>
-                  <td className="p-3 whitespace-nowrap">
-                    <Badge tone={STATUS_TONE[v.status] ?? 'neutral'}>{v.status === 'ACTIVE' ? t('vehicle.active') : t('vehicle.archived')}</Badge>
-                  </td>
-                  <td className="p-3 whitespace-nowrap text-muted-fg">
-                    {formatDate(v.createdAt, i18n.language)}
-                  </td>
-                  <td className="p-3 whitespace-nowrap">
-                    <Link
-                      to={`/vehicles/${v.id}`}
-                      className={buttonClasses({ size: 'sm', variant: 'outline' })}
-                    >
-                      {t('common.view')}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {vehicles.map((v) => (
+            <li key={v.id}>
+              <VehicleTile vehicle={v} activity={activity.get(v.id)} hasSticker={linked.has(v.id)} />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
+  )
+}
+
+function VehicleTile({
+  vehicle: v,
+  activity,
+  hasSticker,
+}: {
+  vehicle: VehicleResponse
+  activity?: { total: number; unread: number }
+  hasSticker: boolean
+}) {
+  const { t } = useTranslation()
+  const title = v.nickname || [v.brand, v.model].filter(Boolean).join(' ') || v.licensePlate
+  return (
+    <Link
+      to={`/vehicles/${v.id}`}
+      className="group h-full bg-surface border border-border rounded-2xl shadow-card hover:border-primary/40 hover:shadow-pop transition-all flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      <div className="p-5 flex-1">
+        <div className="flex items-start gap-3">
+          <VehicleAvatar color={v.color} size="lg" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-bold text-heading truncate leading-snug">{title}</h3>
+              {v.status === 'ARCHIVED' && <Badge tone="neutral">{t('vehicle.archived')}</Badge>}
+            </div>
+            <p className="text-sm text-muted-fg mt-1 truncate">
+              {[v.nickname ? [v.brand, v.model].filter(Boolean).join(' ') : null, v.color].filter(Boolean).join(' · ') || '—'}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <PlateChip plate={v.licensePlate} />
+          <span className="text-xs text-muted-fg">{t('vehicle.addedOn', { date: formatDate(v.createdAt) })}</span>
+        </div>
+      </div>
+      <div className="px-5 py-3 border-t border-border flex items-center gap-4 text-sm">
+        <span className={cn('inline-flex items-center gap-1.5', hasSticker ? 'text-success' : 'text-muted-fg')}>
+          <QrCode className="h-4 w-4" aria-hidden />
+          {hasSticker ? t('dashboard.stickerLinked') : t('dashboard.noSticker')}
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-muted-fg">
+          <MessageSquareText className="h-4 w-4" aria-hidden />
+          {activity?.total ?? 0}
+          {activity && activity.unread > 0 && <Badge tone="warning">{t('admin.fleet.unreadCount', { count: activity.unread })}</Badge>}
+        </span>
+        <ChevronRight className="ms-auto h-4 w-4 text-muted-fg group-hover:text-primary rtl:rotate-180" aria-hidden />
+      </div>
+    </Link>
   )
 }
