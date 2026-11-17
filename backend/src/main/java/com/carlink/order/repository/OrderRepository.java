@@ -10,12 +10,33 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     boolean existsByReference(String reference);
 
+    Page<Order> findAllByStatus(OrderStatus status, Pageable pageable);
+
+    /**
+     * Admin order search: optional freetext over reference, customer name,
+     * email and mobile, combined with an optional status filter.
+     */
+    @Query("""
+            select o from Order o
+            where (:q is null
+                     or lower(o.reference) like lower(concat('%', cast(:q as text), '%'))
+                     or lower(o.customerName) like lower(concat('%', cast(:q as text), '%'))
+                     or lower(o.email) like lower(concat('%', cast(:q as text), '%'))
+                     or o.mobile like concat('%', cast(:q as text), '%'))
+              and (:status is null or o.status = :status)""")
+    Page<Order> adminSearch(@org.springframework.data.repository.query.Param("q") String q,
+                            @org.springframework.data.repository.query.Param("status") OrderStatus status,
+                            Pageable pageable);
+
     Optional<Order> findByReference(String reference);
+
 
     long countByStatus(OrderStatus status);
 

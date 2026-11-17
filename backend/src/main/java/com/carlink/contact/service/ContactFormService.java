@@ -2,24 +2,30 @@ package com.carlink.contact.service;
 
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.contact.dto.ContactFormRequest;
+import com.carlink.contact.model.ContactMessage;
+import com.carlink.contact.repository.ContactMessageRepository;
 import com.carlink.notification.email.EmailSender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-/**
- * Delivers a public "Contact us" form submission to the configured business
- * mailbox. The visitor's email and phone are included only to let the team
- * reply to them — nothing is stored, logged beyond the mail transport, or
- * returned by the API.
- */
 @Service
 @RequiredArgsConstructor
 public class ContactFormService {
 
     private final EmailSender emailSender;
     private final CarLinkProperties properties;
+    private final ContactMessageRepository contactMessageRepository;
 
     public void submit(ContactFormRequest request) {
+        contactMessageRepository.save(ContactMessage.builder()
+                .name(request.name())
+                .email(request.email())
+                .mobile(request.phone())
+                .reason(request.subject())
+                .note(request.message())
+                .createdAt(java.time.Instant.now())
+                .build());
+
         String to = properties.contactForm().toEmail();
         StringBuilder body = new StringBuilder();
         body.append("New message via the CarLink website contact form\n\n");

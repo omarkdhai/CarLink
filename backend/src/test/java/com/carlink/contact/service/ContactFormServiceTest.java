@@ -2,6 +2,7 @@ package com.carlink.contact.service;
 
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.contact.dto.ContactFormRequest;
+import com.carlink.contact.repository.ContactMessageRepository;
 import com.carlink.notification.email.EmailSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,13 +18,14 @@ import static org.mockito.Mockito.verify;
 class ContactFormServiceTest {
 
     @Mock private EmailSender emailSender;
+    @Mock private ContactMessageRepository contactMessageRepository;
 
     private final CarLinkProperties properties = com.carlink.TestProperties.minimal();
     private ContactFormService service;
 
     @BeforeEach
     void setUp() {
-        service = new ContactFormService(emailSender, properties);
+        service = new ContactFormService(emailSender, properties, contactMessageRepository);
     }
 
     @Test

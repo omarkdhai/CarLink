@@ -237,4 +237,38 @@ public class OrderService {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
+    public org.springframework.data.domain.Page<com.carlink.order.dto.AdminOrderView> listOrders(String q, String status, org.springframework.data.domain.Pageable pageable) {
+        OrderStatus statusFilter = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                statusFilter = OrderStatus.valueOf(status.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new com.carlink.common.exception.BadRequestException(
+                        "Unknown status '" + status + "' (expected PLACED, DELIVERED or CANCELLED)");
+            }
+        }
+        String term = q == null || q.isBlank() ? null : q.trim();
+        org.springframework.data.domain.Page<Order> orders = orderRepository.adminSearch(term, statusFilter, pageable);
+
+        // One query for the items of the whole page instead of two per order.
+        java.util.Map<java.util.UUID, java.util.List<com.carlink.order.model.OrderItem>> items =
+                orderItemRepository.findAllByOrderIdIn(orders.map(Order::getId).getContent()).stream()
+                        .collect(java.util.stream.Collectors.groupingBy(i -> i.getOrder().getId()));
+        return orders.map(o -> {
+            java.util.List<com.carlink.order.model.OrderItem> own = items.getOrDefault(o.getId(), java.util.List.of());
+            return new com.carlink.order.dto.AdminOrderView(
+                    o.getReference(), o.getStatus().name(), o.getTotalAmount(), o.getCurrency(),
+                    own.stream().mapToInt(i -> i.getQuantity() * i.getStickersPerPack()).sum(),
+                    o.getCustomerName(), o.getEmail(), o.getMobile(), o.getGovernorate().name(), o.getDeliveryAddress(), o.getDeliveryNotes(), o.getCreatedAt(),
+                    own.stream().map(com.carlink.order.dto.OrderItemView::from).toList());
+        });
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void updateStatus(String reference, OrderStatus status) {
+        Order order = orderRepository.findByReference(reference)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+        order.setStatus(status);
+        orderRepository.save(order);
+    }
 }
