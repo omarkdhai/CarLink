@@ -1211,5 +1211,41 @@
     "contents": "Contents",
     "otherPolicies": "Other policies",
     "questions": "A question about this policy?"
+  },
+  "authShell": {
+    "backHome": "Back to site",
+    "accountTitle": "Reachable for your car, private for you.",
+    "accountText": "Anyone who scans your sticker can alert you in seconds — without ever seeing your number.",
+    "stickerTitle": "One scan, and your car is protected.",
+    "stickerText": "Link your sticker to your car in under a minute. Your details stay private.",
+    "point1": "Your phone number is never shown",
+    "point2": "Instant SMS alerts",
+    "point3": "No app needed for visitors",
+    "alertTime": "now",
+    "alertText": "Someone needs you: your car is blocking an exit.",
+    "alertPrivate": "Sent without revealing your number",
+    "pwTitle": "Password requirements",
+    "pwOk": "met",
+    "pwMissing": "missing",
+    "pw": {
+      "length": "8+ characters",
+      "letter": "A letter",
+      "digit": "A number"
+    },
+    "gotSticker": "Just received a sticker?",
+    "gotStickerHint": "Activate it with the code printed under the QR.",
+    "stickerCode": "Sticker activation code",
+    "stickerCodeHint": "Printed under the QR code on your sticker.",
+    "termsLead": "By creating an account you accept our",
+    "backToLogin": "Back to sign in",
+    "checkInbox": "Check your inbox",
+    "checkInboxText": "If an account exists for {{email}}, we have sent a link to choose a new password.",
+    "checkSpam": "Not there after a few minutes? Check your spam folder or send the link again.",
+    "resend": "Send the link again",
+    "linkInvalidTitle": "This link no longer works",
+    "requestNewLink": "Request a new link",
+    "redirecting": "Taking you to sign in…",
+    "verifiedText": "Thanks — your account is now fully secured.",
+    "passwordsMismatch": "The passwords do not match"
   }
 }

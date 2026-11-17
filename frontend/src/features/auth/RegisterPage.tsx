@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
+import { ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/features/auth/AuthContext'
 import { registerSchema, type RegisterValues } from '@/features/auth/authSchemas'
+import { AuthFootnote, AuthHeader, AuthShell, PasswordChecklist } from '@/features/auth/AuthShell'
 import { ApiRequestError, toApiError } from '@/services/errors'
 import { http } from '@/services/apiClient'
 import { takeNextAfterAuth } from '@/services/nextTarget'
@@ -15,7 +17,6 @@ import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { PasswordInput } from '@/components/ui/PasswordInput'
 import { PhoneFields } from '@/components/ui/PhoneFields'
-import { Logo } from '@/components/layout/Logo'
 
 export default function RegisterPage() {
   const { t } = useTranslation()
@@ -34,12 +35,8 @@ export default function RegisterPage() {
   })
 
   const password = watch('password') ?? ''
-  const checks = [
-    { label: 'At least 8 characters', ok: password.length >= 8 },
-    { label: 'At least 1 number', ok: /\d/.test(password) },
-    { label: 'At least 1 special character', ok: /[^A-Za-z0-9]/.test(password) },
-  ]
-async function onSubmit(values: RegisterValues) {
+
+  async function onSubmit(values: RegisterValues) {
     setSubmissionError(null)
     try {
       await signUp({
@@ -57,81 +54,69 @@ async function onSubmit(values: RegisterValues) {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col gap-6 justify-center my-auto py-8">
-      <div className="text-center">
-        <Logo className="justify-center" />
-        <h1 className="text-2xl font-bold text-heading mt-5">{t('auth.registerTitle')}</h1>
-        <p className="text-sm text-muted-fg mt-1">{t('auth.registerSubtitle')}</p>
-      </div>
+    <AuthShell>
+      <AuthHeader title={t('auth.registerTitle')} subtitle={t('auth.registerSubtitle')} />
 
-      {submissionError?.code === 'EMAIL_ALREADY_REGISTERED' ? (
-        <Alert tone="error" title={t('auth.emailAlreadyRegistered')}>
-          <Link
-            to="/login"
-            className={buttonClasses({ variant: 'outline', size: 'sm' }) + ' mt-2'}
-            data-cy="sign-in-instead"
-          >
-            {t('auth.signInInstead')}
-          </Link>
-        </Alert>
-      ) : (
-        submissionError && <Alert tone="error">{http.humanizeError(submissionError)}</Alert>
-      )}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        {submissionError?.code === 'EMAIL_ALREADY_REGISTERED' ? (
+          <div role="alert">
+            <Alert tone="error" title={t('auth.emailAlreadyRegistered')}>
+              <Link to="/login" className={buttonClasses({ variant: 'outline', size: 'sm' }) + ' mt-2'} data-cy="sign-in-instead">
+                {t('auth.signInInstead')}
+              </Link>
+            </Alert>
+          </div>
+        ) : (
+          submissionError && (
+            <div role="alert">
+              <Alert tone="error">{http.humanizeError(submissionError)}</Alert>
+            </div>
+          )
+        )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-surface border border-border rounded-xl p-6 shadow-card" noValidate>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label={t('auth.firstName')} error={errors.firstName?.message}>
-            <Input
-              placeholder={t('auth.firstNamePlaceholder')}
-              autoComplete="given-name"
-              error={Boolean(errors.firstName)}
-              {...register('firstName')}
-            />
-          </Field>
-          <Field label={t('auth.lastName')} error={errors.lastName?.message}>
-            <Input
-              placeholder={t('auth.lastNamePlaceholder')}
-              autoComplete="family-name"
-              error={Boolean(errors.lastName)}
-              {...register('lastName')}
-            />
-          </Field>
-        </div>
-        <Field label={t('auth.email')} error={errors.email?.message}>
-          <Input
-            type="email"
-            autoComplete="email"
-            placeholder={t('auth.emailPlaceholder')}
-            error={Boolean(errors.email)}
-            {...register('email')}
-          />
-        </Field>
-        <Field label={t('validation.stickerCodeRequired')} error={errors.stickerCode?.message}>
+        <Field label={t('authShell.stickerCode')} hint={t('authShell.stickerCodeHint')} error={errors.stickerCode?.message}>
           <Input
             placeholder={t('registerSticker.codePlaceholder')}
             autoCapitalize="characters"
             spellCheck={false}
             maxLength={32}
+            className="font-mono uppercase tracking-widest"
             error={Boolean(errors.stickerCode)}
             {...register('stickerCode')}
           />
         </Field>
-<Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label={t('auth.firstName')} error={errors.firstName?.message}>
+            <Input placeholder={t('auth.firstNamePlaceholder')} autoComplete="given-name" error={Boolean(errors.firstName)} {...register('firstName')} />
+          </Field>
+          <Field label={t('auth.lastName')} error={errors.lastName?.message}>
+            <Input placeholder={t('auth.lastNamePlaceholder')} autoComplete="family-name" error={Boolean(errors.lastName)} {...register('lastName')} />
+          </Field>
+        </div>
+
+        <Field label={t('auth.email')} error={errors.email?.message}>
+          <Input type="email" autoComplete="email" placeholder={t('auth.emailPlaceholder')} error={Boolean(errors.email)} {...register('email')} />
+        </Field>
+
+        <div>
+          <Field label={t('auth.password')} error={errors.password?.message}>
             <PasswordInput
               autoComplete="new-password"
-              placeholder={t('auth.passwordPlaceholder')}
+              placeholder={t('auth.newPasswordPlaceholder')}
               error={Boolean(errors.password)}
               {...register('password')}
             />
-            <ul className="mt-2 space-y-1 text-xs">
-              {checks.map((c) => (
-                <li key={c.label} className={c.ok ? 'text-success' : 'text-muted-fg'}>
-                  {c.ok ? '✓' : '•'} {c.label}
-                </li>
-              ))}
-            </ul>
           </Field>
-        <Field label={t('auth.phone')} optional={t('common.optional')} hint={t('auth.phoneHint')} error={errors.phoneCode?.message || errors.phoneNumber?.message}>
+          <PasswordChecklist password={password} />
+        </div>
+
+        <Field
+          label={t('auth.phone')}
+          optional={t('common.optional')}
+          hint={t('auth.phoneHint')}
+          error={errors.phoneCode?.message || errors.phoneNumber?.message}
+        >
           <PhoneFields
             register={register}
             codeName="phoneCode"
@@ -142,17 +127,32 @@ async function onSubmit(values: RegisterValues) {
           />
         </Field>
 
-        <Button type="submit" fullWidth loading={isSubmitting} className="mt-2">
+        <Button type="submit" size="lg" fullWidth loading={isSubmitting}>
           {t('auth.register')}
+          <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
         </Button>
+
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-fg">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
+          <span>
+            {t('authShell.termsLead')}{' '}
+            <Link to="/terms" className="font-semibold text-primary hover:underline">
+              {t('footer.termsLink')}
+            </Link>{' '}
+            · {' '}
+            <Link to="/privacy" className="font-semibold text-primary hover:underline">
+              {t('footer.privacyLink')}
+            </Link>
+          </span>
+        </p>
       </form>
 
-      <p className="text-center text-sm text-muted-fg">
+      <AuthFootnote>
         {t('auth.haveAccount')}{' '}
         <Link to="/login" className="font-semibold text-primary hover:underline">
           {t('auth.signIn')}
         </Link>
-      </p>
-    </div>
+      </AuthFootnote>
+    </AuthShell>
   )
 }

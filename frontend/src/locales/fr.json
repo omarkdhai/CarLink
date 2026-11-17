@@ -1231,5 +1231,41 @@
     "contents": "Sommaire",
     "otherPolicies": "Autres politiques",
     "questions": "Une question sur cette politique ?"
+  },
+  "authShell": {
+    "backHome": "Retour au site",
+    "accountTitle": "Joignable pour votre voiture, privé pour vous.",
+    "accountText": "Quiconque scanne votre sticker peut vous prévenir en quelques secondes — sans jamais voir votre numéro.",
+    "stickerTitle": "Un scan, et votre voiture est protégée.",
+    "stickerText": "Liez votre sticker à votre voiture en moins d'une minute. Vos données restent privées.",
+    "point1": "Votre numéro n'est jamais affiché",
+    "point2": "Alertes SMS instantanées",
+    "point3": "Aucune application pour les visiteurs",
+    "alertTime": "maintenant",
+    "alertText": "Quelqu'un a besoin de vous : votre voiture bloque une sortie.",
+    "alertPrivate": "Envoyé sans révéler votre numéro",
+    "pwTitle": "Règles du mot de passe",
+    "pwOk": "respectée",
+    "pwMissing": "manquante",
+    "pw": {
+      "length": "8 caractères min.",
+      "letter": "Une lettre",
+      "digit": "Un chiffre"
+    },
+    "gotSticker": "Vous venez de recevoir un sticker ?",
+    "gotStickerHint": "Activez-le avec le code imprimé sous le QR.",
+    "stickerCode": "Code d'activation du sticker",
+    "stickerCodeHint": "Imprimé sous le QR code de votre sticker.",
+    "termsLead": "En créant un compte, vous acceptez nos",
+    "backToLogin": "Retour à la connexion",
+    "checkInbox": "Consultez votre boîte mail",
+    "checkInboxText": "Si un compte existe pour {{email}}, nous avons envoyé un lien pour choisir un nouveau mot de passe.",
+    "checkSpam": "Rien après quelques minutes ? Vérifiez vos spams ou renvoyez le lien.",
+    "resend": "Renvoyer le lien",
+    "linkInvalidTitle": "Ce lien ne fonctionne plus",
+    "requestNewLink": "Demander un nouveau lien",
+    "redirecting": "Redirection vers la connexion…",
+    "verifiedText": "Merci — votre compte est maintenant entièrement sécurisé.",
+    "passwordsMismatch": "Les mots de passe ne correspondent pas"
   }
 }

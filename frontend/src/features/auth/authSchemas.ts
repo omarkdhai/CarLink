@@ -55,7 +55,7 @@ export const resetPasswordSchema = z
     confirmPassword: z.string().min(1, t('validation.passwordRequired')),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: t('auth.resetPassword'),
+    message: t('authShell.passwordsMismatch'),
     path: ['confirmPassword'],
   })
 
