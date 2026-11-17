@@ -5,7 +5,7 @@ import {
   isAccessTokenExpired,
   refreshSession,
 } from '@/services/tokenStore'
-import { errorI18nKey, toApiError } from '@/services/errors'
+import { errorI18nKey, errorI18nKeyForCode, toApiError } from '@/services/errors'
 import i18n from '@/lib/i18n'
 
 /**
@@ -75,9 +75,10 @@ export const http: HttpService = {
   humanizeError(error: unknown) {
     const normalized = toApiError(error)
     if (normalized.code === 'NETWORK_ERROR' || normalized.status === 0) {
-      return i18n.t(errorI18nKey(normalized.status))
+      return i18n.t('errors.network')
     }
-    return normalized.message
+    const key = errorI18nKeyForCode(normalized.code) ?? errorI18nKey(normalized.status)
+    return i18n.t(key)
   },
 }
 

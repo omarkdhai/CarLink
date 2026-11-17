@@ -11,6 +11,7 @@ import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Logo } from '@/components/layout/Logo'
 
 interface LocationState {
@@ -47,7 +48,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto flex flex-col gap-6 justify-center my-auto py-8">
+    <div className="w-full max-w-sm mx-auto flex flex-col gap-6 justify-center my-auto py-8 mt-[100px]">
       <div className="text-center">
         <Logo className="justify-center" />
         <h1 className="text-2xl font-bold text-heading mt-5">{t('auth.loginTitle')}</h1>
@@ -67,8 +68,7 @@ export default function LoginPage() {
           />
         </Field>
         <Field label={t('auth.password')} error={errors.password?.message}>
-          <Input
-            type="password"
+          <PasswordInput
             autoComplete="current-password"
             placeholder={t('auth.passwordPlaceholder')}
             error={Boolean(errors.password)}

@@ -18,6 +18,7 @@ import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { PhoneFields } from '@/components/ui/PhoneFields'
 import { Alert } from '@/components/ui/Alert'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -27,7 +28,7 @@ import {
   type ActivateStickerValues,
 } from '@/features/stickers/stickerSchemas'
 import { stickerApi } from '@/services/stickerApi'
-import { toApiError } from '@/services/errors'
+import { errorI18nKey, errorI18nKeyForCode, toApiError } from '@/services/errors'
 import { http } from '@/services/apiClient'
 import { joinPhone } from '@/lib/phone'
 import { useQrScanner } from '@/features/stickers/useQrScanner'
@@ -353,7 +354,7 @@ function AuthStep({
             <Input type="email" autoComplete="email" placeholder={t('auth.emailPlaceholder')} {...register('email')} />
           </Field>
           <Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>
-            <Input type="password" autoComplete="new-password" placeholder={t('auth.passwordPlaceholder')} {...register('password')} />
+            <PasswordInput autoComplete="new-password" placeholder={t('auth.passwordPlaceholder')} {...register('password')} />
           </Field>
           <Field label={t('auth.phone')} optional={t('common.optional')} error={errors.phoneCode?.message || errors.phoneNumber?.message}>
             <PhoneFields
@@ -382,8 +383,7 @@ function AuthStep({
             />
           </Field>
           <Field label={t('auth.password')}>
-            <Input
-              type="password"
+            <PasswordInput
               autoComplete="current-password"
               placeholder={t('auth.passwordPlaceholder')}
               value={loginValues.password}
@@ -550,7 +550,7 @@ function errCode(err: unknown): string {
   if (normalized.code === 'STICKER_ALREADY_BOUND') return 'bound'
   if (normalized.code === 'INVALID_STICKER_CODE') return 'invalidCode'
   if (normalized.code === 'EMAIL_ALREADY_REGISTERED') return 'emailTaken'
-  return normalized.message || 'error'
+  return `i18n:${errorI18nKeyForCode(normalized.code) ?? errorI18nKey(normalized.status)}`
 }
 
 function authErrorMessage(code: string, t: (k: string) => string): string {
@@ -564,7 +564,7 @@ function authErrorMessage(code: string, t: (k: string) => string): string {
     case 'notFound':
       return t('registerSticker.notFound')
     default:
-      return code === 'error' ? t('errors.generic') : code
+      return code.startsWith('i18n:') ? t(code.slice(5)) : t('errors.generic')
   }
 }
 

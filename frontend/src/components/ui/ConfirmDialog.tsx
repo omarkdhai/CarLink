@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -16,7 +17,9 @@ export interface ConfirmDialogProps {
 }
 
 /**
- * Lightweight, accessible confirmation dialog (no portal dependency).
+ * Lightweight, accessible confirmation dialog.
+ * Rendered in a portal so `position: fixed` is viewport-relative even when the
+ * trigger sits inside a transformed ancestor (e.g. `PageTransition`).
  * Focuses the cancel button on open, traps Escape → cancel.
  */
 export function ConfirmDialog({
@@ -42,7 +45,7 @@ export function ConfirmDialog({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
       role="dialog"
@@ -76,6 +79,7 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
