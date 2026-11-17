@@ -24,7 +24,7 @@ export function Logo({ className, link = true, size }: { className?: string; lin
         )}
       >
         <span className="text-[#0F172A]">Car</span>
-        <span className="text-[#2563EB]">Link</span>
+        <span className="text-[#2563EB]">Link.</span>
       </span>
     </span>
   )
