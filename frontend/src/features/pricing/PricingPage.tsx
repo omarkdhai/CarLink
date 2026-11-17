@@ -1,42 +1,45 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
+import { ArrowRight, Banknote, Check, Sticker, Truck } from 'lucide-react'
+import { PageIntro, PublicContainer } from '@/components/shared/PublicPage'
+import { CountUp } from '@/components/shared/CountUp'
+import { cn } from '@/lib/cn'
 
 const CURRENCY = 'TND'
+/** Flat delivery fee added at checkout (mirrors OrderService.DELIVERY_FEE). */
+const DELIVERY_FEE = 7
 
 const plans = [
   {
     key: 'SINGLE',
     n: 1,
-    price: '20',
+    stickers: 1,
+    price: 20,
     compareAt: null,
     badge: null,
+    save: null,
     featured: false,
-    features: [
-      'landing.pricingPlan1Feature1',
-      'landing.pricingPlan1Feature2',
-      'landing.pricingPlan1Feature3',
-    ],
+    features: ['landing.pricingPlan1Feature1', 'landing.pricingPlan1Feature2', 'landing.pricingPlan1Feature3'],
   },
   {
     key: 'DOUBLE',
     n: 2,
-    price: '35',
-    compareAt: '40',
+    stickers: 2,
+    price: 35,
+    compareAt: 40,
     badge: 'landing.pricingPack2Badge',
+    save: 'landing.pricingSave2',
     featured: true,
-    features: [
-      'landing.pricingPlan2Feature1',
-      'landing.pricingPlan2Feature2',
-      'landing.pricingPlan2Feature3',
-    ],
+    features: ['landing.pricingPlan2Feature1', 'landing.pricingPlan2Feature2', 'landing.pricingPlan2Feature3'],
   },
   {
     key: 'BUSINESS',
     n: 3,
-    price: '350',
-    compareAt: '400',
-    badge: null,
+    stickers: 20,
+    price: 350,
+    compareAt: 400,
+    badge: 'landing.pricingPack3Badge',
+    save: 'landing.pricingSave3',
     featured: false,
     features: [
       'landing.pricingPlan3Feature1',
@@ -48,204 +51,187 @@ const plans = [
 ] as const
 
 export default function PricingPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const num = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 })
+  const perYear = (price: number) => `${price} ${CURRENCY} / ${t('landing.pricingPerYear')}`
 
   const compareRows = [
+    { label: t('landing.pricingStickers'), values: plans.map((p) => t('landing.pricingStickerCount', { count: p.stickers })) },
+    { label: t('landing.pricingComparePrice'), values: plans.map((p) => perYear(p.price)) },
     {
-      label: t('landing.pricingComparePrice'),
-      values: plans.map(
-        (plan) => `${plan.price} ${CURRENCY} / ${t('landing.pricingPerYear')}`,
-      ),
+      label: t('landing.pricingPerSticker'),
+      values: plans.map((p) => `${num.format(p.price / p.stickers)} ${CURRENCY}`),
     },
-    {
-      label: t('landing.pricingCompareRenewal'),
-      values: plans.map(
-        (plan) => `${plan.price} ${CURRENCY} / ${t('landing.pricingPerYear')}`,
-      ),
-    },
+    { label: t('landing.pricingCompareRenewal'), values: plans.map((p) => perYear(p.price)) },
     {
       label: t('landing.pricingCompareDelivery'),
-      values: [
-        t('landing.pricingCompareDeliveryBasic'),
-        t('landing.pricingCompareDeliveryBoth'),
-        t('landing.pricingCompareDeliveryBoth'),
-      ],
+      values: [t('landing.pricingCompareDeliveryBasic'), t('landing.pricingCompareDeliveryBoth'), t('landing.pricingCompareDeliveryBoth')],
     },
-    {
-      label: t('landing.pricingCompareRelay'),
-      values: plans.map(() => t('landing.pricingCompareIncluded')),
-    },
-    {
-      label: t('landing.pricingCompareNewSticker'),
-      values: plans.map(() => t('landing.pricingCompareIncluded')),
-    },
+    { label: t('landing.pricingCompareRelay'), values: plans.map(() => t('landing.pricingCompareIncluded')) },
+    { label: t('landing.pricingCompareNewSticker'), values: plans.map(() => t('landing.pricingCompareIncluded')) },
   ]
 
   return (
-    <div className="pb-16 pt-8 sm:pb-20 sm:pt-12">
-      <div className="mx-auto max-w-6xl px-4 sm:px-9">
-        <div className="overflow-hidden rounded-[1.5rem] border border-border bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)] md:rounded-[2rem]">
-          <div className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7 md:gap-8 md:px-8 md:py-10 lg:gap-10 lg:px-12 lg:py-14 xl:px-14 xl:py-16">
-            {/* Header */}
-            <header className="flex flex-col items-center text-center">
-              <div className="max-w-3xl space-y-3.5 md:space-y-4 lg:space-y-5">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-primary/70 rtl:tracking-[0.04em]">
-                  {t('landing.pricingBadge')}
-                </p>
-                <h1 className="text-[clamp(1.875rem,7vw,3.75rem)] font-black leading-[1.05] tracking-tight text-heading">
-                  {t('landing.pricingTitle')}
-                </h1>
-                <p className="mx-auto max-w-2xl text-sm leading-7 text-muted-fg sm:text-base md:text-lg">
-                  {t('landing.pricingSubtitle')}
-                </p>
+    <PublicContainer>
+      <PageIntro center eyebrow={t('landing.pricingBadge')} title={t('landing.pricingTitle')} lead={t('landing.pricingSubtitle')} />
+
+      {/* Plans */}
+      <div className="motion-stagger grid gap-5 lg:grid-cols-3 lg:items-stretch">
+        {plans.map((plan) => (
+          <article
+            key={plan.key}
+            className={cn(
+              'hover-lift relative flex h-full flex-col rounded-3xl border bg-surface p-6 sm:p-7',
+              plan.featured ? 'border-2 border-primary shadow-[0_18px_50px_rgba(37,99,235,0.14)]' : 'border-border shadow-card',
+            )}
+          >
+            {plan.badge && (
+              <span
+                className={cn(
+                  'absolute -top-3 start-6 rounded-full px-3 py-1 text-xs font-bold',
+                  plan.featured ? 'bg-primary text-white' : 'bg-accent text-white',
+                )}
+              >
+                {t(plan.badge)}
+              </span>
+            )}
+
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-heading">{t(`landing.pricingPack${plan.n}Name`)}</h2>
+                <p className="mt-1 text-sm text-muted-fg">{t(`landing.pricingPack${plan.n}Subtitle`)}</p>
               </div>
-            </header>
-
-            <div className="space-y-8">
-              {/* Plans */}
-              <section className="space-y-4">
-                <div className="grid gap-4 lg:grid-cols-3">
-                  {plans.map((plan) => (
-                    <article
-                      key={plan.key}
-                      className={`relative flex h-full flex-col rounded-[1.75rem] border bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.07)] sm:p-6 ${
-                        plan.featured
-                          ? 'border-primary shadow-[0_18px_50px_rgba(37,99,235,0.14)]'
-                          : 'border-border'
-                      }`}
-                    >
-                      {plan.badge && (
-                        <span className="absolute -top-3 start-5 rounded-full bg-primary px-3 py-1 text-xs font-black text-white">
-                          {t(plan.badge)}
-                        </span>
-                      )}
-
-                      <h2 className="font-sans text-sm font-bold text-primary">
-                        {t(`landing.pricingPlan${plan.n}Name`)}
-                      </h2>
-
-                      <div className="mt-3">
-                        {plan.compareAt && (
-                          <span className="mb-1.5 block text-sm font-medium text-muted-fg line-through">
-                            {plan.compareAt} {CURRENCY}
-                          </span>
-                        )}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-4xl font-black tracking-tight text-heading">
-                            {plan.price}
-                          </span>
-                          <span className="pb-1 text-sm font-medium text-muted-fg">
-                            {CURRENCY} / {t('landing.pricingPerYear')}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="mt-5 min-h-12 text-sm leading-6 text-muted-fg">
-                        {t(`landing.pricingPack${plan.n}Subtitle`)}
-                      </p>
-
-                      <ul className="mt-5 flex-1 space-y-3 text-sm text-heading">
-                        {plan.features.map((feature) => (
-                          <li key={feature} className="flex items-start gap-2.5">
-                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-                            <span>{t(feature)}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <div className="pt-7">
-                        <Link
-                          to={`/order?plan=${plan.key}`}
-                          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.18)] transition-all hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.26)] active:scale-[0.98]"
-                        >
-                          {t('landing.pricingCta')}
-                        </Link>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-
-                <p className="rounded-xl bg-muted px-4 py-3 text-center text-xs leading-5 text-muted-fg sm:text-sm">
-                  {t('landing.pricingNoteLead')}{' '}
-                  <Link
-                    to="/terms"
-                    className="font-semibold text-primary underline underline-offset-4"
-                  >
-                    {t('footer.termsLink')}
-                  </Link>
-                  .
-                </p>
-              </section>
-
-              {/* Comparison */}
-              <section className="overflow-hidden rounded-[1.75rem] border border-border bg-primary-soft/50">
-                <div className="border-b border-border px-5 py-4 sm:px-6">
-                  <h2 className="font-sans text-lg font-semibold text-heading">
-                    {t('landing.pricingCompareTitle')}
-                  </h2>
-                </div>
-
-                <div className="hidden gap-px bg-border md:grid md:grid-cols-4">
-                  <div className="bg-white px-4 py-4 text-sm font-semibold text-heading">
-                    {t('landing.pricingCompareFeature')}
-                  </div>
-                  {plans.map((plan) => (
-                    <div
-                      key={plan.key}
-                      className="bg-white px-4 py-4 text-sm font-semibold text-heading"
-                    >
-                      {t(`landing.pricingPlan${plan.n}Name`)}
-                    </div>
-                  ))}
-                  {compareRows.map((row) => (
-                    <div key={row.label} className="contents">
-                      <div className="bg-white px-4 py-4 text-sm text-muted-fg">{row.label}</div>
-                      {row.values.map((value, i) => (
-                        <div key={i} className="bg-white px-4 py-4 text-sm text-heading">
-                          {value}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid gap-3 p-3 sm:p-4 md:hidden">
-                  {plans.map((plan, i) => (
-                    <article
-                      key={plan.key}
-                      className="overflow-hidden rounded-2xl border border-border bg-white"
-                    >
-                      <div className="flex items-center justify-between gap-3 border-b border-border bg-primary-soft px-4 py-3.5">
-                        <h3 className="text-lg font-semibold text-heading">
-                          {t(`landing.pricingPlan${plan.n}Name`)}
-                        </h3>
-                        {plan.badge && (
-                          <span className="rounded-full bg-primary px-3 py-1 text-xs font-black text-white">
-                            {t(plan.badge)}
-                          </span>
-                        )}
-                      </div>
-                      <dl className="divide-y divide-border px-4">
-                        {compareRows.map((row) => (
-                          <div
-                            key={row.label}
-                            className="flex items-center justify-between gap-4 py-3.5"
-                          >
-                            <dt className="text-sm text-muted-fg">{row.label}</dt>
-                            <dd className="text-end text-sm font-semibold text-heading">
-                              {row.values[i]}
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-                    </article>
-                  ))}
-                </div>
-              </section>
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1.5 text-sm font-bold text-primary">
+                <Sticker className="h-4 w-4" aria-hidden />
+                {t('landing.pricingStickerCount', { count: plan.stickers })}
+              </span>
             </div>
+
+            <div className="mt-6 flex items-end gap-2">
+              <span className="font-display text-5xl font-black leading-none tracking-tight text-heading">
+                <CountUp value={plan.price} />
+              </span>
+              <span className="pb-1 text-base font-medium text-muted-fg">
+                {CURRENCY} / {t('landing.pricingPerYear')}
+              </span>
+            </div>
+            <div className="mt-2 flex min-h-6 flex-wrap items-center gap-2 text-sm">
+              {plan.compareAt && <span className="text-muted-fg line-through">{plan.compareAt} {CURRENCY}</span>}
+              {plan.save && <span className="rounded-full bg-success-soft px-2 py-0.5 font-semibold text-success">{t(plan.save)}</span>}
+            </div>
+
+            <ul className="mt-6 flex-1 space-y-3 border-t border-border pt-6 text-base text-heading">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-3">
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                    <Check className="h-3.5 w-3.5" aria-hidden />
+                  </span>
+                  <span className="leading-snug">{t(feature)}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              to={`/order?plan=${plan.key}`}
+              className={cn(
+                'group mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full text-base font-semibold transition-all active:scale-[0.98]',
+                plan.featured
+                  ? 'bg-primary text-white shadow-[0_10px_30px_rgba(37,99,235,0.22)] hover:bg-primary-hover'
+                  : 'border border-primary/30 bg-surface text-primary hover:bg-primary-soft',
+              )}
+            >
+              {t('landing.pricingCtaPack')}
+              <ArrowRight className="nudge h-4 w-4 rtl:rotate-180" aria-hidden />
+            </Link>
+          </article>
+        ))}
+      </div>
+
+      {/* What every order includes */}
+      <div className="motion-stagger mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-5">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary" aria-hidden>
+            <Truck className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-semibold text-heading">{t('landing.pricingDeliveryTitle', { fee: DELIVERY_FEE })}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-fg">{t('landing.pricingDeliveryText')}</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-5">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success-soft text-success" aria-hidden>
+            <Banknote className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-semibold text-heading">{t('order.cashOnDelivery')}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-fg">{t('order.codHint')}</p>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Comparison */}
+      <section className="mt-14" aria-labelledby="compare-title">
+        <h2 id="compare-title" className="mb-5 text-2xl font-bold text-heading sm:text-3xl">
+          {t('landing.pricingCompareTitle')}
+        </h2>
+
+        <div className="hidden overflow-hidden rounded-2xl border border-border md:block">
+          <table className="w-full text-base">
+            <thead className="bg-muted/50">
+              <tr>
+                <th scope="col" className="px-5 py-4 text-start text-sm font-semibold text-muted-fg">
+                  {t('landing.pricingCompareFeature')}
+                </th>
+                {plans.map((plan) => (
+                  <th key={plan.key} scope="col" className={cn('px-5 py-4 text-start font-bold text-heading', plan.featured && 'bg-primary-soft text-primary')}>
+                    {t(`landing.pricingPack${plan.n}Name`)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border bg-surface">
+              {compareRows.map((row) => (
+                <tr key={row.label}>
+                  <th scope="row" className="px-5 py-4 text-start text-sm font-medium text-muted-fg">
+                    {row.label}
+                  </th>
+                  {row.values.map((value, i) => (
+                    <td key={i} className={cn('px-5 py-4 text-heading', plans[i].featured && 'bg-primary-soft/40')}>
+                      {value}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="grid gap-4 md:hidden">
+          {plans.map((plan, i) => (
+            <article key={plan.key} className="overflow-hidden rounded-2xl border border-border bg-surface">
+              <h3 className={cn('px-5 py-4 text-lg font-bold', plan.featured ? 'bg-primary-soft text-primary' : 'bg-muted/50 text-heading')}>
+                {t(`landing.pricingPack${plan.n}Name`)}
+              </h3>
+              <dl className="divide-y divide-border px-5">
+                {compareRows.map((row) => (
+                  <div key={row.label} className="flex items-center justify-between gap-4 py-3.5">
+                    <dt className="text-sm text-muted-fg">{row.label}</dt>
+                    <dd className="text-end text-sm font-semibold text-heading">{row.values[i]}</dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
+          ))}
+        </div>
+
+        <p className="mt-5 text-sm leading-relaxed text-muted-fg">
+          {t('landing.pricingNoteLead')}{' '}
+          <Link to="/terms" className="font-semibold text-primary underline underline-offset-4">
+            {t('footer.termsLink')}
+          </Link>
+          .
+        </p>
+      </section>
+    </PublicContainer>
   )
 }

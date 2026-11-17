@@ -1,4 +1,10 @@
+import i18n from '@/lib/i18n'
 import { formatRelative, formatDateTime } from './format'
+
+// Formatting follows the UI language (the language switcher), not the browser.
+beforeEach(async () => {
+  await i18n.changeLanguage('en')
+})
 
 describe('formatRelative', () => {
   it('returns "now" for timestamps less than 60s ago', () => {
@@ -19,6 +25,12 @@ describe('formatRelative', () => {
   it('returns days for timestamps a few days ago', () => {
     const d = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
     expect(formatRelative(d.toISOString())).toBe('2 days ago')
+  })
+
+  it('follows the selected UI language', async () => {
+    await i18n.changeLanguage('fr')
+    const d = new Date(Date.now() - 5 * 60 * 1000)
+    expect(formatRelative(d.toISOString())).toBe('il y a 5 minutes')
   })
 })
 

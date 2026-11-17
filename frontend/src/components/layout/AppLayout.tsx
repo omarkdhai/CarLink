@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutGrid,
   Car,
@@ -9,99 +9,65 @@ import {
   Settings,
   ShieldCheck,
   QrCode,
-  Menu,
-  X,
   LogOut,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
+import { useAccountStatus } from '@/features/account/useAccountStatus'
 import { Logo } from '@/components/layout/Logo'
 import { cn } from '@/lib/cn'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { PageTransition } from '@/components/shared/PageTransition'
 
-const ownerNav = [
+type NavItem = { to: string; key: string; icon: typeof Car; badge?: 'messages' | 'notifications' }
+
+const ownerNav: NavItem[] = [
   { to: '/dashboard', key: 'nav.dashboard', icon: LayoutGrid },
   { to: '/stickers', key: 'nav.stickers', icon: QrCode },
   { to: '/vehicles', key: 'nav.vehicles', icon: Car },
-  { to: '/messages', key: 'nav.messages', icon: MessageSquareText },
-  { to: '/notifications', key: 'nav.notifications', icon: Bell },
+  { to: '/messages', key: 'nav.messages', icon: MessageSquareText, badge: 'messages' },
+  { to: '/notifications', key: 'nav.notifications', icon: Bell, badge: 'notifications' },
 ]
 
-const accountNav = [
+const accountNav: NavItem[] = [
   { to: '/profile', key: 'nav.profile', icon: UserCircle },
   { to: '/settings', key: 'nav.settings', icon: Settings },
 ]
 
-function SidebarContent({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () => void }) {
-  const { t } = useTranslation()
-  const Section = ({ items, label }: { items: typeof ownerNav; label?: string }) => (
-    <nav aria-label={label} className="space-y-1">
-      {items.map(({ to, key, icon: Icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          onClick={onNavigate}
-          end={to === '/dashboard'}
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3 h-11 px-3 rounded-lg text-sm font-medium transition-colors',
-              isActive
-                ? 'bg-primary-soft text-primary'
-                : 'text-muted-fg hover:bg-muted hover:text-foreground',
-            )
-          }
-        >
-          <Icon className="h-5 w-5 shrink-0" aria-hidden />
-          {t(key)}
-        </NavLink>
-      ))}
-    </nav>
-  )
+/** Phone tab bar: five top-level destinations, always labelled. */
+const tabNav: (NavItem & { short: string; match?: string[] })[] = [
+  { to: '/dashboard', key: 'nav.dashboard', short: 'nav.home', icon: LayoutGrid },
+  { to: '/stickers', key: 'nav.stickers', short: 'nav.stickersShort', icon: QrCode },
+  { to: '/vehicles', key: 'nav.vehicles', short: 'nav.vehiclesShort', icon: Car },
+  { to: '/messages', key: 'nav.messages', short: 'nav.messages', icon: MessageSquareText, badge: 'messages' },
+  { to: '/profile', key: 'nav.account', short: 'nav.account', icon: UserCircle, match: ['/profile', '/settings'] },
+]
 
+function CountBadge({ count, label, className }: { count: number; label: string; className?: string }) {
+  if (count <= 0) return null
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-5 pt-5 pb-4">
-        <Logo />
-      </div>
-      <div className="flex-1 overflow-y-auto px-3 space-y-6 py-2">
-        <Section items={ownerNav} label="Main" />
-        {isAdmin && (
-          <div>
-            <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wide text-muted-fg/70">
-              {t('nav.admin')}
-            </p>
-            <nav className="space-y-1" aria-label={t('nav.admin')}>
-              <NavLink
-                to="/admin"
-                onClick={onNavigate}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 h-11 px-3 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-accent-soft text-accent'
-                      : 'text-muted-fg hover:bg-muted hover:text-foreground',
-                  )
-                }
-              >
-                <ShieldCheck className="h-5 w-5 shrink-0" aria-hidden />
-                {t('nav.adminDashboard')}
-              </NavLink>
-            </nav>
-          </div>
-        )}
-        <Section items={accountNav} label={t('nav.profile')} />
-      </div>
-    </div>
+    <span
+      aria-label={label}
+      className={cn(
+        'min-w-5 h-5 px-1.5 rounded-full bg-accent text-white text-[11px] font-bold leading-5 text-center tabular-nums',
+        className,
+      )}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
   )
+}
+
+function initials(first?: string, last?: string) {
+  return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase() || '?'
 }
 
 export function AppLayout() {
   const { t } = useTranslation()
-  const { isAdmin, signOut } = useAuth()
+  const { isAdmin, signOut, user } = useAuth()
+  const status = useAccountStatus()
   const navigate = useNavigate()
   const location = useLocation()
-  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -112,84 +78,168 @@ export function AppLayout() {
     navigate('/login', { replace: true })
   }
 
+  const counts = { messages: status.unread, notifications: status.unread + status.notices.length }
+  const badgeLabel = (n: number) => t('nav.badge', { count: n })
+
+  const sideLink = (item: NavItem, tone: 'primary' | 'accent' = 'primary') => {
+    const Icon = item.icon
+    const count = item.badge ? counts[item.badge] : 0
+    return (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        end={item.to === '/dashboard'}
+        className={({ isActive }) =>
+          cn(
+            'flex items-center gap-3 h-11 px-3 rounded-lg text-sm font-medium transition-colors',
+            isActive
+              ? tone === 'primary'
+                ? 'bg-primary-soft text-primary'
+                : 'bg-accent-soft text-accent'
+              : 'text-muted-fg hover:bg-muted hover:text-foreground',
+          )
+        }
+      >
+        <Icon className="h-5 w-5 shrink-0" aria-hidden />
+        <span className="flex-1 truncate">{t(item.key)}</span>
+        <CountBadge count={count} label={badgeLabel(count)} />
+      </NavLink>
+    )
+  }
+
   return (
     <div className="min-h-screen">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:m-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg">
-        Skip to content
+        {t('nav.skipToContent')}
       </a>
+
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed inset-y-0 start-0 w-64 border-e border-border bg-surface/70 backdrop-blur">
-        <div className="flex flex-col flex-1">
-          <SidebarContent isAdmin={isAdmin} />
+      <aside className="hidden lg:flex fixed inset-y-0 start-0 w-64 flex-col border-e border-border bg-surface/80 backdrop-blur">
+        <div className="h-16 px-5 flex items-center border-b border-border/60">
+          <Logo size="md" />
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+          <nav aria-label={t('nav.main')} className="space-y-1">
+            {ownerNav.map((item) => sideLink(item))}
+          </nav>
+          {isAdmin && (
+            <div>
+              <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-fg/80">{t('nav.admin')}</p>
+              <nav className="space-y-1" aria-label={t('nav.admin')}>
+                {sideLink({ to: '/admin', key: 'nav.adminDashboard', icon: ShieldCheck }, 'accent')}
+              </nav>
+            </div>
+          )}
+          <div>
+            <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-fg/80">{t('nav.account')}</p>
+            <nav aria-label={t('nav.account')} className="space-y-1">
+              {accountNav.map((item) => sideLink(item))}
+            </nav>
+          </div>
+        </div>
+        {/* Signed-in user */}
+        <div className="p-3 border-t border-border">
+          <div className="flex items-center gap-3 rounded-xl p-2">
+            <Link
+              to="/profile"
+              className="h-10 w-10 shrink-0 rounded-full bg-primary-soft text-primary flex items-center justify-center text-sm font-bold"
+              aria-label={t('nav.profile')}
+            >
+              {initials(user?.firstName, user?.lastName)}
+            </Link>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-heading truncate">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="text-xs text-muted-fg truncate">{user?.email}</p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              aria-label={t('auth.logout')}
+              title={t('auth.logout')}
+              className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-muted-fg hover:bg-destructive-soft hover:text-destructive transition-colors"
+            >
+              <LogOut className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-heading/40 drawer-backdrop-enter" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute inset-y-0 start-0 w-72 bg-surface shadow-pop flex flex-col drawer-panel-enter">
-            <button
-              className="absolute end-3 top-4 h-9 w-9 rounded-lg text-muted-fg hover:bg-muted flex items-center justify-center touch-target"
-              onClick={() => setMobileOpen(false)}
-              aria-label={t('common.close')}
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <SidebarContent isAdmin={isAdmin} onNavigate={() => setMobileOpen(false)} />
-            <div className="px-3 py-3 border-t border-border">
-              <button
-                className="flex items-center gap-3 h-11 px-3 w-full rounded-lg text-sm font-medium text-muted-fg hover:bg-destructive-soft hover:text-destructive transition-colors touch-target"
-                onClick={() => {
-                  setMobileOpen(false)
-                  handleSignOut()
-                }}
-              >
-                <LogOut className="h-5 w-5 shrink-0" aria-hidden />
-                {t('auth.logout')}
-              </button>
-            </div>
-          </aside>
-        </div>
-      )}
-
       {/* Main column */}
       <div className="lg:ps-64">
-        {/* Top bar - cleaner mobile style */}
-        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 px-3 sm:px-6 h-14 sm:h-16 border-b border-border/60 navbar-glass">
-          <div className="flex items-center gap-2">
-            <button
-              className="lg:hidden h-10 w-10 rounded-xl text-muted-fg hover:bg-muted flex items-center justify-center touch-target"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <div className="lg:hidden">
-              <Logo />
-            </div>
+        <header className="sticky top-0 z-40 h-14 lg:h-16 flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 border-b border-border/60 navbar-glass">
+          <div className="lg:hidden">
+            <Logo size="sm" />
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="hidden lg:block" />
+          <div className="flex items-center gap-2">
             <div className="hidden sm:block">
               <LanguageSwitcher />
             </div>
-            <button
-              className="inline-flex items-center gap-2 h-9 px-2 rounded-lg hover:bg-muted transition-colors"
-              onClick={handleSignOut}
-              aria-label={t('auth.logout')}
+            <NavLink
+              to="/notifications"
+              aria-label={`${t('nav.notifications')}${counts.notifications ? ` — ${badgeLabel(counts.notifications)}` : ''}`}
+              className={({ isActive }) =>
+                cn(
+                  'relative h-10 w-10 rounded-xl flex items-center justify-center transition-colors',
+                  isActive ? 'bg-primary-soft text-primary' : 'text-muted-fg hover:bg-muted hover:text-foreground',
+                )
+              }
             >
-              <LogOut className="h-4 w-4 text-muted-fg" aria-hidden />
-              <span className="hidden sm:inline text-sm font-medium text-muted-fg">{t('auth.logout')}</span>
-            </button>
+              <Bell className="h-5 w-5" aria-hidden />
+              {counts.notifications > 0 && (
+                <span className="absolute top-1.5 end-1.5 h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-surface" aria-hidden />
+              )}
+            </NavLink>
+            <Link
+              to="/profile"
+              aria-label={t('nav.profile')}
+              className="lg:hidden h-10 w-10 rounded-full bg-primary-soft text-primary flex items-center justify-center text-sm font-bold"
+            >
+              {initials(user?.firstName, user?.lastName)}
+            </Link>
           </div>
         </header>
 
-        <main id="main-content" className="px-3 sm:px-6 lg:px-8 pt-4 pb-6 max-w-6xl mx-auto">
+        <main id="main-content" className="px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-28 lg:pb-12 max-w-6xl mx-auto">
           <PageTransition key={location.pathname}>
             <Outlet />
           </PageTransition>
         </main>
       </div>
+
+      {/* Phone tab bar */}
+      <nav
+        aria-label={t('nav.main')}
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)]"
+      >
+        <ul className="grid grid-cols-5 h-16">
+          {tabNav.map(({ to, short, icon: Icon, badge, match }) => {
+            const active = match
+              ? match.some((m) => location.pathname.startsWith(m))
+              : location.pathname === to || location.pathname.startsWith(`${to}/`)
+            const count = badge ? counts[badge] : 0
+            return (
+              <li key={to}>
+                <Link
+                  to={to}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'h-full flex flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors',
+                    active ? 'text-primary' : 'text-muted-fg hover:text-foreground',
+                  )}
+                >
+                  <span className="tab-pop relative">
+                    <Icon className="h-6 w-6" aria-hidden />
+                    <CountBadge count={count} label={badgeLabel(count)} className="absolute -top-1.5 -end-2.5 ring-2 ring-surface" />
+                  </span>
+                  <span className="truncate max-w-full px-1">{t(short)}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
     </div>
   )
 }

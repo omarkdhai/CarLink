@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react'
-import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
@@ -32,6 +31,7 @@ import { errorI18nKey, errorI18nKeyForCode, toApiError } from '@/services/errors
 import { http } from '@/services/apiClient'
 import { joinPhone } from '@/lib/phone'
 import { useQrScanner } from '@/features/stickers/useQrScanner'
+import { AuthShell } from '@/features/auth/AuthShell'
 import { cn } from '@/lib/cn'
 
 type Step = 'entry' | 'claimable' | 'details' | 'done'
@@ -77,8 +77,6 @@ export default function RegisterStickerPage() {
   return (
     <Shell>
       <Card>
-        <Logo link={false} className="justify-center" />
-
         {effectiveStep === 'entry' && (
           <EntryStep
             initialCode={code}
@@ -525,15 +523,11 @@ function ModeTab({ active, onClick, children }: { active: boolean; onClick: () =
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-dvh bg-gradient-to-b from-primary-soft/60 to-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">{children}</div>
-    </div>
-  )
+  return <AuthShell variant="sticker">{children}</AuthShell>
 }
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <div className="bg-surface rounded-2xl border border-border shadow-card p-6 sm:p-7">{children}</div>
+  return <>{children}</>
 }
 
 /** Extract a sticker code/raw token from a scanned payload (URL or plain text). */

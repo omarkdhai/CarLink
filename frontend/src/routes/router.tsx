@@ -158,11 +158,9 @@ export function AppRouter() {
       <Route
         path="/verify-email"
         element={
-          <RedirectIfAuthed>
-            <Suspense fallback={<PageLoader />}>
-              <VerifyEmailPage />
-            </Suspense>
-          </RedirectIfAuthed>
+          <Suspense fallback={<PageLoader />}>
+            <VerifyEmailPage />
+          </Suspense>
         }
       />
 

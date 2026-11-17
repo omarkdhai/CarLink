@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { CarFront, Check, ShieldAlert, Smartphone, Lock } from 'lucide-react'
+import { AlertTriangle, AppWindow, BatteryCharging, CarFront, Check, DoorOpen, Flag, Lightbulb, ShieldAlert, Smartphone, Lock } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
@@ -16,6 +16,15 @@ import type { ContactChannel, ReportReason } from '@/types'
 
 const REASONS = ['BLOCKING', 'LIGHTS', 'LEFT_OPEN', 'HIT_CAR', 'WINDOWS_OPEN', 'EV_CHARGE'] as const
 type ReasonKey = (typeof REASONS)[number]
+
+const REASON_ICON: Record<ReasonKey, typeof CarFront> = {
+  BLOCKING: CarFront,
+  LIGHTS: Lightbulb,
+  LEFT_OPEN: DoorOpen,
+  HIT_CAR: AlertTriangle,
+  WINDOWS_OPEN: AppWindow,
+  EV_CHARGE: BatteryCharging,
+}
 
 const REPORT_REASONS: ReportReason[] = ['SPAM', 'ABUSE', 'OTHER']
 
@@ -202,8 +211,13 @@ export default function PublicContactPage() {
       <Card>
         <Logo link={false} className="justify-center" />
 
+        <div className="mt-6 text-center">
+          <h1 className="text-2xl font-bold text-heading leading-tight">{t('contact.scanTitle')}</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-fg">{t('contact.scanSubtitle')}</p>
+        </div>
+
         {/* Vehicle summary */}
-        <div className="mt-6 flex items-center gap-4 rounded-xl border border-border bg-surface p-4">
+        <div className="mt-6 flex items-center gap-4 rounded-xl border border-border bg-muted/30 p-4">
           <div
             className="h-12 w-12 shrink-0 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: color.soft, color: color.main }}
@@ -217,35 +231,50 @@ export default function PublicContactPage() {
         </div>
 
         {fieldError && (
-          <div className="mt-4">
+          <div className="mt-5">
             <Alert tone="error">{fieldError}</Alert>
           </div>
         )}
 
-        <div className="mt-5">
-          <h2 className="text-sm font-bold text-heading mb-2">{t('contact.reason')}</h2>
-          <div className="flex flex-wrap gap-2">
-            {REASONS.map((r) => (
-              <button
-                key={r}
-                type="button"
-                aria-pressed={selectedReason === r}
-                onClick={() => pickReason(r)}
-                className={
-                  'px-3 h-9 rounded-full border text-sm font-medium transition-colors touch-target ' +
-                  (selectedReason === r
-                    ? 'border-primary bg-primary-soft text-primary'
-                    : 'border-border text-muted-fg hover:border-primary hover:text-primary')
-                }
-              >
-                {t(`contact.reasons.${r}`)}
-              </button>
-            ))}
+        {/* Step 1 — reason */}
+        <fieldset className="mt-6">
+          <legend className="mb-3 flex items-center gap-2 text-base font-bold text-heading">
+            <StepNumber n={1} />
+            {t('contact.reason')}
+          </legend>
+          <div role="radiogroup" aria-label={t('contact.reason')} className="grid gap-2 sm:grid-cols-2">
+            {REASONS.map((r) => {
+              const Icon = REASON_ICON[r]
+              const active = selectedReason === r
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => pickReason(r)}
+                  className={
+                    'flex min-h-14 items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-start text-sm font-semibold leading-snug transition-colors ' +
+                    (active ? 'border-primary bg-primary-soft text-primary' : 'border-border text-foreground hover:border-primary/40')
+                  }
+                >
+                  <span
+                    className={'grid h-9 w-9 shrink-0 place-items-center rounded-lg ' + (active ? 'bg-primary text-white' : 'bg-muted text-muted-fg')}
+                    aria-hidden
+                  >
+                    {active ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                  </span>
+                  <span className="min-w-0">{t(`contact.reasons.${r}`)}</span>
+                </button>
+              )
+            })}
           </div>
-        </div>
+        </fieldset>
 
-        <div className="mt-4">
-          <label className="block text-sm font-bold text-heading mb-2" htmlFor="pub-msg">
+        {/* Step 2 — optional note */}
+        <div className="mt-6">
+          <label className="mb-3 flex items-center gap-2 text-base font-bold text-heading" htmlFor="pub-msg">
+            <StepNumber n={2} />
             {t('contact.note')}
           </label>
           <Textarea
@@ -256,12 +285,14 @@ export default function PublicContactPage() {
             maxLength={500}
             rows={3}
           />
+          <p className="mt-1.5 text-end text-xs text-muted-fg tabular-nums">{message.length}/500</p>
         </div>
 
-        {channels.length > 0 && (
+        {/* Delivery: a choice only when the backend offers several channels */}
+        {channels.length > 1 ? (
           <div className="mt-5">
             <h2 className="text-sm font-bold text-heading mb-2">{t('contact.method')}</h2>
-            <div className={'grid gap-3 ' + (channels.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
+            <div className="grid grid-cols-2 gap-3">
               {channels.map((c) => (
                 <ChannelButton
                   key={c}
@@ -275,11 +306,18 @@ export default function PublicContactPage() {
               ))}
             </div>
           </div>
+        ) : (
+          activeChannel && (
+            <p className="mt-4 flex items-center gap-2 rounded-xl bg-primary-soft/60 px-4 py-3 text-sm text-foreground">
+              <Smartphone className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+              {t('contact.deliveredBy', { method: t(CHANNEL_UI[activeChannel].labelKey) })}
+            </p>
+          )
         )}
 
         <Button
+          size="lg"
           className="w-full mt-5"
-          variant={activeChannel ? CHANNEL_UI[activeChannel].variant : 'sms'}
           loading={contactMutation.isPending}
           disabled={!activeChannel}
           onClick={handleSubmit}
@@ -287,11 +325,25 @@ export default function PublicContactPage() {
           {t('contact.sendContact')}
         </Button>
 
-        <p className="flex items-center justify-center gap-1.5 text-xs text-muted-fg mt-4">
-          <Lock className="h-3.5 w-3.5" aria-hidden />
+        <p className="flex items-start justify-center gap-1.5 text-center text-xs leading-relaxed text-muted-fg mt-4">
+          <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden />
           {t('contact.privacyNote')}
         </p>
       </Card>
+
+      <div className="mt-4 text-center">
+        <button
+          type="button"
+          onClick={() => {
+            setShowReport(true)
+            setReportDone(false)
+          }}
+          className="inline-flex min-h-11 items-center gap-1.5 px-3 text-sm text-muted-fg underline underline-offset-2 hover:text-foreground"
+        >
+          <Flag className="h-4 w-4" aria-hidden />
+          {t('contact.reportTitle')}
+        </button>
+      </div>
 
       {showReport && <ReportPanel {...reportPanelProps()} />}
     </Shell>
@@ -313,6 +365,14 @@ export default function PublicContactPage() {
 }
 
 /* ---------------------------------- bits ---------------------------------- */
+
+function StepNumber({ n }: { n: number }) {
+  return (
+    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-white" aria-hidden>
+      {n}
+    </span>
+  )
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (

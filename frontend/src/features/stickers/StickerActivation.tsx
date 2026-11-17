@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
 import { Check, LogIn, QrCode, ScanLine, UserRound } from 'lucide-react'
-import { Logo } from '@/components/layout/Logo'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
@@ -19,6 +18,7 @@ import {
   type ActivateStickerValues,
 } from '@/features/stickers/stickerSchemas'
 import { cn } from '@/lib/cn'
+import { AuthShell } from '@/features/auth/AuthShell'
 
 /**
  * The activation flow behind a scanned virgin sticker (/c/:token when its
@@ -70,7 +70,6 @@ export default function StickerActivation({ token }: { token: string }) {
     return (
       <Shell>
         <Card>
-          <Logo link={false} className="justify-center" />
           <div className="mt-6 text-center">
             <div className="mx-auto h-16 w-16 rounded-full bg-success-soft text-success flex items-center justify-center mb-4">
               <Check className="h-8 w-8" aria-hidden />
@@ -91,7 +90,6 @@ export default function StickerActivation({ token }: { token: string }) {
     return (
       <Shell>
         <Card>
-          <Logo link={false} className="justify-center" />
           <div className="mt-6 text-center">
             <div className="mx-auto h-14 w-14 rounded-full bg-primary-soft text-primary flex items-center justify-center mb-4">
               <ScanLine className="h-7 w-7" aria-hidden />
@@ -132,7 +130,6 @@ export default function StickerActivation({ token }: { token: string }) {
   return (
     <Shell>
       <Card>
-        <Logo link={false} className="justify-center" />
         <div className="mt-6 text-center">
           <div className="mx-auto h-14 w-14 rounded-full bg-primary-soft text-primary flex items-center justify-center mb-4">
             <ScanLine className="h-7 w-7" aria-hidden />
@@ -218,15 +215,9 @@ export default function StickerActivation({ token }: { token: string }) {
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-dvh bg-gradient-to-b from-primary-soft/60 to-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">{children}</div>
-    </div>
-  )
+  return <AuthShell variant="sticker">{children}</AuthShell>
 }
 
 function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="bg-surface rounded-2xl border border-border shadow-card p-6 sm:p-7">{children}</div>
-  )
+  return <>{children}</>
 }

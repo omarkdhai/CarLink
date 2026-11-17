@@ -41,7 +41,10 @@
     "pricing": "Pricing",
     "about": "About us",
     "contact": "Contact",
-    "login": "Log in"
+    "login": "Log in",
+    "mySpace": "My space",
+    "order": "Order",
+    "menu": "Menu"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -60,7 +63,15 @@
     "adminAuditLogs": "Audit log",
     "adminDashboard": "Overview",
     "addVehicle": "Add a vehicle",
-    "stickers": "My stickers"
+    "stickers": "My stickers",
+    "home": "Home",
+    "stickersShort": "Stickers",
+    "vehiclesShort": "Vehicles",
+    "account": "Account",
+    "main": "Main navigation",
+    "skipToContent": "Skip to content",
+    "badge_one": "{{count}} new",
+    "badge_other": "{{count}} new"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -156,7 +167,8 @@
     "allStatuses": "All statuses",
     "sortNewest": "Most recent",
     "sortOldest": "Oldest",
-    "noMatch": "No vehicles match your search"
+    "noMatch": "No vehicles match your search",
+    "addedOn": "Added {{date}}"
   },
   "qr": {
     "title": "Vehicle QR code",
@@ -359,7 +371,27 @@
     "activateTitle": "Activate this sticker",
     "activateGuestHint": "Create an account to link this sticker to your car.",
     "activateHint": "Link this sticker to your car so visitors can contact you — without ever seeing your number.",
-    "activatePrivacy": "Your personal data stays private. Nothing is shown publicly."
+    "activatePrivacy": "Your personal data stays private. Nothing is shown publicly.",
+    "responseTitle": "Reply by email",
+    "responseText": "We read every message and reply to the email address you give us.",
+    "orderHelpTitle": "About an order?",
+    "orderHelpText": "Include your order reference (CL-…) so we can find it right away.",
+    "faqTitle": "Quick answers",
+    "faqText": "Pricing, privacy, activation — the most common questions are answered on our home page.",
+    "faqCta": "Read the FAQ",
+    "formPrivacy": "Your details are only used to answer your message.",
+    "topicsLabel": "Common topics",
+    "topics": {
+      "order": "My order",
+      "sticker": "My sticker",
+      "account": "My account",
+      "partnership": "Partnership",
+      "other": "Other"
+    },
+    "requiredNote": "All fields except phone are required.",
+    "scanTitle": "Contact the owner",
+    "scanSubtitle": "Pick a reason. The owner gets an alert right away — neither of you sees the other's number.",
+    "deliveredBy": "The owner is alerted by {{method}}."
   },
   "message": {
     "title": "Messages",
@@ -381,13 +413,37 @@
     "sent": "Sent",
     "failed": "Failed",
     "conversationExpiredHint": "This conversation has expired. It can still be viewed only.",
-    "anonymousHint": "This contact is anonymous: the visitor will reach you on %{channel}. Reply to them directly in that app."
+    "anonymousHint": "This contact is anonymous: the visitor will reach you on %{channel}. Reply to them directly in that app.",
+    "filter": "Filter messages",
+    "unreadFilter": "Unread",
+    "allVehicles": "All vehicles",
+    "allRead": "You have read every message",
+    "groups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "earlier": "Earlier"
+    }
   },
   "notifications": {
     "title": "Notifications",
     "subtitle": "Recent activity on your account",
     "empty": "No notifications",
-    "emptyHint": "Important notifications will show up here."
+    "emptyHint": "Important notifications will show up here.",
+    "actionNeeded": "Action needed",
+    "caughtUp": "You're all caught up",
+    "newMessages_one": "{{count}} new message",
+    "newMessages_other": "{{count}} new messages",
+    "notice": {
+      "addPhone": "Add your phone number",
+      "addPhoneHint": "Visitors who scan your sticker cannot reach you until a phone number is on your profile. It stays private.",
+      "addPhoneCta": "Add phone number",
+      "activateSticker": "A sticker is waiting to be activated",
+      "activateStickerHint": "Link it to your car with the code printed under the QR.",
+      "activateStickerCta": "Activate sticker",
+      "verifyEmail": "Verify your email address",
+      "verifyEmailHint": "Open the verification link we sent you to secure your account.",
+      "verifyEmailCta": "View profile"
+    }
   },
   "profile": {
     "title": "Profile",
@@ -404,16 +460,34 @@
     "phoneOptional": "Phone (optional)",
     "phoneNumberPlaceholder": "22 222 222",
     "save": "Save changes",
-    "deleteNotAvailable": "Self-service account deletion is not available yet. Contact support for any request."
+    "deleteNotAvailable": "Self-service account deletion is not available yet. Contact support for any request.",
+    "memberSinceDate": "Member since {{date}}",
+    "personalInfo": "Personal information",
+    "personalInfoHint": "Your name and the phone number alerts are sent to.",
+    "phoneHint": "Used only to forward contact alerts by SMS. Never shown to visitors.",
+    "unsaved": "You have unsaved changes",
+    "privacyTitle": "Your number stays private",
+    "privacyHint": "People who scan your sticker never see your phone number or name — CarLink relays their message for you."
   },
   "settings": {
     "title": "Settings",
     "subtitle": "Account preferences",
     "language": "Language",
-    "languageHint": "The interface language. Arabic will be available as RTL.",
+    "languageHint": "Choose the language of the interface.",
     "dangerZone": "Danger zone",
     "deleteAccount": "Delete my account",
-    "deleteAccountHint": "This action is irreversible."
+    "deleteAccountHint": "This action is irreversible.",
+    "security": "Security",
+    "securityHint": "Keep your account protected.",
+    "password": "Password",
+    "passwordHint": "We will email you a secure link to choose a new password.",
+    "changePassword": "Change password",
+    "resetSent": "Password reset link sent",
+    "resetSentShort": "Link sent",
+    "resetSentHint": "Check {{email}} for a link to choose a new password.",
+    "alertsHint": "How CarLink tells you someone needs you.",
+    "alertsPhone": "SMS alerts",
+    "alertsPhoneHint": "Contact alerts are sent by SMS to the phone number on your profile."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -431,7 +505,25 @@
     "noConversationsYet": "No recent conversations",
     "noConversationsWait": "Scan your QR code to receive your first message.",
     "viewAll": "View all",
-    "scanStatNote": "Scan tracking will be available soon."
+    "scanStatNote": "Scan tracking will be available soon.",
+    "greeting": "Hello, {{name}}",
+    "stickerLinked": "Sticker linked",
+    "noSticker": "No sticker",
+    "setup": {
+      "title": "Finish setting up CarLink",
+      "almost": "You are reachable. A couple of optional steps remain.",
+      "notReachable": "Visitors cannot reach you yet. Complete the steps below.",
+      "order": "Order a sticker",
+      "orderHint": "Get a QR sticker delivered to your door.",
+      "activate": "Activate your sticker",
+      "activateHint": "Enter the code printed under it to link it to your car.",
+      "phone": "Add your phone number",
+      "phoneHint": "Alerts are sent to it by SMS. It is never shown to anyone.",
+      "email": "Verify your email",
+      "emailHint": "Open the link we emailed you to secure your account.",
+      "done": "Done",
+      "todo": "To do"
+    }
   },
   "stickers": {
     "title": "My stickers",
@@ -458,7 +550,23 @@
     "birthDate": "Birth date",
     "licensePlate": "License plate",
     "licensePlateHint": "Your car's registration number.",
-    "activate": "Activate sticker"
+    "activate": "Activate sticker",
+    "activateCta": "Activate a sticker",
+    "activateTitle": "Activate a sticker",
+    "activateSubtitle": "Enter the code printed under the QR and the car it goes on.",
+    "codeHint": "The short code printed under the QR on your sticker.",
+    "moreDetails": "Add car details (optional)",
+    "viewVehicle": "View car",
+    "howTitle": "How CarLink stickers work",
+    "stepLabel": "Step {{n}}",
+    "how": {
+      "step1": "Order",
+      "step1Hint": "Pick a pack and pay cash on delivery.",
+      "step2": "Stick & activate",
+      "step2Hint": "Place it on your windscreen and activate it with its code.",
+      "step3": "Get alerts",
+      "step3Hint": "Anyone who scans it can reach you by SMS, without seeing your number."
+    }
   },
   "admin": {
     "title": "Administration",
@@ -794,9 +902,9 @@
     "how1Title": "Stick the QR on your car",
     "how1Text": "Print your QR code and stick it on your vehicle's windshield.",
     "how2Title": "A passer-by scans it",
-    "how2Text": "They scan the QR with their phone, choose WhatsApp or SMS, and send a message — without ever seeing your number.",
+    "how2Text": "They scan the QR with their phone, pick a reason and send a message — without ever seeing your number.",
     "how3Title": "Receive the message",
-    "how3Text": "The message arrives in your CarLink space. Reply directly via WhatsApp or SMS.",
+    "how3Text": "You get an SMS alert right away, and the message is waiting in your CarLink space.",
     "howPhoneVehName": "Toyota RAV4",
     "howPhoneVehCode": "TUN-24757E",
     "howPhoneDoneEyebrow": "DELIVERED",
@@ -995,7 +1103,17 @@
     "pricingCompareDeliveryBoth": "SMS",
     "pricingCompareRelay": "Anonymous contact relay",
     "pricingCompareIncluded": "Included",
-    "pricingCompareNewSticker": "New sticker with renewal"
+    "pricingCompareNewSticker": "New sticker with renewal",
+    "finalTitle": "Be reachable — without giving out your number",
+    "finalText": "Order your sticker today, stick it on your windscreen and start receiving alerts. Cash on delivery anywhere in Tunisia.",
+    "finalSecondary": "See pricing",
+    "pricingStickers": "Stickers",
+    "pricingStickerCount_one": "{{count}} sticker",
+    "pricingStickerCount_other": "{{count}} stickers",
+    "pricingPerSticker": "Price per sticker",
+    "pricingCtaPack": "Order this pack",
+    "pricingDeliveryTitle": "Delivery: {{fee}} TND per order",
+    "pricingDeliveryText": "Delivered anywhere in Tunisia, with an activation guide in the envelope."
   },
   "footer": {
     "pagesTitle": "Pages",
@@ -1023,7 +1141,7 @@
     "originBadge": "The idea",
     "originTitle": "Where the idea comes from",
     "originText1": "One evening, a driver found their car blocked by another vehicle. No owner in sight, no way to call them, and no paper note — just hours of waiting. That night, the question was simple: what if a parked car could tell you how to reach its owner without revealing their number?",
-    "originText2": "We set out to build exactly that: a QR sticker, a private relay, and instant alerts. No app to install, no personal data exposed, no subscription — just a smarter way to be reachable when your car needs it.",
+    "originText2": "We set out to build exactly that: a QR sticker, a private relay, and instant alerts. No app to install, no personal data exposed — just a smarter way to be reachable when your car needs it.",
     "valuesBadge": "Our values",
     "valuesTitle": "What drives us",
     "valuesSubtitle": "Four principles guide every decision we make.",
@@ -1032,7 +1150,7 @@
     "value2Title": "Simplicity",
     "value2Text": "No app to download, no complicated setup. If it takes more than 30 seconds, we haven't finished our job.",
     "value3Title": "Honesty",
-    "value3Text": "One-time pricing, no hidden fees, no forced subscriptions. What we promise is what you get.",
+    "value3Text": "One clear yearly price, no hidden fees. What we promise is what you get.",
     "value4Title": "Community",
     "value4Text": "Every driver who helps another keeps our roads — and our shared spaces — kinder."
   },
@@ -1088,5 +1206,46 @@
     "governorateRequired": "Choose a governorate",
     "addressRequired": "The delivery address is required",
     "birthDateRequired": "The birth date is required"
+  },
+  "legal": {
+    "contents": "Contents",
+    "otherPolicies": "Other policies",
+    "questions": "A question about this policy?"
+  },
+  "authShell": {
+    "backHome": "Back to site",
+    "accountTitle": "Reachable for your car, private for you.",
+    "accountText": "Anyone who scans your sticker can alert you in seconds — without ever seeing your number.",
+    "stickerTitle": "One scan, and your car is protected.",
+    "stickerText": "Link your sticker to your car in under a minute. Your details stay private.",
+    "point1": "Your phone number is never shown",
+    "point2": "Instant SMS alerts",
+    "point3": "No app needed for visitors",
+    "alertTime": "now",
+    "alertText": "Someone needs you: your car is blocking an exit.",
+    "alertPrivate": "Sent without revealing your number",
+    "pwTitle": "Password requirements",
+    "pwOk": "met",
+    "pwMissing": "missing",
+    "pw": {
+      "length": "8+ characters",
+      "letter": "A letter",
+      "digit": "A number"
+    },
+    "gotSticker": "Just received a sticker?",
+    "gotStickerHint": "Activate it with the code printed under the QR.",
+    "stickerCode": "Sticker activation code",
+    "stickerCodeHint": "Printed under the QR code on your sticker.",
+    "termsLead": "By creating an account you accept our",
+    "backToLogin": "Back to sign in",
+    "checkInbox": "Check your inbox",
+    "checkInboxText": "If an account exists for {{email}}, we have sent a link to choose a new password.",
+    "checkSpam": "Not there after a few minutes? Check your spam folder or send the link again.",
+    "resend": "Send the link again",
+    "linkInvalidTitle": "This link no longer works",
+    "requestNewLink": "Request a new link",
+    "redirecting": "Taking you to sign in…",
+    "verifiedText": "Thanks — your account is now fully secured.",
+    "passwordsMismatch": "The passwords do not match"
   }
 }

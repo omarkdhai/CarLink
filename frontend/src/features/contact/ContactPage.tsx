@@ -1,15 +1,16 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
-import { Check, Loader2, Send } from 'lucide-react'
+import { ArrowRight, Check, Clock, HelpCircle, Loader2, PackageSearch, Send, ShieldCheck } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Field } from '@/components/ui/Field'
 import { Alert } from '@/components/ui/Alert'
+import { Button } from '@/components/ui/Button'
+import { PageIntro, PublicContainer } from '@/components/shared/PublicPage'
 import apiClient, { http } from '@/services/apiClient'
-
-const KICKER =
-  'text-[0.72rem] font-semibold uppercase leading-4 tracking-[0.14em] text-primary/70 rtl:tracking-[0.04em]'
+import { cn } from '@/lib/cn'
 
 interface ContactForm {
   name: string
@@ -19,17 +20,14 @@ interface ContactForm {
   message: string
 }
 
-/** Contact us — visitors reach the team's mailbox; fields are never stored. */
+const EMPTY: ContactForm = { name: '', email: '', subject: '', phone: '', message: '' }
+const TOPICS = ['order', 'sticker', 'account', 'partnership', 'other'] as const
+
+/** Contact us — visitors reach the team's mailbox. */
 export default function ContactPage() {
   const { t } = useTranslation()
 
-  const [form, setForm] = useState<ContactForm>({
-    name: '',
-    email: '',
-    subject: '',
-    phone: '',
-    message: '',
-  })
+  const [form, setForm] = useState<ContactForm>(EMPTY)
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ContactForm, string>>>({})
 
   const submitMutation = useMutation({
@@ -41,7 +39,6 @@ export default function ContactPage() {
         phone: form.phone.trim() || undefined,
         message: form.message.trim(),
       }),
-    onError: (err) => setFieldErrors({ message: http.humanizeError(err) }),
   })
 
   function set<K extends keyof ContactForm>(key: K, value: string) {
@@ -69,124 +66,166 @@ export default function ContactPage() {
   const inputError = (k: keyof ContactForm) => Boolean(fieldErrors[k])
 
   return (
-    <div className="pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pb-24">
-      <div className="mx-auto w-[min(1120px,calc(100%_-_1.5rem))]">
-        <div className="overflow-hidden rounded-[1.5rem] border border-border bg-surface shadow-[0_8px_24px_rgba(26,26,26,0.06)] md:rounded-[2rem]">
-          <div className="flex flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7 md:gap-8 md:px-8 md:py-10 lg:gap-10 lg:px-12 lg:py-14 xl:px-14 xl:py-16">
-            {/* Header */}
-            <div className="max-w-3xl space-y-3 lg:space-y-4">
-              <p className={KICKER}>{t('contact.pageBadge')}</p>
-              <h1 className="text-3xl font-bold tracking-tight text-heading sm:text-4xl md:text-6xl">
-                {t('contact.pageTitle')}
-              </h1>
-              <p className="max-w-2xl text-sm leading-7 text-muted-fg sm:text-base md:text-lg">
-                {t('contact.pageSubtitle')}
-              </p>
-            </div>
+    <PublicContainer>
+      <PageIntro eyebrow={t('contact.pageBadge')} title={t('contact.pageTitle')} lead={t('contact.pageSubtitle')} />
 
-            {/* Form */}
-            <div className="mx-auto w-full max-w-3xl">
-              {submitMutation.isSuccess ? (
-                <div className="rounded-2xl border border-success/25 bg-success-soft/60 p-6 sm:p-8">
-                  <div className="flex items-start gap-3">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-success-soft text-success">
-                      <Check className="h-5 w-5" aria-hidden />
-                    </span>
-                    <div>
-                      <h2 className="text-lg font-semibold tracking-tight text-heading sm:text-xl">
-                        {t('contact.sendSuccess')}
-                      </h2>
-                      <p className="mt-1 text-sm leading-7 text-muted-fg sm:text-base">
-                        {t('contact.sendSuccessHint')}
-                      </p>
-                    </div>
-                  </div>
+      <div className="motion-stagger grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-12">
+        {/* Help column */}
+        <aside className="motion-stagger space-y-4 lg:order-none order-last">
+          <InfoCard icon={Clock} tone="bg-primary-soft text-primary" title={t('contact.responseTitle')} text={t('contact.responseText')} />
+          <InfoCard icon={PackageSearch} tone="bg-accent-soft text-accent" title={t('contact.orderHelpTitle')} text={t('contact.orderHelpText')} />
+          <Link
+            to="/#faq"
+            className="hover-lift group flex items-start gap-4 rounded-2xl border border-border bg-surface p-5 hover:border-primary/40"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success-soft text-success" aria-hidden>
+              <HelpCircle className="h-5 w-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-heading">{t('contact.faqTitle')}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted-fg">{t('contact.faqText')}</span>
+              <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                {t('contact.faqCta')}
+                <ArrowRight className="nudge h-4 w-4 rtl:rotate-180" aria-hidden />
+              </span>
+            </span>
+          </Link>
+          <p className="flex items-start gap-2 px-1 text-sm leading-relaxed text-muted-fg">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
+            {t('contact.formPrivacy')}
+          </p>
+        </aside>
+
+        {/* Form */}
+        <div>
+          {submitMutation.isSuccess ? (
+            <div className="rounded-3xl border border-success/25 bg-success-soft/60 p-6 sm:p-10 text-center" role="status">
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface text-success shadow-card">
+                <Check className="h-7 w-7" aria-hidden />
+              </span>
+              <h2 className="mt-5 text-2xl font-bold text-heading">{t('contact.sendSuccess')}</h2>
+              <p className="mx-auto mt-2 max-w-[45ch] text-base leading-relaxed text-muted-fg">{t('contact.sendSuccessHint')}</p>
+              <Button
+                variant="outline"
+                className="mt-6"
+                onClick={() => {
+                  setForm(EMPTY)
+                  submitMutation.reset()
+                }}
+              >
+                {t('contact.sendAnother')}
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-border bg-surface p-5 shadow-card sm:p-8" noValidate>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label={t('contact.nameLabel')} error={fieldErrors.name}>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => set('name', e.target.value)}
+                    placeholder={t('contact.namePlaceholder')}
+                    autoComplete="name"
+                    error={inputError('name')}
+                  />
+                </Field>
+                <Field label={t('contact.emailLabel')} error={fieldErrors.email}>
+                  <Input
+                    value={form.email}
+                    onChange={(e) => set('email', e.target.value)}
+                    placeholder={t('contact.emailPlaceholder')}
+                    type="email"
+                    autoComplete="email"
+                    error={inputError('email')}
+                  />
+                </Field>
+              </div>
+
+              <Field label={t('contact.phoneLabel')} optional={t('common.optional')} error={fieldErrors.phone}>
+                <Input
+                  value={form.phone}
+                  onChange={(e) => set('phone', e.target.value)}
+                  placeholder={t('contact.phonePlaceholder')}
+                  type="tel"
+                  autoComplete="tel"
+                  error={inputError('phone')}
+                />
+              </Field>
+
+              <div>
+                <Field label={t('contact.subjectLabel')} error={fieldErrors.subject}>
+                  <Input
+                    value={form.subject}
+                    onChange={(e) => set('subject', e.target.value)}
+                    placeholder={t('contact.subjectPlaceholder')}
+                    error={inputError('subject')}
+                  />
+                </Field>
+                <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={t('contact.topicsLabel')}>
+                  {TOPICS.map((topic) => {
+                    const label = t(`contact.topics.${topic}`)
+                    const active = form.subject === label
+                    return (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => set('subject', label)}
+                        aria-pressed={active}
+                        className={cn(
+                          'h-9 rounded-full border px-3.5 text-sm font-medium transition-colors',
+                          active ? 'border-primary bg-primary-soft text-primary' : 'border-border text-muted-fg hover:border-primary/40 hover:text-foreground',
+                        )}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
                 </div>
-              ) : (
-                <form
-                  onSubmit={handleSubmit}
-                  className="space-y-5 rounded-2xl border border-border bg-background p-5 sm:p-7"
-                  noValidate
-                >
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <Field label={t('contact.nameLabel')} error={fieldErrors.name}>
-                      <Input
-                        value={form.name}
-                        onChange={(e) => set('name', e.target.value)}
-                        placeholder={t('contact.namePlaceholder')}
-                        error={inputError('name')}
-                        className="h-12 rounded-xl"
-                      />
-                    </Field>
-                    <Field label={t('contact.phoneLabel')} optional={t('common.optional')} error={fieldErrors.phone}>
-                      <Input
-                        value={form.phone}
-                        onChange={(e) => set('phone', e.target.value)}
-                        placeholder={t('contact.phonePlaceholder')}
-                        type="tel"
-                        error={inputError('phone')}
-                        className="h-12 rounded-xl"
-                      />
-                    </Field>
-                  </div>
+              </div>
 
-                  <Field label={t('contact.emailLabel')} error={fieldErrors.email}>
-                    <Input
-                      value={form.email}
-                      onChange={(e) => set('email', e.target.value)}
-                      placeholder={t('contact.emailPlaceholder')}
-                      type="email"
-                      error={inputError('email')}
-                      className="h-12 rounded-xl"
-                    />
-                  </Field>
+              <Field label={t('contact.messageLabel')} error={fieldErrors.message}>
+                <Textarea
+                  value={form.message}
+                  onChange={(e) => set('message', e.target.value)}
+                  placeholder={t('contact.messagePlaceholder')}
+                  rows={6}
+                  error={inputError('message')}
+                />
+              </Field>
 
-                  <Field label={t('contact.subjectLabel')} error={fieldErrors.subject}>
-                    <Input
-                      value={form.subject}
-                      onChange={(e) => set('subject', e.target.value)}
-                      placeholder={t('contact.subjectPlaceholder')}
-                      error={inputError('subject')}
-                      className="h-12 rounded-xl"
-                    />
-                  </Field>
-
-                  <Field label={t('contact.messageLabel')} error={fieldErrors.message}>
-                    <Textarea
-                      value={form.message}
-                      onChange={(e) => set('message', e.target.value)}
-                      placeholder={t('contact.messagePlaceholder')}
-                      rows={6}
-                      error={inputError('message')}
-                      className="rounded-xl"
-                    />
-                  </Field>
-
-                  <div className="flex sm:justify-end">
-                    <button
-                      type="submit"
-                      disabled={submitMutation.isPending}
-                      className="inline-flex h-[50px] w-full items-center justify-center gap-2 rounded-full bg-primary px-7 text-sm font-bold text-white transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50 sm:w-auto"
-                    >
-                      {submitMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      ) : (
-                        <Send className="h-4 w-4" aria-hidden />
-                      )}
-                      {t('contact.sendSubmit')}
-                    </button>
-                  </div>
-
-                  {submitMutation.isError && (
-                    <Alert tone="error" title={t('contact.sendFailed')}>
-                      {http.humanizeError(submitMutation.error)}
-                    </Alert>
-                  )}
-                </form>
+              {submitMutation.isError && (
+                <Alert tone="error" title={t('contact.sendFailed')}>
+                  {http.humanizeError(submitMutation.error)}
+                </Alert>
               )}
-            </div>
-          </div>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-fg">{t('contact.requiredNote')}</p>
+                <button
+                  type="submit"
+                  disabled={submitMutation.isPending}
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-7 text-base font-semibold text-white transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50 sm:w-auto"
+                >
+                  {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
+                  {t('contact.sendSubmit')}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
+      </div>
+    </PublicContainer>
+  )
+}
+
+function InfoCard({ icon: Icon, tone, title, text }: { icon: typeof Clock; tone: string; title: string; text: string }) {
+  return (
+    <div className="flex items-start gap-4 rounded-2xl border border-border bg-surface p-5">
+      <span className={cn('grid h-10 w-10 shrink-0 place-items-center rounded-xl', tone)} aria-hidden>
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="font-semibold text-heading">{title}</p>
+        <p className="mt-1 text-sm leading-relaxed text-muted-fg">{text}</p>
       </div>
     </div>
   )

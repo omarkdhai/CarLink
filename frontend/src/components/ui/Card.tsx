@@ -47,7 +47,11 @@ export function CardTitle({ className, children, ...props }: HTMLAttributes<HTML
 }
 
 export function CardDescription({ className, children, ...props }: HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={clsx('text-sm text-muted-fg mt-0.5', className)} {...props} />
+  return (
+    <p className={clsx('text-sm text-muted-fg mt-1 leading-relaxed', className)} {...props}>
+      {children}
+    </p>
+  )
 }
 
 export function CardContent({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {

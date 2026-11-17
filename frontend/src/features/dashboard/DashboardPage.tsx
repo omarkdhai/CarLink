@@ -1,248 +1,211 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { Car, MessageSquare, MailOpen, Plus, QrCode, Inbox, ArrowRight } from 'lucide-react'
+import { Car, Check, Mail, MailOpen, MessageSquare, Phone, Plus, QrCode, ShoppingBag, Link2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PlateChip } from '@/components/shared/PlateChip'
 import { buttonClasses } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SkeletonGrid } from '@/components/shared/SkeletonGrid'
 import { vehicleApi, vehicleQueryKeys } from '@/services/vehicleApi'
-import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
+import { useAccountStatus } from '@/features/account/useAccountStatus'
+import { ConversationRow, InlineEmpty, SectionCard, StatTile, VehicleAvatar } from '@/features/account/OwnerUI'
 import { cn } from '@/lib/cn'
-import type { ConversationStatus, ContactChannel } from '@/types'
-
-const STATUS_TONE: Record<ConversationStatus, 'success' | 'warning' | 'danger' | 'neutral'> = {
-  SENT: 'success',
-  PENDING: 'warning',
-  FAILED: 'danger',
-  EXPIRED: 'neutral',
-}
 
 export default function DashboardPage() {
   const { t } = useTranslation()
+  const status = useAccountStatus()
 
   const vehiclesQuery = useQuery({
     queryKey: vehicleQueryKeys.list('ACTIVE'),
     queryFn: () => vehicleApi.list('ACTIVE'),
   })
-  const conversationsQuery = useQuery({
-    queryKey: conversationQueryKeys.list(),
-    queryFn: () => conversationApi.list(),
-  })
 
-  const loading = vehiclesQuery.isPending || conversationsQuery.isPending
-  const error = vehiclesQuery.error ?? conversationsQuery.error
+  const conversations = status.conversations.data ?? []
   const vehicles = vehiclesQuery.data ?? []
-  const conversations = conversationsQuery.data ?? []
-  const unread = conversations.filter((c) => c.unread).length
-
+  const loading = vehiclesQuery.isPending || status.conversations.isPending
+  const error = vehiclesQuery.error ?? status.conversations.error
   const recent = conversations.slice(0, 5)
+  const boundVehicleIds = new Set((status.stickers.data ?? []).filter((s) => s.status === 'BOUND').map((s) => s.vehicle?.id))
 
   return (
-    <div>
-      <div className="mb-6">
-        <PageHeader
-          title={t('dashboard.title')}
-          subtitle={t('dashboard.subtitle')}
-          actions={
-            <Link to="/vehicles/new" className={buttonClasses({ size: 'sm' }) + ' sm:h-10 sm:px-4'}>
-              <Plus className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">{t('vehicle.add')}</span>
-            </Link>
-          }
-        />
+    <div className="motion-stagger space-y-6 sm:space-y-8">
+      <PageHeader
+        title={status.profile?.firstName ? t('dashboard.greeting', { name: status.profile.firstName }) : t('dashboard.title')}
+        subtitle={t('dashboard.subtitle')}
+        actions={
+          <Link to="/vehicles/new" className={buttonClasses()}>
+            <Plus className="h-4 w-4" aria-hidden />
+            {t('vehicle.add')}
+          </Link>
+        }
+      />
+
+      {error && <ErrorState message={t('errors.generic')} onRetry={() => { vehiclesQuery.refetch(); status.conversations.refetch() }} />}
+
+      <div className="motion-stagger grid grid-cols-3 gap-3 sm:gap-4">
+        <StatTile to="/vehicles" icon={Car} tone="bg-primary-soft text-primary" value={vehicles.length} label={t('dashboard.totalVehicles')} loading={loading} />
+        <StatTile to="/messages" icon={MessageSquare} tone="bg-success-soft text-success" value={conversations.length} label={t('dashboard.messages')} loading={loading} />
+        <StatTile to="/messages" icon={MailOpen} tone="bg-warning-soft text-warning" value={status.unread} label={t('dashboard.unread')} loading={loading} />
       </div>
 
-      {error && <ErrorState message={t('errors.generic')} onRetry={() => vehiclesQuery.refetch()} />}
+      {status.loaded && status.setupDone < status.setupTotal && <SetupChecklist status={status} />}
 
-      {/* Stat cards - mobile optimized */}
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
-        <StatCard
-          className="stagger-delay"
-          style={{ '--stagger': 0 } as React.CSSProperties}
-          icon={<Car className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
-          tone="bg-primary-soft text-primary"
-          label={t('dashboard.totalVehicles')}
-          value={vehicles.length}
-          loading={loading}
-        />
-        <StatCard
-          className="stagger-delay"
-          style={{ '--stagger': 1 } as React.CSSProperties}
-          icon={<MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
-          tone="bg-success-soft text-success"
-          label={t('dashboard.messages')}
-          value={conversations.length}
-          loading={loading}
-        />
-        <StatCard
-          className="stagger-delay"
-          style={{ '--stagger': 2 } as React.CSSProperties}
-          icon={<MailOpen className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
-          tone="bg-warning-soft text-warning"
-          label={t('dashboard.unread')}
-          value={unread}
-          loading={loading}
-        />
-      </div>
-
-      {/* Quick actions */}
-      <section className="mb-8 sm:mb-10">
-        <h2 className="text-base sm:text-lg font-bold text-heading mb-2.5 sm:mb-3">{t('dashboard.quickActions')}</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-          <QuickAction
-            className="stagger-delay"
-            style={{ '--stagger': 0 } as React.CSSProperties}
-            to="/vehicles/new"
-            icon={<Plus className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
-            title={t('vehicle.add')}
-          />
-          <QuickAction
-            className="stagger-delay"
-            style={{ '--stagger': 1 } as React.CSSProperties}
-            to="/stickers"
-            icon={<QrCode className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
-            title={t('stickers.title')}
-          />
-          <QuickAction
-            className="stagger-delay"
-            style={{ '--stagger': 2 } as React.CSSProperties}
-            to="/messages"
-            icon={<Inbox className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
-            title={t('dashboard.viewMessages')}
-          />
-          <QuickAction
-            className="stagger-delay"
-            style={{ '--stagger': 3 } as React.CSSProperties}
-            to="/notifications"
-            icon={<MailOpen className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />}
-            title={t('notifications.title')}
-          />
-        </div>
-      </section>
-
-      {/* Recent conversations */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-heading">{t('dashboard.recentConversations')}</h2>
-          {conversations.length > 0 && (
-            <Link to="/messages" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-hover">
-              {t('dashboard.viewAll')}
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
+      <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <SectionCard
+          title={t('dashboard.recentConversations')}
+          action={conversations.length > 0 ? { to: '/messages', label: t('dashboard.viewAll') } : undefined}
+          className="lg:col-span-2"
+          flush={!loading && recent.length > 0}
+        >
+          {loading ? (
+            <RowsSkeleton />
+          ) : recent.length === 0 ? (
+            <InlineEmpty icon={MessageSquare} title={t('dashboard.noConversationsYet')} hint={t('dashboard.noConversationsWait')} />
+          ) : (
+            <ul className="motion-stagger divide-y divide-border border-t border-border">
+              {recent.map((conv) => (
+                <li key={conv.id}>
+                  <ConversationRow conv={conv} />
+                </li>
+              ))}
+            </ul>
           )}
-        </div>
+        </SectionCard>
 
-        {loading ? (
-          <SkeletonGrid count={3} />
-        ) : recent.length === 0 ? (
-          <div className="bg-surface border border-border rounded-lg">
-            <EmptyState
-              icon={<MessageSquare className="h-7 w-7" aria-hidden />}
-              title={t('dashboard.noConversationsYet')}
-              hint={t('dashboard.noConversationsWait')}
-            />
-          </div>
-        ) : (
-          <ul className="bg-surface border border-border rounded-lg divide-y divide-border">
-            {recent.map((conv) => (
-              <li key={conv.id}>
-                <Link
-                  to={`/messages/${conv.id}`}
-                  className="flex items-center gap-4 p-4 hover:bg-muted transition-colors"
-                >
-                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${channelTone(conv.channel)}`}>
-                    <MessageSquare className="h-5 w-5" aria-hidden />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-heading truncate">
-                        {conv.vehicleNickname ?? t('vehicle.title')}
-                      </p>
-                      {conv.unread && <span className="h-2 w-2 rounded-full bg-primary shrink-0" aria-hidden />}
-                    </div>
-                    <p className="text-sm text-muted-fg truncate">
-                      {conv.lastMessagePreview ?? t('message.pending')}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0 space-y-1">
-                    <Badge tone={STATUS_TONE[conv.status]}>{t(`message.${conv.status.toLowerCase()}`)}</Badge>
-                    <p className="text-xs text-muted-fg">{formatDate(conv.createdAt)}</p>
-                  </div>
+        <SectionCard
+          title={t('nav.vehicles')}
+          action={vehicles.length > 0 ? { to: '/vehicles', label: t('dashboard.viewAll') } : undefined}
+        >
+          {loading ? (
+            <RowsSkeleton compact />
+          ) : vehicles.length === 0 ? (
+            <InlineEmpty
+              icon={Car}
+              title={t('vehicle.noVehicles')}
+              action={
+                <Link to="/vehicles/new" className={buttonClasses({ size: 'sm', variant: 'secondary' })}>
+                  <Plus className="h-4 w-4" aria-hidden />
+                  {t('vehicle.add')}
                 </Link>
+              }
+            />
+          ) : (
+            <ul className="motion-stagger space-y-2">
+              {vehicles.slice(0, 4).map((v) => (
+                <li key={v.id}>
+                  <Link
+                    to={`/vehicles/${v.id}`}
+                    className="hover-lift flex items-center gap-3 rounded-xl border border-border p-3 hover:border-primary/40"
+                  >
+                    <VehicleAvatar color={v.color} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-heading truncate">
+                        {v.nickname || [v.brand, v.model].filter(Boolean).join(' ') || v.licensePlate}
+                      </span>
+                      <span className="mt-1 flex items-center gap-2">
+                        <PlateChip plate={v.licensePlate} />
+                      </span>
+                    </span>
+                    <span
+                      className={cn(
+                        'shrink-0 h-8 w-8 rounded-full flex items-center justify-center',
+                        boundVehicleIds.has(v.id) ? 'bg-success-soft text-success' : 'bg-muted text-muted-fg',
+                      )}
+                      title={boundVehicleIds.has(v.id) ? t('dashboard.stickerLinked') : t('dashboard.noSticker')}
+                    >
+                      <QrCode className="h-4 w-4" aria-hidden />
+                      <span className="sr-only">
+                        {boundVehicleIds.has(v.id) ? t('dashboard.stickerLinked') : t('dashboard.noSticker')}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+      </div>
+    </div>
+  )
+}
+
+/** Getting-started steps; hidden once everything is done. */
+function SetupChecklist({ status }: { status: ReturnType<typeof useAccountStatus> }) {
+  const { t } = useTranslation()
+  const { steps } = status
+  const items = [
+    { done: steps.hasSticker, icon: ShoppingBag, key: 'order', to: '/order' },
+    { done: steps.stickerLinked, icon: Link2, key: 'activate', to: '/stickers' },
+    { done: steps.hasPhone, icon: Phone, key: 'phone', to: '/profile' },
+    { done: steps.emailVerified, icon: Mail, key: 'email', to: '/profile' },
+  ]
+  const pct = Math.round((status.setupDone / status.setupTotal) * 100)
+
+  return (
+    <SectionCard
+      title={t('dashboard.setup.title')}
+      description={status.reachable ? t('dashboard.setup.almost') : t('dashboard.setup.notReachable')}
+      className={cn(!status.reachable && 'border-warning/40')}
+    >
+      <div className="flex items-center gap-3 mb-5">
+        <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+          <div className="grow-x h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-sm font-semibold text-heading tabular-nums">
+          {status.setupDone}/{status.setupTotal}
+        </span>
+      </div>
+      {/* Remaining steps as actionable cards… */}
+      <ol className="motion-stagger grid gap-3 sm:grid-cols-2">
+        {items
+          .filter((i) => !i.done)
+          .map(({ icon: Icon, key, to }) => (
+            <li key={key}>
+              <Link
+                to={to}
+                className="h-full flex items-start gap-3 rounded-xl border border-border p-4 transition-colors hover:border-primary/40 hover:bg-primary-soft/30"
+              >
+                <span className="h-10 w-10 shrink-0 rounded-xl bg-primary-soft text-primary flex items-center justify-center" aria-hidden>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-heading">{t(`dashboard.setup.${key}`)}</span>
+                  <span className="block text-sm text-muted-fg mt-1 leading-relaxed">{t(`dashboard.setup.${key}Hint`)}</span>
+                  <span className="sr-only">{t('dashboard.setup.todo')}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+      </ol>
+      {/* …finished ones as compact chips. */}
+      {status.setupDone > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-2" aria-label={t('dashboard.setup.done')}>
+          {items
+            .filter((i) => i.done)
+            .map(({ key }) => (
+              <li key={key} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-success-soft text-success text-xs font-semibold">
+                <Check className="h-3.5 w-3.5" aria-hidden />
+                {t(`dashboard.setup.${key}`)}
               </li>
             ))}
-          </ul>
-        )}
-      </section>
+        </ul>
+      )}
+    </SectionCard>
+  )
+}
+
+function RowsSkeleton({ compact }: { compact?: boolean }) {
+  return (
+    <div className={compact ? 'space-y-2' : 'divide-y divide-border border-t border-border'} aria-busy="true">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className={cn('flex items-center gap-3', compact ? 'rounded-xl border border-border p-3' : 'px-5 py-4')}>
+          <div className="h-10 w-10 rounded-xl bg-muted animate-pulse" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3.5 w-2/3 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-1/3 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+      ))}
     </div>
   )
-}
-
-function StatCard({
-  icon,
-  tone,
-  label,
-  value,
-  loading,
-  className,
-  style,
-}: {
-  icon: React.ReactNode
-  tone: string
-  label: string
-  value: number
-  loading: boolean
-  className?: string
-  style?: React.CSSProperties
-}) {
-  return (
-    <div className={cn('bg-surface border border-border rounded-xl p-3 sm:p-5 shadow-sm', className)} style={style}>
-      <div className={`h-9 w-9 sm:h-11 sm:w-11 rounded-lg flex items-center justify-center mb-2 sm:mb-4 ${tone}`}>{icon}</div>
-      {loading ? (
-        <div className="h-6 sm:h-8 w-12 sm:w-16 rounded bg-muted animate-pulse" />
-      ) : (
-        <p className="text-xl sm:text-3xl font-bold text-heading tabular-nums">{value}</p>
-      )}
-      <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-sm text-muted-fg leading-tight">{label}</p>
-    </div>
-  )
-}
-
-function QuickAction({
-  to,
-  icon,
-  title,
-  className,
-  style,
-}: {
-  to: string
-  icon: React.ReactNode
-  title: string
-  className?: string
-  style?: React.CSSProperties
-}) {
-  return (
-    <Link
-      to={to}
-      className={cn(
-        'flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-3 bg-surface border border-border rounded-xl px-2 py-3 sm:px-4 sm:py-3 hover:border-primary/40 hover:bg-primary-soft/40 transition-all shadow-sm',
-        className,
-      )}
-      style={style}
-    >
-      <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">{icon}</div>
-      <span className="font-semibold text-heading text-xs sm:text-sm text-center sm:text-left leading-tight">{title}</span>
-    </Link>
-  )
-}
-
-function channelTone(_channel: ContactChannel) {
-  return 'bg-primary-soft text-sms'
-}
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 }

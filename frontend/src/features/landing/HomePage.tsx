@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   CarFront,
@@ -27,13 +27,6 @@ import {
 } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
 import heroImage from '@/assets/Sticker-Windshield.png'
-
-/** Icon-only trust pills shown above the hero headline. */
-const HERO_TRAITS = [
-  { icon: ShieldCheck, key: 'landing.trust2' },
-  { icon: Lock, key: 'landing.trust1' },
-  { icon: Clock, key: 'landing.trust3' },
-] as const
 
 const problems = [
   { icon: CarFront, title: 'landing.problem1Title', text: 'landing.problem1Text' },
@@ -77,8 +70,20 @@ const reachChannels = [
  * Public landing page — the marketing face of CarLink.
  * Flat/minimal per design direction; no owner data exposed.
  */
+/** Shared section-title scale (display font via h2). */
+const H2 = 'text-3xl font-black leading-[1.12] tracking-[-0.03em] text-heading [text-wrap:balance] sm:text-4xl lg:text-[2.75rem]'
+/** Shared section-intro paragraph. */
+const LEAD = 'text-base leading-relaxed text-muted-fg sm:text-lg'
+
 export default function HomePage() {
   const { t } = useTranslation()
+  const { hash } = useLocation()
+  // Deep links such as /#faq: scroll once the lazily-loaded page has rendered.
+  useEffect(() => {
+    if (!hash) return
+    const id = window.setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 150)
+    return () => window.clearTimeout(id)
+  }, [hash])
   // Situations accordion: which row is expanded (first one open by default).
   const [activeProblem, setActiveProblem] = useState<number | null>(0)
   // Phone mockup: which "how it works" state is on screen. It auto-advances
@@ -100,70 +105,30 @@ export default function HomePage() {
       {/* Hero — mirrors the reference site's layout: icon trust pills, a
           two-line headline (question + answer), a highlighted subtitle, a pill
           CTA with a circular arrow, a demo link, a trust line and a visual. */}
-      <section id="home" className="scroll-mt-20 mt-[-10px]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-14 lg:pt-16 pb-16 sm:pb-20 lg:pb-24">
-          <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <section id="home" className="scroll-mt-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 lg:pt-16 pb-16 sm:pb-20">
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             {/* Left column — content */}
-            <div className="mx-auto flex w-full max-w-[34rem] flex-col items-center gap-7 text-center lg:mx-0 lg:max-w-[38rem] lg:items-start lg:gap-6 lg:text-start">
-              {/* Icon-only trust pills */}
-              <div className="flex items-center justify-center gap-2.5 lg:justify-start" role="list">
-                {HERO_TRAITS.map(({ icon: Icon, key }) => (
-                  <span
-                    key={key}
-                    role="listitem"
-                    title={t(key)}
-                    aria-label={t(key)}
-                    className="inline-flex h-[2.35rem] w-[2.35rem] items-center justify-center rounded-full border border-primary bg-white text-primary shadow-[0_4px_14px_rgba(37,99,235,0.08)]"
-                  >
-                    <Icon className="h-4 w-4" aria-hidden />
-                  </span>
-                ))}
-              </div>
-
-              {/* Headline — both contact directions, each a question + answer */}
-              <h1 className="flex w-full flex-col gap-5 [text-wrap:balance] lg:gap-7">
-                <span className="flex flex-col gap-1.5 lg:gap-2">
-                  <span className="text-[clamp(2.25rem,8.5vw,2.75rem)] font-black leading-[1.06] tracking-[-0.028em] text-heading lg:text-[3.25rem] xl:text-[3.75rem]">
-                    {t('landing.heroQ1')}
-                  </span>
-                  <span className="text-lg font-normal leading-[1.5] text-muted-fg lg:text-[1.375rem]">
-                    {t('landing.heroA1')}
-                  </span>
-                </span>
-                <span className="flex flex-col gap-1.5 lg:gap-2">
-                  <span className="text-[clamp(2.25rem,8.5vw,2.75rem)] font-black leading-[1.06] tracking-[-0.028em] text-primary-active lg:text-[3.25rem] xl:text-[3.75rem]">
-                    {t('landing.heroQ2')}
-                  </span>
-                  <span className="text-lg font-normal leading-[1.5] text-primary lg:text-[1.375rem]">
-                    {t('landing.heroA2')}
-                  </span>
-                </span>
+            <div className="motion-stagger mx-auto flex w-full max-w-[36rem] flex-col items-center gap-6 text-center lg:mx-0 lg:items-start lg:text-start">
+              {/* Headline — both contact directions in one H1 */}
+              <h1 className="w-full text-[2.25rem] font-black leading-[1.08] tracking-[-0.03em] text-heading [text-wrap:balance] sm:text-5xl lg:text-[3.5rem]">
+                <span className="block">{t('landing.heroQ1')}</span>
+                <span className="block mt-2 text-primary-active">{t('landing.heroQ2')}</span>
               </h1>
 
-              {/* Divider + highlighted subtitle */}
-              <div className="mt-0.5 flex w-full max-w-[32rem] flex-col items-center gap-4 lg:items-start">
-                <span
-                  className="h-px w-12 rounded-full bg-gradient-to-r from-primary-active to-accent shadow-[0_0_18px_rgba(37,99,235,0.15)]"
-                  aria-hidden
-                />
-                <p className="m-0 text-[0.9375rem] leading-[1.65] text-muted-fg lg:text-[1.0625rem] lg:leading-[1.75] rtl:no-underline">
-                  <span className="text-inherit rtl:bg-transparent rtl:shadow-none">
-                    {t('landing.heroSubtitle')}
-                  </span>
-                </p>
-              </div>
+              <p className="max-w-[34rem] text-lg leading-relaxed text-muted-fg">{t('landing.heroSubtitle')}</p>
 
               {/* CTAs — order pill + how-it-works pill on one line */}
               <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:flex-nowrap lg:justify-start">
                 <Link
-                  to="/order?plan=single"
-                  className="inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-primary py-2 pe-2 ps-[1.35rem] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
+                  to="/order?plan=SINGLE"
+                  className="group inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-primary py-2 pe-2 ps-[1.35rem] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
                 >
                   <span className="whitespace-nowrap text-[clamp(1rem,2vw,1.125rem)]">
                     {t('landing.heroCta')}
                   </span>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/25">
-                    <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden />
+                    <ArrowRight className="nudge h-5 w-5 rtl:rotate-180" aria-hidden />
                   </span>
                 </Link>
 
@@ -179,17 +144,17 @@ export default function HomePage() {
               </div>
 
               {/* Trust line — one line on mobile */}
-              <div className="mt-0.5 flex w-full flex-nowrap items-center justify-between gap-x-2 border-t border-muted pt-3.5 text-[11px] text-muted-fg sm:gap-x-4 lg:justify-start lg:gap-x-5 lg:text-sm">
+              <div className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-border pt-5 text-sm text-muted-fg lg:justify-start">
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                  <Lock className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                  <Lock className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                   {t('landing.trust1')}
                 </span>
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                   {t('landing.trust2')}
                 </span>
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                  <Clock className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                  <Clock className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                   {t('landing.trust3')}
                 </span>
               </div>
@@ -197,7 +162,7 @@ export default function HomePage() {
 
             {/* Right column — hero visual */}
             <div className="relative mx-auto w-full max-w-2xl">
-              <div className="relative aspect-[4/4.35] overflow-hidden rounded-[2rem] border-2 border-white bg-gradient-to-b from-primary-soft to-white shadow-[0_30px_80px_rgba(15,23,42,0.20)] sm:aspect-[4/3.65] sm:rounded-se-[7rem] lg:aspect-[4/4.05]">
+              <div className="motion-settle relative aspect-[4/4.35] overflow-hidden rounded-[2rem] border-2 border-white bg-gradient-to-b from-primary-soft to-white shadow-[0_30px_80px_rgba(15,23,42,0.20)] sm:aspect-[4/3.65] sm:rounded-se-[7rem] lg:aspect-[4/4.05]">
                 <img
                   src={heroImage}
                   alt={t('landing.heroAlt')}
@@ -211,12 +176,12 @@ export default function HomePage() {
               </div>
 
               {/* Floating card — scan / contact */}
-              <div className="absolute -top-4 end-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-top-5 sm:end-6 sm:max-w-[14.5rem] sm:p-4">
+              <div style={{ ['--float-delay' as string]: '0.4s' }} className="motion-float absolute -top-4 end-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-top-5 sm:end-6 sm:max-w-[14.5rem] sm:p-4">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
                   <QrCode className="h-5 w-5" aria-hidden />
                 </span>
                 <div className="min-w-0 pt-0.5 text-start">
-                  <p className="text-[0.8125rem] font-bold leading-snug text-heading">
+                  <p className="text-sm font-bold leading-snug text-heading">
                     {t('landing.heroCardScanTitle')}
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-fg">
@@ -226,12 +191,12 @@ export default function HomePage() {
               </div>
 
               {/* Floating card — alert */}
-              <div className="absolute -bottom-5 start-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-bottom-6 sm:start-7 sm:max-w-[14.5rem] sm:p-4">
+              <div style={{ ['--float-delay' as string]: '2.2s' }} className="motion-float absolute -bottom-5 start-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-bottom-6 sm:start-7 sm:max-w-[14.5rem] sm:p-4">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent ring-1 ring-accent/15">
                   <Bell className="h-5 w-5" aria-hidden />
                 </span>
                 <div className="min-w-0 pt-0.5 text-start">
-                  <p className="text-[0.8125rem] font-bold leading-snug text-heading">
+                  <p className="text-sm font-bold leading-snug text-heading">
                     {t('landing.heroCardAlertTitle')}
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-fg">
@@ -247,21 +212,21 @@ export default function HomePage() {
       {/* Problems / situations — modelled on the reference site: a full-bleed
           band, a two-line intro (second line accented) and a numbered accordion
           whose active row reveals a phone-notification preview. */}
-      <section className="border-y border-muted bg-gradient-to-b from-primary-soft to-background py-16 sm:py-20 lg:py-24">
+      <section className="border-y border-muted bg-gradient-to-b from-primary-soft to-background py-14 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           {/* Intro — title left, copy right on desktop */}
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:items-end lg:gap-x-16">
-            <h2 className="m-0 text-[clamp(2.2rem,6.5vw,3.35rem)] font-black leading-[1.08] tracking-[-0.034em] text-heading">
+            <h2 className={H2}>
               <span>{t('landing.problemsTitleLead')}</span>{' '}
               <span className="block text-primary-active">{t('landing.problemsTitleAccent')}</span>
             </h2>
-            <p className="m-0 max-w-[31rem] text-[0.98rem] font-normal leading-[1.72] text-muted-fg lg:justify-self-end lg:pb-1">
+            <p className={`m-0 max-w-[31rem] lg:justify-self-end lg:pb-1 ${LEAD}`}>
               {t('landing.problemsSubtitle')}
             </p>
           </div>
 
           {/* Numbered accordion */}
-          <ul className="mt-11 flex flex-col border-t border-muted sm:mt-12 lg:mt-14">
+          <ul className="reveal-stagger mt-10 flex flex-col border-t border-muted lg:mt-12">
             {problems.map(({ icon: Icon, title, text }, i) => {
               const active = activeProblem === i
               return (
@@ -308,21 +273,21 @@ export default function HomePage() {
                         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <span className="flex w-full min-w-0 items-center gap-2">
                             <span className="flex min-w-0 items-center gap-1.5">
-                              <span className="text-[0.62rem] font-semibold leading-none tracking-[0.01em] text-slate-500">
+                              <span className="text-[0.6875rem] font-semibold leading-none tracking-[0.01em] text-slate-500">
                                 CarLink
                               </span>
-                              <span className="text-[0.62rem] leading-none text-slate-400" aria-hidden>
+                              <span className="text-[0.6875rem] leading-none text-slate-400" aria-hidden>
                                 •
                               </span>
-                              <span className="truncate text-[0.62rem] font-medium leading-none tracking-[0.01em] text-slate-500">
+                              <span className="truncate text-[0.6875rem] font-medium leading-none tracking-[0.01em] text-slate-500">
                                 {t('landing.problemsAlertSender')}
                               </span>
                             </span>
-                            <span className="ms-auto shrink-0 text-[0.62rem] font-medium leading-none text-slate-400">
+                            <span className="ms-auto shrink-0 text-[0.6875rem] font-medium leading-none text-slate-400">
                               {t('landing.problemsAlertTime')}
                             </span>
                           </span>
-                          <span className="text-[0.84rem] leading-[1.35] text-slate-700">
+                          <span className="text-sm leading-[1.4] text-slate-700">
                             {t(text)}
                           </span>
                         </span>
@@ -336,8 +301,8 @@ export default function HomePage() {
 
           {/* Bottom CTA */}
           <div className="mt-10 text-center">
-            <p className="mb-4 text-sm text-muted-fg">{t('landing.problemsCtaText')}</p>
-            <Link to="/order?plan=single" className={buttonClasses({ size: 'lg' })}>
+            <p className="mb-4 text-base text-muted-fg">{t('landing.problemsCtaText')}</p>
+            <Link to="/order?plan=SINGLE" className={buttonClasses({ size: 'lg' })}>
               {t('landing.problemsCta')}
               <ArrowRight className="h-5 w-5" aria-hidden />
             </Link>
@@ -348,19 +313,19 @@ export default function HomePage() {
       {/* How it works — modelled on the reference site's phone demo: copy and
           numbered step controls on the left, an interactive phone mockup of the
           contact flow on the right. */}
-      <section id="how" className="scroll-mt-20 bg-muted/30 py-16 sm:py-20 lg:py-24">
+      <section id="how" className="scroll-mt-20 bg-muted/30 py-14 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-14">
             {/* Left — copy + step controls */}
             <div className="w-full max-w-[450px]">
-              <h2 className="m-0 text-[clamp(29px,7vw,39px)] font-black leading-[1.2] tracking-[-0.045em] text-heading sm:text-[clamp(36px,4.4vw,62px)]">
+              <h2 className={H2}>
                 {t('landing.howTitle')}
               </h2>
-              <p className="mt-[26px] max-w-[410px] text-[15px] leading-[1.95] text-muted-fg">
+              <p className={`mt-4 max-w-[28rem] ${LEAD}`}>
                 {t('landing.howSubtitle')}
               </p>
 
-              <div className="mt-8 flex flex-col gap-1 border-t border-border pt-4">
+              <div className="reveal-stagger mt-8 flex flex-col gap-1 border-t border-border pt-4">
                 {howSteps.map((step, i) => (
                   <button
                     key={step.title}
@@ -628,27 +593,27 @@ export default function HomePage() {
 
       {/* Advantages — a boxed panel: copy and a masked-number card on top,
           the three advantages as divided columns underneath. */}
-      <section id="advantages" className="scroll-mt-20 py-16 sm:py-20 lg:py-24">
+      <section id="advantages" className="scroll-mt-20 py-14 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="rounded-[28px] border border-border bg-white p-6 sm:p-10 lg:p-[clamp(28px,4vw,52px)]">
             {/* Intro — copy left, masked number card right */}
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(240px,1fr)] lg:items-center lg:gap-14">
               <div>
-                <p className="m-0 mb-[18px] flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.07em] text-accent">
+                <p className="m-0 mb-[18px] flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-accent">
                   <ShieldCheck className="h-4 w-4" aria-hidden />
                   {t('landing.advBadge')}
                 </p>
-                <h2 className="m-0 max-w-[570px] text-[clamp(27px,6.8vw,38px)] font-black leading-[1.3] tracking-[-0.03em] text-heading [text-wrap:balance] sm:text-[clamp(30px,3.6vw,44px)]">
+                <h2 className={`m-0 max-w-[570px] ${H2}`}>
                   {t('landing.advTitle')}
                 </h2>
-                <p className="mt-4 max-w-[460px] text-[15px] leading-[1.9] text-muted-fg">
+                <p className={`mt-4 max-w-[460px] ${LEAD}`}>
                   {t('landing.advSubtitle')}
                 </p>
               </div>
 
               {/* Masked number card — the privacy advantage, made concrete */}
               <div className="mx-auto w-full max-w-[340px] -rotate-1 rounded-[20px] border border-border bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.05)] lg:mx-0 lg:-rotate-2 lg:p-[26px]">
-                <span className="block text-[11px] text-muted-fg">{t('landing.advNumberLabel')}</span>
+                <span className="block text-xs text-muted-fg">{t('landing.advNumberLabel')}</span>
                 <div className="flex items-center justify-between gap-3.5 border-b border-border py-5">
                   <span
                     dir="ltr"
@@ -658,7 +623,7 @@ export default function HomePage() {
                   </span>
                   <LockKeyhole className="h-5 w-5 shrink-0 text-primary" aria-hidden />
                 </div>
-                <span className="mt-4 flex items-center gap-[7px] text-[11px] leading-[1.6] text-muted-fg">
+                <span className="mt-4 flex items-center gap-[7px] text-xs leading-[1.6] text-muted-fg">
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
                   {t('landing.advNumberNote')}
                 </span>
@@ -666,7 +631,7 @@ export default function HomePage() {
             </div>
 
             {/* Advantages grid — three columns divided by rules */}
-            <ol className="mt-10 grid list-none border-t border-border ps-0 pt-2 lg:grid-cols-3 lg:pt-8">
+            <ol className="reveal-stagger mt-10 grid list-none border-t border-border ps-0 pt-2 lg:grid-cols-3 lg:pt-8">
               {advantages.map(({ icon: AIcon, title, text }) => (
                 <li
                   key={title}
@@ -678,7 +643,7 @@ export default function HomePage() {
                     </span>
                   </div>
                   <h3 className="mb-2.5 text-lg font-semibold leading-[1.5] text-heading">{t(title)}</h3>
-                  <p className="m-0 text-[13px] leading-[1.9] text-muted-fg">{t(text)}</p>
+                  <p className="m-0 text-sm leading-relaxed text-muted-fg">{t(text)}</p>
                 </li>
               ))}
             </ol>
@@ -688,7 +653,7 @@ export default function HomePage() {
 
       {/* We reach you — a boxed card: icon, copy and condition pills on the
           left, one card per delivery channel on the right. */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-14 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="overflow-hidden rounded-[2rem] border border-border bg-white px-5 py-8 shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:px-8 sm:py-10 lg:px-12 lg:py-12">
             <div className="grid items-center gap-9 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
@@ -697,10 +662,10 @@ export default function HomePage() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-soft text-primary">
                   <Signal className="h-6 w-6" aria-hidden />
                 </div>
-                <h2 className="max-w-[14ch] text-3xl font-black leading-tight text-heading sm:text-4xl">
+                <h2 className={`max-w-[16ch] ${H2}`}>
                   {t('landing.reachTitle')}
                 </h2>
-                <p className="mt-4 max-w-xl text-base leading-8 text-muted-fg sm:text-lg">
+                <p className={`mt-4 max-w-xl ${LEAD}`}>
                   {t('landing.reachSubtitle')}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2">
@@ -716,7 +681,7 @@ export default function HomePage() {
               </div>
 
               {/* Right — one card per channel */}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="reveal-stagger grid gap-4 sm:grid-cols-2">
                 {reachChannels.map(({ icon: CIcon, name, signal, text }) => (
                   <article
                     key={name}
@@ -725,9 +690,9 @@ export default function HomePage() {
                     <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary shadow-sm">
                       <CIcon className="h-6 w-6" aria-hidden />
                     </span>
-                    <p className="mt-5 text-xs font-bold text-primary">{t(name)}</p>
+                    <p className="mt-5 text-sm font-bold text-primary">{t(name)}</p>
                     <h3 className="mt-1 text-xl font-bold leading-snug text-heading">{t(signal)}</h3>
-                    <p className="mt-2 text-sm leading-7 text-muted-fg">{t(text)}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-fg">{t(text)}</p>
                   </article>
                 ))}
               </div>
@@ -738,18 +703,18 @@ export default function HomePage() {
 
       {/* FAQ — a small uppercase title over an exclusive native accordion of
           bordered cards, each with a round chevron pill that fills when open. */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section id="faq" className="scroll-mt-20 py-14 sm:py-16 lg:py-20">
         <div className="mx-auto flex max-w-3xl flex-col gap-[0.875rem] px-4 sm:px-6">
-          <h2 className="text-[0.8125rem] font-extrabold uppercase tracking-[0.08em] text-muted-fg">
+          <h2 className={`mb-4 text-center ${H2}`}>
             {t('landing.faqTitle')}
           </h2>
 
-          <div className="grid gap-3 sm:gap-[0.875rem]">
+          <div className="reveal-stagger grid gap-3 sm:gap-[0.875rem]">
             {faqs.map((key) => (
               <details
                 key={key}
                 name="landing-faq"
-                className="group overflow-hidden rounded-[1.375rem] border border-border bg-gradient-to-b from-white to-background shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow] duration-150 has-[summary:focus-visible]:border-primary/30 has-[summary:focus-visible]:shadow-[0_14px_34px_rgba(37,99,235,0.11)] hover:border-primary/30 hover:shadow-[0_14px_34px_rgba(37,99,235,0.11)] open:border-primary/20"
+                className="motion-details group overflow-hidden rounded-[1.375rem] border border-border bg-gradient-to-b from-white to-background shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow] duration-150 has-[summary:focus-visible]:border-primary/30 has-[summary:focus-visible]:shadow-[0_14px_34px_rgba(37,99,235,0.11)] hover:border-primary/30 hover:shadow-[0_14px_34px_rgba(37,99,235,0.11)] open:border-primary/20"
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3.5 p-[0.9375rem_1rem] [&::-webkit-details-marker]:hidden sm:gap-4 sm:p-[1.0625rem_1.125rem]">
                   <span className="min-w-0 flex-1 text-[1.0625rem] font-bold leading-[1.35] text-heading">
@@ -763,10 +728,38 @@ export default function HomePage() {
                   </span>
                 </summary>
                 <div className="px-4 pb-4 sm:px-[1.125rem] sm:pb-[1.125rem]">
-                  <p className="text-[0.875rem] leading-[1.7] text-muted-fg">{t(`landing.${key}A`)}</p>
+                  <p className="text-base leading-relaxed text-muted-fg">{t(`landing.${key}A`)}</p>
                 </div>
               </details>
             ))}
+          </div>
+        </div>
+      </section>
+      {/* Closing call to action */}
+      <section className="pb-16 sm:pb-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="relative overflow-hidden rounded-[2rem] bg-primary px-6 py-12 text-center text-white sm:px-12 sm:py-14">
+            <div className="pointer-events-none absolute -end-16 -top-16 h-64 w-64 rounded-full bg-white/10" aria-hidden />
+            <div className="pointer-events-none absolute -bottom-20 -start-10 h-56 w-56 rounded-full bg-white/10" aria-hidden />
+            <h2 className="relative mx-auto max-w-[22ch] text-3xl font-black leading-[1.12] tracking-[-0.03em] [text-wrap:balance] sm:text-4xl">
+              {t('landing.finalTitle')}
+            </h2>
+            <p className="relative mx-auto mt-4 max-w-[46ch] text-base leading-relaxed text-white/85 sm:text-lg">{t('landing.finalText')}</p>
+            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                to="/order"
+                className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-primary transition-colors hover:bg-primary-soft"
+              >
+                {t('landing.heroCta')}
+                <ArrowRight className="nudge h-5 w-5 rtl:rotate-180" aria-hidden />
+              </Link>
+              <Link
+                to="/pricing"
+                className="inline-flex h-12 items-center justify-center rounded-full border border-white/40 px-6 font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                {t('landing.finalSecondary')}
+              </Link>
+            </div>
           </div>
         </div>
       </section>
