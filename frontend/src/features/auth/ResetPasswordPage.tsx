@@ -10,7 +10,7 @@ import { http } from '@/services/apiClient'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
-import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Logo } from '@/components/layout/Logo'
 
 export default function ResetPasswordPage() {
@@ -71,8 +71,7 @@ const mutation = useMutation({
           {mutation.isError && <Alert tone="error">{http.humanizeError(mutation.error)}</Alert>}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-surface border border-border rounded-xl p-6 shadow-card" noValidate>
             <Field label={t('auth.newPassword')} hint={t('auth.passwordRule')} error={errors.newPassword?.message}>
-              <Input
-                type="password"
+              <PasswordInput
                 autoComplete="new-password"
                 placeholder={t('auth.newPasswordPlaceholder')}
                 error={Boolean(errors.newPassword)}
@@ -87,8 +86,7 @@ const mutation = useMutation({
               </ul>
             </Field>
             <Field label={t('auth.confirmPassword')} error={errors.confirmPassword?.message}>
-              <Input
-                type="password"
+              <PasswordInput
                 autoComplete="new-password"
                 placeholder={t('auth.newPasswordPlaceholder')}
                 error={Boolean(errors.confirmPassword)}

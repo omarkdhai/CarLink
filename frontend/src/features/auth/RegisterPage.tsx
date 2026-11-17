@@ -6,12 +6,14 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { registerSchema, type RegisterValues } from '@/features/auth/authSchemas'
 import { ApiRequestError, toApiError } from '@/services/errors'
+import { http } from '@/services/apiClient'
 import { takeNextAfterAuth } from '@/services/nextTarget'
 import { joinPhone } from '@/lib/phone'
 import { Alert } from '@/components/ui/Alert'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { PhoneFields } from '@/components/ui/PhoneFields'
 import { Logo } from '@/components/layout/Logo'
 
@@ -73,7 +75,7 @@ async function onSubmit(values: RegisterValues) {
           </Link>
         </Alert>
       ) : (
-        submissionError && <Alert tone="error">{submissionError.message}</Alert>
+        submissionError && <Alert tone="error">{http.humanizeError(submissionError)}</Alert>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-surface border border-border rounded-xl p-6 shadow-card" noValidate>
@@ -115,8 +117,7 @@ async function onSubmit(values: RegisterValues) {
           />
         </Field>
 <Field label={t('auth.password')} hint={t('auth.passwordRule')} error={errors.password?.message}>
-            <Input
-              type="password"
+            <PasswordInput
               autoComplete="new-password"
               placeholder={t('auth.passwordPlaceholder')}
               error={Boolean(errors.password)}

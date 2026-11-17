@@ -97,7 +97,7 @@ public class StickerService {
     private void bind(User user, Sticker sticker, ActivateStickerRequest request) {
         if (sticker.getStatus() == StickerStatus.BOUND) {
             // Never reveal who owns it — only that it is taken.
-            throw new ConflictException("This sticker is already linked to an account.");
+            throw new ConflictException("STICKER_ALREADY_BOUND", "This sticker is already linked to an account.");
         }
 
         String plate = request.licensePlate().trim();

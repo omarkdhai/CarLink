@@ -131,10 +131,10 @@ public class AuthService {
     public void verifyEmail(String rawToken) {
         EmailVerificationToken token = emailVerificationTokenRepository
                 .findByTokenHash(tokenGenerator.sha256(rawToken))
-                .orElseThrow(() -> new BadRequestException("Invalid or expired verification link"));
+                .orElseThrow(() -> new BadRequestException("INVALID_VERIFICATION_LINK", "Invalid or expired verification link"));
 
         if (token.isUsed() || token.isExpired()) {
-            throw new BadRequestException("Invalid or expired verification link");
+            throw new BadRequestException("INVALID_VERIFICATION_LINK", "Invalid or expired verification link");
         }
 
         User user = token.getUser();
@@ -151,7 +151,7 @@ public class AuthService {
         String email = request.email().trim().toLowerCase();
 
         if (loginAttemptService.isBlocked(email)) {
-            throw new UnauthorizedException("Too many failed attempts. Try again later.");
+            throw new UnauthorizedException("TOO_MANY_LOGIN_ATTEMPTS", "Too many failed attempts. Try again later.");
         }
 
         User user = userRepository.findByEmailIgnoreCase(email)
@@ -161,7 +161,7 @@ public class AuthService {
                     loginAttemptService.recordFailure(email);
                     log.warn("Login failure for email hash {}",
                             tokenGenerator.sha256(email));
-                    return new UnauthorizedException("Invalid email or password");
+                    return new UnauthorizedException("INVALID_CREDENTIALS", "Invalid email or password");
                 });
 
         loginAttemptService.reset(email);
@@ -238,10 +238,10 @@ public class AuthService {
     public void resetPassword(ResetPasswordRequest request) {
         PasswordResetToken token = passwordResetTokenRepository
                 .findByTokenHash(tokenGenerator.sha256(request.token()))
-                .orElseThrow(() -> new BadRequestException("Invalid or expired reset link"));
+                .orElseThrow(() -> new BadRequestException("INVALID_RESET_LINK", "Invalid or expired reset link"));
 
         if (token.isUsed() || token.isExpired()) {
-            throw new BadRequestException("Invalid or expired reset link");
+            throw new BadRequestException("INVALID_RESET_LINK", "Invalid or expired reset link");
         }
 
         User user = token.getUser();
