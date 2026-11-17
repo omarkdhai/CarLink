@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, CalendarDays } from 'lucide-react'
 import { PageIntro, PublicContainer } from '@/components/shared/PublicPage'
+import { cn } from '@/lib/cn'
 
 export type SectionDef = { paragraphs: number; bullets?: number }
 type DocKey = 'Privacy' | 'Terms' | 'Comms'
@@ -21,6 +23,24 @@ export function LegalDocument({ doc, sections }: { doc: DocKey; sections: Sectio
   const { t } = useTranslation()
   const k = (suffix: string) => t(`landing.legal${doc}${suffix}`)
   const anchor = (n: number) => `section-${n}`
+  const [active, setActive] = useState(1)
+
+  // Scroll-spy: highlight the section currently being read.
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (visible[0]) setActive(Number(visible[0].target.id.replace('section-', '')))
+      },
+      { rootMargin: '-20% 0px -65% 0px' },
+    )
+    sections.forEach((_, i) => {
+      const el = document.getElementById(anchor(i + 1))
+      if (el) io.observe(el)
+    })
+    return () => io.disconnect()
+  }, [sections])
 
   return (
     <PublicContainer>
@@ -40,7 +60,13 @@ export function LegalDocument({ doc, sections }: { doc: DocKey; sections: Sectio
               <li key={i}>
                 <a
                   href={`#${anchor(i + 1)}`}
-                  className="-ms-px flex gap-3 border-s-2 border-transparent py-1.5 ps-4 text-sm leading-snug text-muted-fg transition-colors hover:border-primary hover:text-foreground"
+                  aria-current={active === i + 1 ? 'location' : undefined}
+                  className={cn(
+                    '-ms-px flex gap-3 border-s-2 py-1.5 ps-4 text-sm leading-snug transition-colors duration-300',
+                    active === i + 1
+                      ? 'border-primary font-semibold text-heading'
+                      : 'border-transparent text-muted-fg hover:border-primary/40 hover:text-foreground',
+                  )}
                 >
                   <span className="tabular-nums text-muted-fg/70">{i + 1}.</span>
                   <span>{k(`Section${i + 1}Title`)}</span>
@@ -83,10 +109,10 @@ export function LegalDocument({ doc, sections }: { doc: DocKey; sections: Sectio
                 <Link
                   key={d.key}
                   to={d.to}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 text-sm font-semibold text-heading transition-colors hover:border-primary/40 hover:bg-primary-soft/30"
+                  className="hover-lift group flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 text-sm font-semibold text-heading hover:border-primary/40"
                 >
                   {t(d.label)}
-                  <ArrowRight className="h-4 w-4 text-primary rtl:rotate-180" aria-hidden />
+                  <ArrowRight className="nudge h-4 w-4 text-primary rtl:rotate-180" aria-hidden />
                 </Link>
               ))}
             </div>

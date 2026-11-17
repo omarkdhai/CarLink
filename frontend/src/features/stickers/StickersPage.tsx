@@ -36,7 +36,7 @@ export default function StickersPage() {
   )
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="motion-stagger space-y-6 sm:space-y-8">
       <PageHeader
         title={t('stickers.title')}
         subtitle={t('stickers.subtitle')}
@@ -70,7 +70,7 @@ export default function StickersPage() {
           ))}
         </div>
       ) : stickers.length > 0 ? (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="motion-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {stickers.map((s) => (
             <li key={s.id}>
               <StickerCard sticker={s} onMessage={toast.show} />
@@ -97,7 +97,7 @@ export default function StickersPage() {
       )}
 
       <SectionCard title={t('stickers.howTitle')}>
-        <ol className="grid gap-4 sm:grid-cols-3">
+        <ol className="motion-stagger grid gap-4 sm:grid-cols-3">
           {[
             { icon: ShoppingBag, key: 'step1' },
             { icon: Sticker, key: 'step2' },

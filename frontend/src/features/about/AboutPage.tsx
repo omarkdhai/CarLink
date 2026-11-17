@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, HeartHandshake, Lightbulb, ShieldCheck, Sparkles, Users } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
 import { PageIntro, PublicContainer } from '@/components/shared/PublicPage'
+import { CountUpText } from '@/components/shared/CountUp'
 
 const stats = [
   { key: 'stats1Value', label: 'stats1Label' },
@@ -26,9 +27,9 @@ export default function AboutPage() {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
         <PageIntro eyebrow={t('about.badge')} title={t('about.heroTitle')} lead={t('about.heroSubtitle')}>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/order?plan=SINGLE" className={buttonClasses({ size: 'lg' })}>
+            <Link to="/order?plan=SINGLE" className={buttonClasses({ size: 'lg' }) + ' group'}>
               {t('about.heroCta')}
-              <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+              <ArrowRight className="nudge h-4 w-4 rtl:rotate-180" aria-hidden />
             </Link>
             <Link to="/contact" className={buttonClasses({ size: 'lg', variant: 'outline' })}>
               {t('navbar.contact')}
@@ -41,12 +42,13 @@ export default function AboutPage() {
           <h2 id="stats-title" className="sr-only">
             {t('about.statsTitle')}
           </h2>
-          <dl className="grid grid-cols-2 gap-3">
+          <dl className="reveal-stagger grid grid-cols-2 gap-3">
             {stats.map(({ key, label }) => (
-              <div key={key} className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <div key={key} className="hover-lift rounded-2xl border border-border bg-surface p-5 shadow-card">
                 <dt className="sr-only">{t(`about.${label}`)}</dt>
                 <dd>
-                  <span className="block font-display text-3xl font-black tracking-tight text-heading">{t(`about.${key}`)}</span>
+                  <span className="block font-display text-3xl font-black tracking-tight text-heading"><CountUpText text={t(`about.${key}`)} />
+                  </span>
                   <span className="mt-1.5 block text-sm leading-snug text-muted-fg" aria-hidden>
                     {t(`about.${label}`)}
                   </span>
@@ -81,9 +83,9 @@ export default function AboutPage() {
           {t('about.valuesTitle')}
         </h2>
         <p className="mt-3 max-w-[60ch] text-base leading-relaxed text-muted-fg">{t('about.valuesSubtitle')}</p>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="reveal-stagger mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {values.map(({ title, text, icon: Icon }) => (
-            <li key={title} className="rounded-2xl border border-border bg-surface p-6 shadow-card">
+            <li key={title} className="hover-lift rounded-2xl border border-border bg-surface p-6 shadow-card">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary-soft text-primary" aria-hidden>
                 <Icon className="h-5 w-5" />
               </span>

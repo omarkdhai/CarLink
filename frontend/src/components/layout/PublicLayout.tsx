@@ -66,9 +66,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            reveal(entry.target)
-            io.unobserve(entry.target)
+          if (!entry.isIntersecting) continue
+          // Reveal this section and every section above it, so content that
+          // was skipped (anchor jumps, fast scrolling) never stays hidden.
+          const all = Array.from(main.querySelectorAll('section'))
+          const index = all.indexOf(entry.target as HTMLElement)
+          for (const section of all.slice(0, index + 1)) {
+            reveal(section)
+            io.unobserve(section)
           }
         }
       },

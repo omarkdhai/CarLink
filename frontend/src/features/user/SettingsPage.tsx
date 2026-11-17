@@ -45,7 +45,7 @@ export default function SettingsPage() {
   })
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-3xl">
+    <div className="motion-stagger space-y-6 sm:space-y-8 max-w-3xl">
       <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
       <SettingsSection icon={Languages} tone="bg-primary-soft text-primary" title={t('settings.language')} description={t('settings.languageHint')}>

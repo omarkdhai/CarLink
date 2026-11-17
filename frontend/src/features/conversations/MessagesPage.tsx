@@ -56,7 +56,7 @@ export default function MessagesPage() {
   const error = status.conversations.error
 
   return (
-    <div className="space-y-6">
+    <div className="motion-stagger space-y-6">
       <PageHeader title={t('message.title')} subtitle={t('message.subtitle')} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -130,7 +130,7 @@ export default function MessagesPage() {
                   <h2 id={`group-${g}`} className="text-xs font-semibold uppercase tracking-wide text-muted-fg mb-2 px-1">
                     {t(`message.groups.${g}`)}
                   </h2>
-                  <ul className="bg-surface border border-border rounded-2xl shadow-card divide-y divide-border overflow-hidden">
+                  <ul className="motion-stagger bg-surface border border-border rounded-2xl shadow-card divide-y divide-border overflow-hidden">
                     {groups[g].map((conv) => (
                       <li key={conv.id}>
                         <ConversationRow conv={conv} onOpen={() => conv.unread && markRead.mutate(conv.id)} />

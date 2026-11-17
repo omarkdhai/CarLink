@@ -91,7 +91,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="motion-stagger space-y-6 sm:space-y-8">
       <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
 
       {/* Identity */}

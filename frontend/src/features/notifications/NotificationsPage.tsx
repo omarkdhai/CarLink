@@ -29,7 +29,7 @@ export default function NotificationsPage() {
   const nothing = !loading && !error && unread.length === 0 && status.notices.length === 0
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="motion-stagger space-y-6 sm:space-y-8">
       <PageHeader title={t('notifications.title')} subtitle={t('notifications.subtitle')} />
 
       {error && <ErrorState message={t('errors.generic')} onRetry={() => status.conversations.refetch()} />}
@@ -39,7 +39,7 @@ export default function NotificationsPage() {
           <h2 id="notices-title" className="text-xs font-semibold uppercase tracking-wide text-muted-fg px-1">
             {t('notifications.actionNeeded')}
           </h2>
-          <ul className="space-y-3">
+          <ul className="motion-stagger space-y-3">
             {status.notices.map((n) => {
               const { icon: Icon, to, tone, urgent } = NOTICE[n]
               return (
@@ -47,7 +47,7 @@ export default function NotificationsPage() {
                   <Link
                     to={to}
                     className={cn(
-                      'flex items-start gap-4 rounded-2xl border bg-surface p-4 sm:p-5 shadow-card hover:shadow-pop transition-all',
+                      'hover-lift group flex items-start gap-4 rounded-2xl border bg-surface p-4 sm:p-5 shadow-card',
                       urgent ? 'border-destructive/30' : 'border-border',
                     )}
                   >
@@ -59,7 +59,7 @@ export default function NotificationsPage() {
                       <span className="block text-sm text-muted-fg mt-1 leading-relaxed">{t(`notifications.notice.${n}Hint`)}</span>
                       <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
                         {t(`notifications.notice.${n}Cta`)}
-                        <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+                        <ArrowRight className="nudge h-4 w-4 rtl:rotate-180" aria-hidden />
                       </span>
                     </span>
                   </Link>
@@ -88,7 +88,7 @@ export default function NotificationsPage() {
             <h2 id="new-messages-title" className="text-xs font-semibold uppercase tracking-wide text-muted-fg px-1">
               {t('notifications.newMessages', { count: unread.length })}
             </h2>
-            <ul className="bg-surface border border-border rounded-2xl shadow-card divide-y divide-border overflow-hidden">
+            <ul className="motion-stagger bg-surface border border-border rounded-2xl shadow-card divide-y divide-border overflow-hidden">
               {unread.map((c) => (
                 <li key={c.id}>
                   <ConversationRow conv={c} />

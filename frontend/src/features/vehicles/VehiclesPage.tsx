@@ -54,7 +54,7 @@ export default function VehiclesPage() {
   }, [vehiclesQuery.data, search])
 
   return (
-    <div className="space-y-6">
+    <div className="motion-stagger space-y-6">
       <PageHeader
         title={t('vehicle.title')}
         subtitle={t('vehicle.subtitle')}
@@ -142,7 +142,7 @@ export default function VehiclesPage() {
           }
         />
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="motion-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {vehicles.map((v) => (
             <li key={v.id}>
               <VehicleTile vehicle={v} activity={activity.get(v.id)} hasSticker={linked.has(v.id)} />
@@ -168,7 +168,7 @@ function VehicleTile({
   return (
     <Link
       to={`/vehicles/${v.id}`}
-      className="group h-full bg-surface border border-border rounded-2xl shadow-card hover:border-primary/40 hover:shadow-pop transition-all flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="hover-lift group h-full bg-surface border border-border rounded-2xl shadow-card hover:border-primary/40 flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <div className="p-5 flex-1">
         <div className="flex items-start gap-3">
@@ -198,7 +198,7 @@ function VehicleTile({
           {activity?.total ?? 0}
           {activity && activity.unread > 0 && <Badge tone="warning">{t('admin.fleet.unreadCount', { count: activity.unread })}</Badge>}
         </span>
-        <ChevronRight className="ms-auto h-4 w-4 text-muted-fg group-hover:text-primary rtl:rotate-180" aria-hidden />
+        <ChevronRight className="nudge ms-auto h-4 w-4 text-muted-fg group-hover:text-primary rtl:rotate-180" aria-hidden />
       </div>
     </Link>
   )

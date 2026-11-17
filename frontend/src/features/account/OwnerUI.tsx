@@ -5,6 +5,7 @@ import { ArrowRight, CarFront, ChevronRight, MessageSquareText } from 'lucide-re
 import { useCarColor } from '@/hooks/useCarColor'
 import { ConversationStatusBadge } from '@/features/conversations/ConversationBadges'
 import { formatRelative } from '@/lib/format'
+import { CountUp } from '@/components/shared/CountUp'
 import { cn } from '@/lib/cn'
 import type { ConversationSummaryResponse } from '@/types'
 
@@ -53,10 +54,10 @@ export function SectionCard({
         {action && (
           <Link
             to={action.to}
-            className="shrink-0 inline-flex items-center gap-1 h-9 px-2 -me-2 rounded-lg text-sm font-semibold text-primary hover:bg-primary-soft"
+            className="group shrink-0 inline-flex items-center gap-1 h-9 px-2 -me-2 rounded-lg text-sm font-semibold text-primary hover:bg-primary-soft"
           >
             {action.label}
-            <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+            <ArrowRight className="nudge h-4 w-4 rtl:rotate-180" aria-hidden />
           </Link>
         )}
       </div>
@@ -84,7 +85,7 @@ export function StatTile({
   return (
     <Link
       to={to}
-      className="group bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-card hover:border-primary/40 hover:shadow-pop transition-all flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0"
+      className="hover-lift group bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-card hover:border-primary/40 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0"
     >
       <span className={cn('h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-xl flex items-center justify-center', tone)}>
         <Icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden />
@@ -93,7 +94,9 @@ export function StatTile({
         {loading ? (
           <span className="block h-7 w-10 rounded bg-muted animate-pulse" />
         ) : (
-          <span className="block font-display text-2xl sm:text-3xl font-bold text-heading tabular-nums leading-none">{value}</span>
+          <span className="block font-display text-2xl sm:text-3xl font-bold text-heading tabular-nums leading-none">
+            <CountUp value={value} />
+          </span>
         )}
         <span className="block text-xs sm:text-sm text-muted-fg mt-1.5 leading-snug">{label}</span>
       </span>

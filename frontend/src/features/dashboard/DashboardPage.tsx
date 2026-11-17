@@ -28,7 +28,7 @@ export default function DashboardPage() {
   const boundVehicleIds = new Set((status.stickers.data ?? []).filter((s) => s.status === 'BOUND').map((s) => s.vehicle?.id))
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="motion-stagger space-y-6 sm:space-y-8">
       <PageHeader
         title={status.profile?.firstName ? t('dashboard.greeting', { name: status.profile.firstName }) : t('dashboard.title')}
         subtitle={t('dashboard.subtitle')}
@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
       {error && <ErrorState message={t('errors.generic')} onRetry={() => { vehiclesQuery.refetch(); status.conversations.refetch() }} />}
 
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className="motion-stagger grid grid-cols-3 gap-3 sm:gap-4">
         <StatTile to="/vehicles" icon={Car} tone="bg-primary-soft text-primary" value={vehicles.length} label={t('dashboard.totalVehicles')} loading={loading} />
         <StatTile to="/messages" icon={MessageSquare} tone="bg-success-soft text-success" value={conversations.length} label={t('dashboard.messages')} loading={loading} />
         <StatTile to="/messages" icon={MailOpen} tone="bg-warning-soft text-warning" value={status.unread} label={t('dashboard.unread')} loading={loading} />
@@ -62,7 +62,7 @@ export default function DashboardPage() {
           ) : recent.length === 0 ? (
             <InlineEmpty icon={MessageSquare} title={t('dashboard.noConversationsYet')} hint={t('dashboard.noConversationsWait')} />
           ) : (
-            <ul className="divide-y divide-border border-t border-border">
+            <ul className="motion-stagger divide-y divide-border border-t border-border">
               {recent.map((conv) => (
                 <li key={conv.id}>
                   <ConversationRow conv={conv} />
@@ -90,12 +90,12 @@ export default function DashboardPage() {
               }
             />
           ) : (
-            <ul className="space-y-2">
+            <ul className="motion-stagger space-y-2">
               {vehicles.slice(0, 4).map((v) => (
                 <li key={v.id}>
                   <Link
                     to={`/vehicles/${v.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-primary/40 hover:bg-primary-soft/30 transition-colors"
+                    className="hover-lift flex items-center gap-3 rounded-xl border border-border p-3 hover:border-primary/40"
                   >
                     <VehicleAvatar color={v.color} />
                     <span className="min-w-0 flex-1">
@@ -149,14 +149,14 @@ function SetupChecklist({ status }: { status: ReturnType<typeof useAccountStatus
     >
       <div className="flex items-center gap-3 mb-5">
         <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-          <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${pct}%` }} />
+          <div className="grow-x h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${pct}%` }} />
         </div>
         <span className="text-sm font-semibold text-heading tabular-nums">
           {status.setupDone}/{status.setupTotal}
         </span>
       </div>
       {/* Remaining steps as actionable cards… */}
-      <ol className="grid gap-3 sm:grid-cols-2">
+      <ol className="motion-stagger grid gap-3 sm:grid-cols-2">
         {items
           .filter((i) => !i.done)
           .map(({ icon: Icon, key, to }) => (

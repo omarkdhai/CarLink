@@ -109,7 +109,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 lg:pt-16 pb-16 sm:pb-20">
           <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             {/* Left column — content */}
-            <div className="mx-auto flex w-full max-w-[36rem] flex-col items-center gap-6 text-center lg:mx-0 lg:items-start lg:text-start">
+            <div className="motion-stagger mx-auto flex w-full max-w-[36rem] flex-col items-center gap-6 text-center lg:mx-0 lg:items-start lg:text-start">
               {/* Headline — both contact directions in one H1 */}
               <h1 className="w-full text-[2.25rem] font-black leading-[1.08] tracking-[-0.03em] text-heading [text-wrap:balance] sm:text-5xl lg:text-[3.5rem]">
                 <span className="block">{t('landing.heroQ1')}</span>
@@ -122,13 +122,13 @@ export default function HomePage() {
               <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:flex-nowrap lg:justify-start">
                 <Link
                   to="/order?plan=SINGLE"
-                  className="inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-primary py-2 pe-2 ps-[1.35rem] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
+                  className="group inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-primary py-2 pe-2 ps-[1.35rem] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
                 >
                   <span className="whitespace-nowrap text-[clamp(1rem,2vw,1.125rem)]">
                     {t('landing.heroCta')}
                   </span>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/25">
-                    <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden />
+                    <ArrowRight className="nudge h-5 w-5 rtl:rotate-180" aria-hidden />
                   </span>
                 </Link>
 
@@ -162,7 +162,7 @@ export default function HomePage() {
 
             {/* Right column — hero visual */}
             <div className="relative mx-auto w-full max-w-2xl">
-              <div className="relative aspect-[4/4.35] overflow-hidden rounded-[2rem] border-2 border-white bg-gradient-to-b from-primary-soft to-white shadow-[0_30px_80px_rgba(15,23,42,0.20)] sm:aspect-[4/3.65] sm:rounded-se-[7rem] lg:aspect-[4/4.05]">
+              <div className="motion-settle relative aspect-[4/4.35] overflow-hidden rounded-[2rem] border-2 border-white bg-gradient-to-b from-primary-soft to-white shadow-[0_30px_80px_rgba(15,23,42,0.20)] sm:aspect-[4/3.65] sm:rounded-se-[7rem] lg:aspect-[4/4.05]">
                 <img
                   src={heroImage}
                   alt={t('landing.heroAlt')}
@@ -176,7 +176,7 @@ export default function HomePage() {
               </div>
 
               {/* Floating card — scan / contact */}
-              <div className="absolute -top-4 end-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-top-5 sm:end-6 sm:max-w-[14.5rem] sm:p-4">
+              <div style={{ ['--float-delay' as string]: '0.4s' }} className="motion-float absolute -top-4 end-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-top-5 sm:end-6 sm:max-w-[14.5rem] sm:p-4">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
                   <QrCode className="h-5 w-5" aria-hidden />
                 </span>
@@ -191,7 +191,7 @@ export default function HomePage() {
               </div>
 
               {/* Floating card — alert */}
-              <div className="absolute -bottom-5 start-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-bottom-6 sm:start-7 sm:max-w-[14.5rem] sm:p-4">
+              <div style={{ ['--float-delay' as string]: '2.2s' }} className="motion-float absolute -bottom-5 start-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-bottom-6 sm:start-7 sm:max-w-[14.5rem] sm:p-4">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent ring-1 ring-accent/15">
                   <Bell className="h-5 w-5" aria-hidden />
                 </span>
@@ -226,7 +226,7 @@ export default function HomePage() {
           </div>
 
           {/* Numbered accordion */}
-          <ul className="mt-10 flex flex-col border-t border-muted lg:mt-12">
+          <ul className="reveal-stagger mt-10 flex flex-col border-t border-muted lg:mt-12">
             {problems.map(({ icon: Icon, title, text }, i) => {
               const active = activeProblem === i
               return (
@@ -325,7 +325,7 @@ export default function HomePage() {
                 {t('landing.howSubtitle')}
               </p>
 
-              <div className="mt-8 flex flex-col gap-1 border-t border-border pt-4">
+              <div className="reveal-stagger mt-8 flex flex-col gap-1 border-t border-border pt-4">
                 {howSteps.map((step, i) => (
                   <button
                     key={step.title}
@@ -631,7 +631,7 @@ export default function HomePage() {
             </div>
 
             {/* Advantages grid — three columns divided by rules */}
-            <ol className="mt-10 grid list-none border-t border-border ps-0 pt-2 lg:grid-cols-3 lg:pt-8">
+            <ol className="reveal-stagger mt-10 grid list-none border-t border-border ps-0 pt-2 lg:grid-cols-3 lg:pt-8">
               {advantages.map(({ icon: AIcon, title, text }) => (
                 <li
                   key={title}
@@ -681,7 +681,7 @@ export default function HomePage() {
               </div>
 
               {/* Right — one card per channel */}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="reveal-stagger grid gap-4 sm:grid-cols-2">
                 {reachChannels.map(({ icon: CIcon, name, signal, text }) => (
                   <article
                     key={name}
@@ -709,12 +709,12 @@ export default function HomePage() {
             {t('landing.faqTitle')}
           </h2>
 
-          <div className="grid gap-3 sm:gap-[0.875rem]">
+          <div className="reveal-stagger grid gap-3 sm:gap-[0.875rem]">
             {faqs.map((key) => (
               <details
                 key={key}
                 name="landing-faq"
-                className="group overflow-hidden rounded-[1.375rem] border border-border bg-gradient-to-b from-white to-background shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow] duration-150 has-[summary:focus-visible]:border-primary/30 has-[summary:focus-visible]:shadow-[0_14px_34px_rgba(37,99,235,0.11)] hover:border-primary/30 hover:shadow-[0_14px_34px_rgba(37,99,235,0.11)] open:border-primary/20"
+                className="motion-details group overflow-hidden rounded-[1.375rem] border border-border bg-gradient-to-b from-white to-background shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow] duration-150 has-[summary:focus-visible]:border-primary/30 has-[summary:focus-visible]:shadow-[0_14px_34px_rgba(37,99,235,0.11)] hover:border-primary/30 hover:shadow-[0_14px_34px_rgba(37,99,235,0.11)] open:border-primary/20"
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3.5 p-[0.9375rem_1rem] [&::-webkit-details-marker]:hidden sm:gap-4 sm:p-[1.0625rem_1.125rem]">
                   <span className="min-w-0 flex-1 text-[1.0625rem] font-bold leading-[1.35] text-heading">
@@ -748,10 +748,10 @@ export default function HomePage() {
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 to="/order"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-primary transition-colors hover:bg-primary-soft"
+                className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-primary transition-colors hover:bg-primary-soft"
               >
                 {t('landing.heroCta')}
-                <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden />
+                <ArrowRight className="nudge h-5 w-5 rtl:rotate-180" aria-hidden />
               </Link>
               <Link
                 to="/pricing"

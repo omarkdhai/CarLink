@@ -69,14 +69,14 @@ export default function ContactPage() {
     <PublicContainer>
       <PageIntro eyebrow={t('contact.pageBadge')} title={t('contact.pageTitle')} lead={t('contact.pageSubtitle')} />
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-12">
+      <div className="motion-stagger grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-12">
         {/* Help column */}
-        <aside className="space-y-4 lg:order-none order-last">
+        <aside className="motion-stagger space-y-4 lg:order-none order-last">
           <InfoCard icon={Clock} tone="bg-primary-soft text-primary" title={t('contact.responseTitle')} text={t('contact.responseText')} />
           <InfoCard icon={PackageSearch} tone="bg-accent-soft text-accent" title={t('contact.orderHelpTitle')} text={t('contact.orderHelpText')} />
           <Link
             to="/#faq"
-            className="flex items-start gap-4 rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-primary/40 hover:bg-primary-soft/30"
+            className="hover-lift group flex items-start gap-4 rounded-2xl border border-border bg-surface p-5 hover:border-primary/40"
           >
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success-soft text-success" aria-hidden>
               <HelpCircle className="h-5 w-5" />
@@ -86,7 +86,7 @@ export default function ContactPage() {
               <span className="mt-1 block text-sm leading-relaxed text-muted-fg">{t('contact.faqText')}</span>
               <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
                 {t('contact.faqCta')}
-                <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+                <ArrowRight className="nudge h-4 w-4 rtl:rotate-180" aria-hidden />
               </span>
             </span>
           </Link>

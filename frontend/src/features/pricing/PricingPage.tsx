@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, Banknote, Check, Sticker, Truck } from 'lucide-react'
 import { PageIntro, PublicContainer } from '@/components/shared/PublicPage'
+import { CountUp } from '@/components/shared/CountUp'
 import { cn } from '@/lib/cn'
 
 const CURRENCY = 'TND'
@@ -75,12 +76,12 @@ export default function PricingPage() {
       <PageIntro center eyebrow={t('landing.pricingBadge')} title={t('landing.pricingTitle')} lead={t('landing.pricingSubtitle')} />
 
       {/* Plans */}
-      <div className="grid gap-5 lg:grid-cols-3 lg:items-stretch">
+      <div className="motion-stagger grid gap-5 lg:grid-cols-3 lg:items-stretch">
         {plans.map((plan) => (
           <article
             key={plan.key}
             className={cn(
-              'relative flex h-full flex-col rounded-3xl border bg-surface p-6 sm:p-7',
+              'hover-lift relative flex h-full flex-col rounded-3xl border bg-surface p-6 sm:p-7',
               plan.featured ? 'border-2 border-primary shadow-[0_18px_50px_rgba(37,99,235,0.14)]' : 'border-border shadow-card',
             )}
           >
@@ -107,7 +108,9 @@ export default function PricingPage() {
             </div>
 
             <div className="mt-6 flex items-end gap-2">
-              <span className="font-display text-5xl font-black leading-none tracking-tight text-heading">{plan.price}</span>
+              <span className="font-display text-5xl font-black leading-none tracking-tight text-heading">
+                <CountUp value={plan.price} />
+              </span>
               <span className="pb-1 text-base font-medium text-muted-fg">
                 {CURRENCY} / {t('landing.pricingPerYear')}
               </span>
@@ -131,21 +134,21 @@ export default function PricingPage() {
             <Link
               to={`/order?plan=${plan.key}`}
               className={cn(
-                'mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full text-base font-semibold transition-all active:scale-[0.98]',
+                'group mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full text-base font-semibold transition-all active:scale-[0.98]',
                 plan.featured
                   ? 'bg-primary text-white shadow-[0_10px_30px_rgba(37,99,235,0.22)] hover:bg-primary-hover'
                   : 'border border-primary/30 bg-surface text-primary hover:bg-primary-soft',
               )}
             >
               {t('landing.pricingCtaPack')}
-              <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
+              <ArrowRight className="nudge h-4 w-4 rtl:rotate-180" aria-hidden />
             </Link>
           </article>
         ))}
       </div>
 
       {/* What every order includes */}
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+      <div className="motion-stagger mt-8 grid gap-3 sm:grid-cols-2">
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-5">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary" aria-hidden>
             <Truck className="h-5 w-5" />

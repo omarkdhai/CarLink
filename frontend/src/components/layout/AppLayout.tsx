@@ -229,7 +229,7 @@ export function AppLayout() {
                     active ? 'text-primary' : 'text-muted-fg hover:text-foreground',
                   )}
                 >
-                  <span className="relative">
+                  <span className="tab-pop relative">
                     <Icon className="h-6 w-6" aria-hidden />
                     <CountBadge count={count} label={badgeLabel(count)} className="absolute -top-1.5 -end-2.5 ring-2 ring-surface" />
                   </span>

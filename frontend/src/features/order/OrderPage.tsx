@@ -366,7 +366,7 @@ export default function OrderPage() {
             <p className="mt-3 max-w-[620px] text-base leading-relaxed text-muted-fg sm:text-lg">
               {t('order.subtitle')}
             </p>
-            <ul className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <ul className="motion-stagger mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <BenefitChip icon={<Smartphone className="h-3.5 w-3.5" aria-hidden />}>
                 {t('order.benefit1')}
               </BenefitChip>
@@ -459,7 +459,7 @@ export default function OrderPage() {
                 <p className="mt-2 text-sm leading-relaxed text-muted-fg">{t('order.choosePackHint')}</p>
               </header>
 
-              <div className="grid gap-2.5">
+              <div className="motion-stagger grid gap-2.5">
                 {PACKS.map((p) => {
                   const selected = pkg === p.key
                   return (
