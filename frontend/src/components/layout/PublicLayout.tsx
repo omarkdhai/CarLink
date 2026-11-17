@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LayoutGrid, LogIn, Menu, ShoppingBag, X } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
@@ -25,9 +25,16 @@ function LandingNav() {
   return (
     <nav aria-label={t('nav.main')} className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
       {NAV_LINKS.map(({ to, key }) => (
-        <Link key={to} to={to} className="text-sm font-medium text-muted-fg hover:text-primary transition-colors">
+        <NavLink
+          key={to}
+          to={to}
+          end
+          className={({ isActive }) =>
+            cn('text-sm font-medium transition-colors', isActive ? 'text-primary' : 'text-muted-fg hover:text-primary')
+          }
+        >
           {t(`navbar.${key}`)}
-        </Link>
+        </NavLink>
       ))}
     </nav>
   )
@@ -135,14 +142,20 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <div id="public-menu" className="lg:hidden absolute top-full start-0 end-0 bg-surface border-b border-border/60 shadow-pop px-4 pt-3 pb-5 page-enter">
             <nav aria-label={t('nav.main')} className="flex flex-col gap-1">
               {NAV_LINKS.map(({ to, key }) => (
-                <Link
+                <NavLink
                   key={to}
                   to={to}
+                  end
                   onClick={() => setMenuOpen(false)}
-                  className="px-3 h-11 flex items-center rounded-lg text-sm font-medium text-muted-fg hover:bg-muted hover:text-foreground transition-colors"
+                  className={({ isActive }) =>
+                    cn(
+                      'px-3 h-11 flex items-center rounded-lg text-sm font-medium hover:bg-muted transition-colors',
+                      isActive ? 'text-primary' : 'text-muted-fg hover:text-foreground',
+                    )
+                  }
                 >
                   {t(`navbar.${key}`)}
-                </Link>
+                </NavLink>
               ))}
             </nav>
             <div className="mt-4 grid grid-cols-2 gap-2">
