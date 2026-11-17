@@ -255,6 +255,254 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(stats.get("reportsOpenVsTotal").asDouble()).isGreaterThan(0.0);
     }
 
+    @Test
+    void adminDashboardReflectsTodaysActivityWithGapFreeSeries() throws Exception {
+        Admin admin = newAdmin();
+        Owner owner = newOwner(); // places a SINGLE order (7 + 20 TND) via freshStickerCode
+        fileReportAsVisitor(owner.auth);
+
+        MvcResult result = mockMvc.perform(get("/api/v1/admin/stats/dashboard?days=30")
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String raw = result.getResponse().getContentAsString();
+        assertThat(raw).doesNotContain("Buy it now!").doesNotContain("+21655");
+
+        JsonNode d = objectMapper.readTree(raw);
+        assertThat(d.get("granularity").asText()).isEqualTo("day");
+        assertThat(d.get("sales")).hasSize(30);
+        assertThat(d.get("growth")).hasSize(30);
+        assertThat(d.get("contactsByHour")).hasSize(24);
+        assertThat(d.at("/kpis/orders/value").asDouble()).isGreaterThanOrEqualTo(1);
+        assertThat(d.at("/kpis/revenue/value").asDouble()).isGreaterThanOrEqualTo(27);
+        assertThat(d.at("/kpis/newUsers/value").asDouble()).isGreaterThanOrEqualTo(2);
+        assertThat(d.at("/kpis/contacts/value").asDouble()).isGreaterThanOrEqualTo(1);
+        assertThat(d.at("/stickers/issued").asLong()).isGreaterThanOrEqualTo(1);
+        assertThat(d.at("/snapshot/reportsOpen").asLong()).isGreaterThanOrEqualTo(1);
+        assertThat(d.get("recentOrders").size()).isBetween(1, 6);
+
+        // Today's activity lands in the last bucket
+        JsonNode lastSales = d.get("sales").get(29);
+        assertThat(lastSales.get("orders").asLong()).isGreaterThanOrEqualTo(1);
+        assertThat(lastSales.get("stickers").asLong()).isGreaterThanOrEqualTo(1);
+
+        // Longer windows switch granularity; arbitrary windows are rejected
+        assertThat(getJson(admin.auth, "/api/v1/admin/stats/dashboard?days=90").get("granularity").asText())
+                .isEqualTo("week");
+        assertThat(getJson(admin.auth, "/api/v1/admin/stats/dashboard?days=365").get("granularity").asText())
+                .isEqualTo("month");
+        mockMvc.perform(get("/api/v1/admin/stats/dashboard?days=12")
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/admin/stats/dashboard")
+                        .header("Authorization", bearer(owner.auth)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminOrderSearchCombinesTextAndStatus() throws Exception {
+        Admin admin = newAdmin();
+        String buyer = "Zed Searchable " + (++seq);
+        MvcResult placed = mockMvc.perform(post("/api/v1/public/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of(
+                                "items", List.of(Map.of("stickerPackage", "DOUBLE", "quantity", 1)),
+                                "customerName", buyer,
+                                "mobile", "+21655999" + String.format("%03d", seq),
+                                "email", "zed" + seq + "@example.com",
+                                "governorate", "SFAX",
+                                "deliveryAddress", "2 Rue du Test"))))
+                .andExpect(status().isOk())
+                .andReturn();
+        String ref = objectMapper.readTree(placed.getResponse().getContentAsString()).get("reference").asText();
+
+        // Text + matching status finds it, with its items loaded
+        JsonNode hit = getJson(admin.auth, "/api/v1/admin/orders?status=PLACED&q=zed" + seq + "@example.com");
+        assertThat(hit.get("totalElements").asLong()).isEqualTo(1);
+        assertThat(hit.at("/content/0/reference").asText()).isEqualTo(ref);
+        assertThat(hit.at("/content/0/stickerCount").asInt()).isEqualTo(2);
+        assertThat(hit.at("/content/0/items/0/stickerPackage").asText()).isEqualTo("DOUBLE");
+
+        // Text + another status must not ignore the text
+        assertThat(getJson(admin.auth, "/api/v1/admin/orders?status=DELIVERED&q=" + ref)
+                .get("totalElements").asLong()).isZero();
+
+        mockMvc.perform(get("/api/v1/admin/orders?status=NOPE")
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isBadRequest());
+    }
+
+    // ---------- fleet management ----------
+
+    @Test
+    void adminListsEveryVehicleWithOwnerAndActivityButNoPhone() throws Exception {
+        Admin admin = newAdmin();
+        Owner owner = newOwner();
+        fileReportAsVisitor(owner.auth);
+
+        MvcResult listed = mockMvc.perform(get("/api/v1/admin/vehicles")
+                        .param("q", owner.email)
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].owner.phone").doesNotExist())
+                .andReturn();
+        String raw = listed.getResponse().getContentAsString();
+        assertThat(raw).doesNotContain("+21655100").doesNotContain("Buy it now!");
+
+        JsonNode page = objectMapper.readTree(raw);
+        assertThat(page.get("totalElements").asLong()).isEqualTo(1);
+        JsonNode v = page.at("/content/0");
+        assertThat(v.at("/owner/email").asText()).isEqualTo(owner.email);
+        assertThat(v.at("/owner/id").asText()).isEqualTo(owner.userId.toString());
+        assertThat(v.get("brand").asText()).isEqualTo("Toyota");
+        assertThat(v.get("status").asText()).isEqualTo("ACTIVE");
+        assertThat(v.get("conversationCount").asLong()).isEqualTo(1);
+        assertThat(v.get("unreadCount").asLong()).isEqualTo(1);
+        assertThat(v.get("lastContactAt").isNull()).isFalse();
+
+        // Search by plate fragment and single-vehicle lookup agree
+        String plate = v.get("licensePlate").asText();
+        JsonNode byPlate = getJson(admin.auth, "/api/v1/admin/vehicles?q=" + plate);
+        assertThat(byPlate.at("/content/0/id").asText()).isEqualTo(v.get("id").asText());
+        JsonNode got = getJson(admin.auth, "/api/v1/admin/vehicles/" + v.get("id").asText());
+        assertThat(got.get("conversationCount").asLong()).isEqualTo(1);
+
+        // Unknown status is rejected; non-admins are forbidden
+        mockMvc.perform(get("/api/v1/admin/vehicles?status=BOGUS")
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/admin/vehicles")
+                        .header("Authorization", bearer(owner.auth)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminArchivesAndRestoresAnyVehicleWithAuditTrail() throws Exception {
+        Admin admin = newAdmin();
+        Owner owner = newOwner();
+        fileReportAsVisitor(owner.auth);
+        String vehicleId = getJson(admin.auth, "/api/v1/admin/vehicles?q=" + owner.email)
+                .at("/content/0/id").asText();
+
+        mockMvc.perform(post("/api/v1/admin/vehicles/{id}/archive", vehicleId)
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isOk());
+        JsonNode archived = getJson(admin.auth,
+                "/api/v1/admin/vehicles?status=ARCHIVED&q=" + owner.email);
+        assertThat(archived.at("/content/0/id").asText()).isEqualTo(vehicleId);
+        assertThat(getJson(admin.auth, "/api/v1/admin/vehicles?status=ACTIVE&q=" + owner.email)
+                .get("totalElements").asLong()).isZero();
+
+        // Archiving twice is a conflict, not a silent no-op
+        mockMvc.perform(post("/api/v1/admin/vehicles/{id}/archive", vehicleId)
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isConflict());
+
+        JsonNode audit = getJson(admin.auth, "/api/v1/admin/audit-logs?action=VEHICLE_ARCHIVE");
+        assertThat(audit.at("/0/entityId").asText()).isEqualTo(vehicleId);
+
+        mockMvc.perform(post("/api/v1/admin/vehicles/{id}/restore", vehicleId)
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isOk());
+        assertThat(getJson(admin.auth, "/api/v1/admin/vehicles/" + vehicleId)
+                .get("status").asText()).isEqualTo("ACTIVE");
+
+        mockMvc.perform(post("/api/v1/admin/vehicles/{id}/restore", UUID.randomUUID())
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isNotFound());
+    }
+
+    // ---------- sticker management ----------
+
+    @Test
+    void adminListsStickersWithOrderOwnerAndVehicleButNoSecrets() throws Exception {
+        Admin admin = newAdmin();
+        Owner owner = newOwner();
+        String code = freshStickerCode();
+        String plate = "ST-" + (++seq) + "-KR";
+        mockMvc.perform(post("/api/v1/stickers/activate-by-code")
+                        .header("Authorization", bearer(owner.auth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("code", code, "details", Map.of(
+                                "birthDate", "1990-01-01", "licensePlate", plate,
+                                "brand", "Kia", "model", "Rio")))))
+                .andExpect(status().isOk());
+
+        MvcResult listed = mockMvc.perform(get("/api/v1/admin/stickers")
+                        .param("q", plate)
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String raw = listed.getResponse().getContentAsString();
+        assertThat(raw).doesNotContain("tokenHash").doesNotContain("activationCode")
+                .doesNotContain(code).doesNotContain("+21655").doesNotContain("République");
+
+        JsonNode page = objectMapper.readTree(raw);
+        assertThat(page.get("totalElements").asLong()).isEqualTo(1);
+        JsonNode s = page.at("/content/0");
+        assertThat(s.get("status").asText()).isEqualTo("BOUND");
+        assertThat(s.get("legacy").asBoolean()).isFalse();
+        assertThat(s.at("/order/reference").asText()).startsWith("CL-");
+        assertThat(s.at("/owner/email").asText()).isEqualTo(owner.email);
+        assertThat(s.at("/vehicle/licensePlate").asText()).isEqualTo(plate);
+        assertThat(s.get("boundAt").isNull()).isFalse();
+
+        // Search by order reference and by owner email find the same sticker
+        String ref = s.at("/order/reference").asText();
+        assertThat(getJson(admin.auth, "/api/v1/admin/stickers?q=" + ref).at("/content/0/id").asText())
+                .isEqualTo(s.get("id").asText());
+        assertThat(getJson(admin.auth, "/api/v1/admin/stickers?status=BOUND&q=" + owner.email)
+                .get("totalElements").asLong()).isGreaterThanOrEqualTo(1);
+
+        // Per-status totals cover every status
+        JsonNode counts = getJson(admin.auth, "/api/v1/admin/stickers/counts");
+        assertThat(counts.get("BOUND").asLong()).isGreaterThanOrEqualTo(1);
+        assertThat(counts.has("UNBOUND")).isTrue();
+        assertThat(counts.has("DEACTIVATED")).isTrue();
+
+        mockMvc.perform(get("/api/v1/admin/stickers?status=BOGUS")
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/admin/stickers")
+                        .header("Authorization", bearer(owner.auth)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminDeactivatesLiveStickerWithAuditTrail() throws Exception {
+        Admin admin = newAdmin();
+        Owner owner = newOwner();
+        String plate = "DS-" + (++seq) + "-KR";
+        mockMvc.perform(post("/api/v1/stickers/activate-by-code")
+                        .header("Authorization", bearer(owner.auth))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("code", freshStickerCode(), "details", Map.of(
+                                "birthDate", "1990-01-01", "licensePlate", plate)))))
+                .andExpect(status().isOk());
+        String stickerId = getJson(admin.auth, "/api/v1/admin/stickers?q=" + plate)
+                .at("/content/0/id").asText();
+
+        mockMvc.perform(post("/api/v1/admin/stickers/{id}/deactivate", stickerId)
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isOk());
+        JsonNode after = getJson(admin.auth, "/api/v1/admin/stickers/" + stickerId);
+        assertThat(after.get("status").asText()).isEqualTo("DEACTIVATED");
+        assertThat(after.hasNonNull("vehicle")).isFalse();
+        assertThat(after.get("deactivatedAt").isNull()).isFalse();
+
+        // Only BOUND stickers can be deactivated
+        mockMvc.perform(post("/api/v1/admin/stickers/{id}/deactivate", stickerId)
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isConflict());
+
+        JsonNode audit = getJson(admin.auth, "/api/v1/admin/audit-logs?action=STICKER_DEACTIVATE");
+        assertThat(audit.at("/0/entityId").asText()).isEqualTo(stickerId);
+
+        mockMvc.perform(post("/api/v1/admin/stickers/{id}/deactivate", UUID.randomUUID())
+                        .header("Authorization", bearer(admin.auth)))
+                .andExpect(status().isNotFound());
+    }
+
     // ---------- helpers ----------
 
     /** Inserts an ADMIN directly (bootstrap is dev-only) and logs in. */
