@@ -5,6 +5,8 @@ import {
   Users,
   Car,
   QrCode,
+  ShoppingCart,
+  MessageSquare,
   Flag,
   ScrollText,
   ShieldCheck,
@@ -25,6 +27,8 @@ const adminNav = [
   { to: '/admin/users', key: 'nav.adminUsers', icon: Users },
   { to: '/admin/vehicles', key: 'nav.adminVehicles', icon: Car },
   { to: '/admin/qr-codes', key: 'nav.adminQrCodes', icon: QrCode },
+  { to: '/admin/orders', key: 'nav.adminOrders', icon: ShoppingCart },
+  { to: '/admin/contacts', key: 'nav.adminContacts', icon: MessageSquare },
   { to: '/admin/reports', key: 'nav.adminReports', icon: Flag },
   { to: '/admin/audit-logs', key: 'nav.adminAuditLogs', icon: ScrollText },
 ]

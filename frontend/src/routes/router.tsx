@@ -41,6 +41,8 @@ const SettingsPage = lazy(() => import('@/features/user/SettingsPage'))
 const AdminOverviewPage = lazy(() => import('@/features/admin/AdminOverviewPage'))
 const AdminUsersPage = lazy(() => import('@/features/admin/AdminUsersPage'))
 const AdminVehiclesPage = lazy(() => import('@/features/admin/AdminVehiclesPage'))
+const AdminOrdersPage = lazy(() => import('@/features/admin/AdminOrdersPage'))
+const AdminContactsPage = lazy(() => import('@/features/admin/AdminContactsPage'))
 const AdminQrCodesPage = lazy(() => import('@/features/admin/AdminQrCodesPage'))
 const AdminReportsPage = lazy(() => import('@/features/admin/AdminReportsPage'))
 const AdminAuditLogsPage = lazy(() => import('@/features/admin/AdminAuditLogsPage'))
@@ -238,6 +240,8 @@ export function AppRouter() {
         <Route path="/admin" element={withLoader(<AdminOverviewPage />)} />
         <Route path="/admin/users" element={withLoader(<AdminUsersPage />)} />
         <Route path="/admin/vehicles" element={withLoader(<AdminVehiclesPage />)} />
+        <Route path="/admin/orders" element={withLoader(<AdminOrdersPage />)} />
+        <Route path="/admin/contacts" element={withLoader(<AdminContactsPage />)} />
         <Route path="/admin/qr-codes" element={withLoader(<AdminQrCodesPage />)} />
         <Route path="/admin/reports" element={withLoader(<AdminReportsPage />)} />
         <Route path="/admin/audit-logs" element={withLoader(<AdminAuditLogsPage />)} />

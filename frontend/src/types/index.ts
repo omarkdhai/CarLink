@@ -331,6 +331,41 @@ export interface ConversationDetailResponse {
 
 // ---------- Admin ----------
 
+/** Spring Data page envelope. */
+export interface PageResponse<T> {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+}
+
+export interface AdminOrderView {
+  reference: string
+  status: OrderStatus
+  totalAmount: string
+  currency: string
+  stickerCount: number
+  customerName: string
+  email: string
+  mobile: string
+  governorate: string
+  deliveryAddress: string
+  deliveryNotes: string | null
+  createdAt: ISOInstant
+  items: OrderItemResponse[]
+}
+
+export interface AdminContactView {
+  id: string
+  name: string
+  email: string
+  mobile: string | null
+  reason: string
+  note: string | null
+  createdAt: ISOInstant
+}
+
 export interface AdminUserResponse {
   id: UUID
   email: string
@@ -341,6 +376,30 @@ export interface AdminUserResponse {
   emailVerified: boolean
   createdAt: ISOInstant
   vehicleCount: number
+}
+
+/** Admin fleet view: vehicle + owner identity + activity counters (never the owner's phone). */
+export interface AdminVehicleView {
+  id: UUID
+  nickname: string | null
+  brand: string | null
+  model: string | null
+  color: string | null
+  licensePlate: string
+  status: VehicleStatus
+  createdAt: ISOInstant
+  updatedAt: ISOInstant
+  owner: {
+    id: UUID
+    firstName: string
+    lastName: string
+    email: string
+    active: boolean
+  }
+  stickerCount: number
+  conversationCount: number
+  unreadCount: number
+  lastContactAt: ISOInstant | null
 }
 
 export type ReportStatus = 'OPEN' | 'REVIEWED' | 'CLOSED'
@@ -408,6 +467,105 @@ export interface AdminStatsResponse {
   dailyRegistrations: Array<{ date: string; count: number }>
   hourlyActivity: Array<{ hour: number; count: number }>
   conversionRate: number
+}
+
+/** Admin QR-sticker view: order + owner + vehicle (never tokens, codes or phone). */
+export interface AdminStickerView {
+  id: UUID
+  status: StickerStatus
+  /** Backfilled from a pre-sticker QR code: no printed activation code. */
+  legacy: boolean
+  createdAt: ISOInstant
+  boundAt: ISOInstant | null
+  deactivatedAt: ISOInstant | null
+  order: {
+    reference: string
+    customerName: string
+    status: OrderStatus
+    createdAt: ISOInstant
+  } | null
+  owner: {
+    id: UUID
+    firstName: string
+    lastName: string
+    email: string
+    active: boolean
+  } | null
+  vehicle: {
+    id: UUID
+    nickname: string | null
+    brand: string | null
+    model: string | null
+    color: string | null
+    licensePlate: string
+    status: VehicleStatus
+  } | null
+}
+
+export type AdminStickerCounts = Record<StickerStatus, number>
+
+// ---------- Admin dashboard ----------
+
+export type DashboardDays = 7 | 30 | 90 | 365
+
+/** A metric for the selected window and the window just before it. */
+export interface DashboardKpi {
+  value: number
+  previous: number
+}
+
+export interface DashboardSlice {
+  name: string
+  count: number
+  amount: string
+}
+
+export interface AdminDashboardResponse {
+  days: DashboardDays
+  granularity: 'day' | 'week' | 'month'
+  timeZone: string
+  generatedAt: ISOInstant
+  kpis: {
+    revenue: DashboardKpi
+    deliveredRevenue: DashboardKpi
+    orders: DashboardKpi
+    averageOrderValue: DashboardKpi
+    stickersSold: DashboardKpi
+    activations: DashboardKpi
+    newUsers: DashboardKpi
+    newVehicles: DashboardKpi
+    contacts: DashboardKpi
+    deliveryRate: DashboardKpi
+  }
+  /** `bucket` is an ISO date (YYYY-MM-DD), start of the day/week/month. */
+  sales: { bucket: string; orders: number; revenue: string; stickers: number }[]
+  growth: { bucket: string; users: number; vehicles: number; activations: number }[]
+  contacts: { bucket: string; sent: number; failed: number; other: number }[]
+  ordersByStatus: DashboardSlice[]
+  packageMix: DashboardSlice[]
+  governorates: DashboardSlice[]
+  contactReasons: DashboardSlice[]
+  contactsByHour: number[]
+  stickers: { issued: number; everActivated: number; bound: number; unbound: number; deactivated: number }
+  snapshot: {
+    usersTotal: number
+    usersActive: number
+    vehiclesTotal: number
+    vehiclesActive: number
+    ordersPending: number
+    ordersPendingValue: string
+    reportsOpen: number
+    contactsFailed: number
+  }
+  recentOrders: {
+    reference: string
+    customerName: string
+    governorate: string
+    totalAmount: string
+    currency: string
+    status: OrderStatus
+    createdAt: ISOInstant
+  }[]
 }
 
 export interface AuditLogResponse {
