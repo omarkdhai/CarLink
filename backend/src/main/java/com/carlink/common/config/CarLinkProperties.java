@@ -26,7 +26,6 @@ public record CarLinkProperties(
     public record Jwt(
             String secret,
             long accessExpirationMinutes,
-            String refreshSecret,
             long refreshExpirationDays
     ) {}
 

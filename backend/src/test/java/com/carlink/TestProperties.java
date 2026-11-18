@@ -17,7 +17,6 @@ public final class TestProperties {
                 new CarLinkProperties.Jwt(
                         "unit-test-secret-key-at-least-32-characters-long!!",
                         15,
-                        "unit-test-refresh-secret-at-least-32-chars!!",
                         7),
                 new CarLinkProperties.Conversation(24),
                 new CarLinkProperties.Qr(32),

@@ -3,7 +3,7 @@
 # Usage:  docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 #
 # Required env (see .env.example): POSTGRES_PASSWORD, REDIS_PASSWORD,
-# JWT_SECRET, JWT_REFRESH_SECRET, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD,
+# JWT_SECRET, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD,
 # APP_BASE_URL, APP_PUBLIC_URL.
 # ============================================
 
@@ -73,7 +73,6 @@ services:
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
       MAIL_HOST: ${MAIL_HOST:?MAIL_HOST is required}
       MAIL_PORT: ${MAIL_PORT:-465}
       MAIL_USERNAME: ${MAIL_USERNAME:?MAIL_USERNAME is required}

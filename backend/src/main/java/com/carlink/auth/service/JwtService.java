@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -30,8 +31,37 @@ public class JwtService {
 
     public JwtService(CarLinkProperties properties) {
         this.properties = properties;
-        this.signingKey = Keys.hmacShaKeyFor(
-                properties.jwt().secret().getBytes(StandardCharsets.UTF_8));
+        this.signingKey = signingKey(properties.jwt().secret());
+    }
+
+    /** Values that have been public (committed) at some point: never acceptable. */
+    static final Set<String> PUBLIC_SECRETS = Set.of(
+            "dev-only-change-me-in-production-please-32chars",
+            "replace_with_a_strong_random_secret_at_least_32_chars",
+            "change_me", "changeme", "secret");
+
+    /**
+     * Security plan S-18: refuse to start with a missing, short, publicly known
+     * or obviously low-entropy signing secret — anyone who knows it can mint an
+     * ADMIN token. Generate one with {@code openssl rand -hex 48} or
+     * {@code node scripts/dev-secrets.mjs}.
+     */
+    static SecretKey signingKey(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET (carlink.jwt.secret) is not set.");
+        }
+        String value = secret.trim();
+        if (PUBLIC_SECRETS.contains(value)) {
+            throw new IllegalStateException("JWT_SECRET is a publicly known value; generate a random one.");
+        }
+        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 bytes (256 bits).");
+        }
+        if (value.chars().distinct().count() < 10) {
+            throw new IllegalStateException("JWT_SECRET has too little variety to be random.");
+        }
+        return Keys.hmacShaKeyFor(bytes);
     }
 
     public String issueAccessToken(User user) {

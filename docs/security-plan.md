@@ -258,7 +258,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
   - **Done when:** nginx access log contains no 64-char token after a scan + contact (test script).
 - [ ] **S-11** CAPTCHA/Turnstile on order, contact form, report and scan-contact; per-email/phone order cap.
 - [ ] **S-12** Per-sticker daily cap, per-(IP,sticker) cooldown, URL neutralisation, Telnyx spend alert.
-- [ ] **S-18** Remove secret defaults from the base profile; startup secret-strength guard; drop
+- [x] **S-18** — done 2026-11-18 (JwtService refuses weak/public secrets; JWT_REFRESH_SECRET removed). Remove secret defaults from the base profile; startup secret-strength guard; drop
   `JWT_REFRESH_SECRET`.
 
 ### Phase 2 — Hardening (Medium)

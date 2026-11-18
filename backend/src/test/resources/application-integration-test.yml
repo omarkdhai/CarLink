@@ -22,7 +22,6 @@ carlink:
   jwt:
     secret: integration-test-secret-key-at-least-32-characters-long!!
     access-expiration-minutes: 15
-    refresh-secret: integration-test-refresh-secret-at-least-32-chars!!
     refresh-expiration-days: 7
 
   conversation:

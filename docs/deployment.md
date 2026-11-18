@@ -21,15 +21,16 @@ API proxy), Spring Boot, PostgreSQL and Redis.
 
 ## 2. Secrets
 
-Generate the two JWT secrets independently. They must differ from each other.
+Generate the JWT signing secret (refresh tokens are opaque random values
+hashed in the database, so there is no second secret). The backend refuses to
+start with a missing, short (< 32 bytes), publicly known or low-entropy value.
 
 ```bash
-openssl rand -base64 48   # JWT_SECRET
-openssl rand -base64 48   # JWT_REFRESH_SECRET
+openssl rand -hex 48   # JWT_SECRET
 ```
 
 `docker-compose.prod.yml` refuses to start if `POSTGRES_PASSWORD`,
-`REDIS_PASSWORD`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MAIL_HOST`,
+`REDIS_PASSWORD`, `JWT_SECRET`, `MAIL_HOST`,
 `MAIL_USERNAME`, `MAIL_PASSWORD`, `APP_BASE_URL` or `APP_PUBLIC_URL` is unset —
 this is deliberate, since each of those silently falls back to a
 development-grade default if omitted.
@@ -53,8 +54,9 @@ development-grade default if omitted.
 | `TELNYX_VOICE_AUDIO_URL` | Public HTTPS URL of the clip played when the owner answers. Without it the alert call is skipped (a call to silence is worse than none). |
 | `HSTS_ENABLED` | `false` until TLS is confirmed working — see §3. |
 
-**Rotating `JWT_SECRET` or `JWT_REFRESH_SECRET` invalidates every issued token,
-logging all users out.** Rotate deliberately, not as a reflex.
+**Rotating `JWT_SECRET` invalidates every issued access token.** Sessions
+recover transparently through their (database-backed) refresh token; to force
+everyone to sign in again, also revoke the rows in `refresh_tokens`.
 
 ## 3. TLS
 

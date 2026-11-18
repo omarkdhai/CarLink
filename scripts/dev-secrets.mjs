@@ -40,7 +40,6 @@ const hex = (bytes) => randomBytes(bytes).toString('hex')
 /** Key → generator. Only these keys are ever touched. */
 const SECRETS = {
   JWT_SECRET: () => hex(48),
-  JWT_REFRESH_SECRET: () => hex(48),
   POSTGRES_PASSWORD: () => hex(24),
   REDIS_PASSWORD: () => hex(24),
   // Meets the password rule (letters + digits); used only to create the first

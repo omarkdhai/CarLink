@@ -121,8 +121,6 @@ carlink:
     secret: ${JWT_SECRET}
     access-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:15}
     # Refresh token (long-lived)
-    # Unused (refresh tokens are opaque, hashed in the DB); removal tracked as S-18.
-    refresh-secret: ${JWT_REFRESH_SECRET:}
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
 
   # Conversation / contact
