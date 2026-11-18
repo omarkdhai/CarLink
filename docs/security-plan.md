@@ -247,7 +247,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 - [x] **S-04** — done 2026-11-18 (per-IP cap, (IP,e-mail) lockout, dummy BCrypt; distributed per-account guessing is left to S-11 CAPTCHA). Login: per-IP limiter, progressive delay instead of hard lock, dummy BCrypt for unknown users.
   - **Done when:** tests: other IPs can still log in while one IP is throttled; unknown-email and
     wrong-password responses take comparable time (± tolerance).
-- [ ] **S-06** Security headers on the SPA (`nginx.conf`) + strict CSP; `server_tokens off`.
+- [x] **S-06** — done 2026-11-18 (strict CSP, no eval/inline scripts; crawl of 29 page loads FR/AR + owner app: 0 violations). Security headers on the SPA (`nginx.conf`) + strict CSP; `server_tokens off`.
   - **Done when:** `curl -I http://localhost/` shows CSP, `X-Frame-Options: DENY`/`frame-ancestors 'none'`,
     `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`; app works with no CSP
     violations in the console (home, order, scan, owner pages, AR/FR/EN).
