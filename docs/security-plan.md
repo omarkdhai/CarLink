@@ -241,7 +241,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 
 - [ ] **S-02** TLS termination + HTTP→HTTPS redirect + HSTS (prod compose / deployment runbook).
   - **Done when:** `curl -I http://…` → 301 to https; `Strict-Transport-Security` present; SSL Labs ≥ A.
-- [ ] **S-03** Rate limits on `register`, `password-reset`, `password-reset/confirm`, `verify-email`,
+- [x] **S-03** — done 2026-11-18 (carlink.throttle.*; AuthThrottleIntegrationTest). Rate limits on `register`, `password-reset`, `password-reset/confirm`, `verify-email`,
   `refresh`, `activate-by-code`, `/{token}/activate` (per IP + per target).
   - **Done when:** integration tests get 429 after the threshold for each endpoint.
 - [ ] **S-04** Login: per-IP limiter, progressive delay instead of hard lock, dummy BCrypt for unknown users.

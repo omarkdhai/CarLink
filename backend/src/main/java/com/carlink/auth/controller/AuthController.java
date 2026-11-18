@@ -1,5 +1,9 @@
 package com.carlink.auth.controller;
 
+import com.carlink.security.ratelimit.Throttle;
+import com.carlink.security.ratelimit.ThrottleProperties;
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.carlink.auth.dto.AuthResponse;
 import com.carlink.auth.dto.LoginRequest;
 import com.carlink.auth.dto.PasswordResetRequest;
@@ -31,16 +35,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final Throttle throttle;
+    private final ThrottleProperties limits;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new owner account")
-    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
+    public AuthResponse register(@Valid @RequestBody RegisterRequest request,
+                                 HttpServletRequest http) {
+        // S-03: also bounds sticker-code guessing, since registration validates the code.
+        throttle.require("register-ip", limits.getRegisterIp(), http.getRemoteAddr());
         return authService.register(request);
     }
 
     @PostMapping("/verify-email")
     @Operation(summary = "Confirm email address using the emailed token")
-    public MessageResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+    public MessageResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request,
+                                       HttpServletRequest http) {
+        throttle.require("verify-email-ip", limits.getVerifyEmailIp(), http.getRemoteAddr());
         authService.verifyEmail(request.token());
         return MessageResponse.of("Email verified");
     }
@@ -53,7 +64,9 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Rotate a refresh token and receive a fresh token pair")
-    public AuthResponse refresh(@Valid @RequestBody RefreshRequest request) {
+    public AuthResponse refresh(@Valid @RequestBody RefreshRequest request,
+                                HttpServletRequest http) {
+        throttle.require("refresh-ip", limits.getRefreshIp(), http.getRemoteAddr());
         return authService.refresh(request.refreshToken());
     }
 
@@ -67,8 +80,13 @@ public class AuthController {
     @PostMapping("/password-reset")
     @Operation(summary = "Request a password-reset link (sent by email)")
     public ResponseEntity<MessageResponse> requestPasswordReset(
-            @Valid @RequestBody PasswordResetRequest request) {
-        authService.requestPasswordReset(request);
+            @Valid @RequestBody PasswordResetRequest request, HttpServletRequest http) {
+        throttle.require("password-reset-ip", limits.getPasswordResetIp(), http.getRemoteAddr());
+        // Per-address cap is silent: the answer must stay identical whether or
+        // not a mail was sent (no enumeration), it just stops mail-bombing.
+        if (throttle.allow("password-reset-email", limits.getPasswordResetEmail(), request.email())) {
+            authService.requestPasswordReset(request);
+        }
         return ResponseEntity.ok(
                 MessageResponse.of("If the email exists, a reset link has been sent."));
     }
@@ -76,7 +94,9 @@ public class AuthController {
     @PostMapping("/password-reset/confirm")
     @Operation(summary = "Set a new password using the emailed reset token")
     public MessageResponse confirmPasswordReset(
-            @Valid @RequestBody ResetPasswordRequest request) {
+            @Valid @RequestBody ResetPasswordRequest request, HttpServletRequest http) {
+        throttle.require("password-reset-confirm-ip", limits.getPasswordResetConfirmIp(),
+                http.getRemoteAddr());
         authService.resetPassword(request);
         return MessageResponse.of("Password updated");
     }

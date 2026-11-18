@@ -9,7 +9,8 @@ import org.springframework.context.annotation.Profile;
  * Registers application configuration beans shared across the modular monolith.
  */
 @Configuration
-@EnableConfigurationProperties(CarLinkProperties.class)
+@EnableConfigurationProperties({CarLinkProperties.class,
+        com.carlink.security.ratelimit.ThrottleProperties.class})
 public class AppConfig {
 
     /**

@@ -39,6 +39,39 @@ carlink:
     # Same for guest order minting.
     order-ip-per-minute: 1000
 
+  # The whole suite shares one client IP (127.0.0.1) and one Redis: the
+  # S-03/S-04 throttles are lifted here and exercised by AuthThrottleIntegrationTest.
+  throttle:
+    register-ip:
+      max: 100000
+      window-seconds: 60
+    password-reset-ip:
+      max: 100000
+      window-seconds: 60
+    password-reset-email:
+      max: 100000
+      window-seconds: 60
+    password-reset-confirm-ip:
+      max: 100000
+      window-seconds: 60
+    verify-email-ip:
+      max: 100000
+      window-seconds: 60
+    refresh-ip:
+      max: 100000
+      window-seconds: 60
+    sticker-activate-user:
+      max: 100000
+      window-seconds: 60
+    sticker-activate-ip:
+      max: 100000
+      window-seconds: 60
+    login-ip:
+      max: 100000
+      window-seconds: 60
+    login-ip-email:
+      max: 100000
+      window-seconds: 60
   contact:
     provider: mock
     enabled-channels: SMS
