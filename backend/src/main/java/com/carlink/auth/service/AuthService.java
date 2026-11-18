@@ -147,24 +147,30 @@ public class AuthService {
     // ---------- Login ----------
 
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, String clientIp) {
         String email = request.email().trim().toLowerCase();
 
-        if (loginAttemptService.isBlocked(email)) {
+        if (loginAttemptService.isBlocked(clientIp, email)) {
             throw new UnauthorizedException("TOO_MANY_LOGIN_ATTEMPTS", "Too many failed attempts. Try again later.");
         }
 
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .filter(u -> passwordEncoder.matches(request.password(), u.getPasswordHash()))
+        java.util.Optional<User> candidate = userRepository.findByEmailIgnoreCase(email);
+        // S-04: always pay for one BCrypt comparison. Skipping it for unknown
+        // e-mails made those answers measurably faster, revealing which
+        // addresses have an account.
+        boolean passwordOk = passwordEncoder.matches(request.password(),
+                candidate.map(User::getPasswordHash).orElseGet(this::timingDummyHash));
+        User user = candidate
+                .filter(u -> passwordOk)
                 .filter(User::isActive)
                 .orElseThrow(() -> {
-                    loginAttemptService.recordFailure(email);
+                    loginAttemptService.recordFailure(clientIp, email);
                     log.warn("Login failure for email hash {}",
                             tokenGenerator.sha256(email));
                     return new UnauthorizedException("INVALID_CREDENTIALS", "Invalid email or password");
                 });
 
-        loginAttemptService.reset(email);
+        loginAttemptService.reset(clientIp, email);
         return issueTokenPair(user);
     }
 
@@ -259,6 +265,18 @@ public class AuthService {
     }
 
     // ---------- Helpers ----------
+
+    /** BCrypt hash of a random throwaway value, compared against for unknown e-mails. */
+    private volatile String timingDummyHash;
+
+    private String timingDummyHash() {
+        String hash = timingDummyHash;
+        if (hash == null) {
+            hash = passwordEncoder.encode(tokenGenerator.generateUrlSafe(24));
+            timingDummyHash = hash;
+        }
+        return hash;
+    }
 
     private AuthResponse issueTokenPair(User user) {
         String accessToken = jwtService.issueAccessToken(user);

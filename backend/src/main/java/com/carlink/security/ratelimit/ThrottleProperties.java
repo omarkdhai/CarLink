@@ -35,8 +35,6 @@ public class ThrottleProperties {
     private Limit stickerActivateIp = new Limit(20, 3600);
     /** Login attempts per IP, whatever the e-mail (credential stuffing). */
     private Limit loginIp = new Limit(20, 300);
-    /** Failed logins per (IP, e-mail) before that pair is slowed down. */
-    private Limit loginIpEmail = new Limit(5, 900);
 
     @Getter
     @Setter

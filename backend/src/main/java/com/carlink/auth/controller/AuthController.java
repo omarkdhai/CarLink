@@ -58,8 +58,11 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Log in and receive an access + refresh token pair")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
+        // S-04: one client may try only so many logins, whatever the e-mail
+        // (credential stuffing); per-(IP, e-mail) lockout lives in AuthService.
+        throttle.require("login-ip", limits.getLoginIp(), http.getRemoteAddr());
+        return authService.login(request, http.getRemoteAddr());
     }
 
     @PostMapping("/refresh")

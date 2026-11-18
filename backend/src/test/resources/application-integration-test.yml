@@ -69,9 +69,6 @@ carlink:
     login-ip:
       max: 100000
       window-seconds: 60
-    login-ip-email:
-      max: 100000
-      window-seconds: 60
   contact:
     provider: mock
     enabled-channels: SMS

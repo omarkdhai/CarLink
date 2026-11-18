@@ -24,8 +24,8 @@ public class LoginAttemptService {
 
     private static final Duration COUNTER_TTL = Duration.ofMinutes(15);
 
-    public boolean isBlocked(String rawEmail) {
-        String key = key(rawEmail);
+    public boolean isBlocked(String clientIp, String rawEmail) {
+        String key = key(clientIp, rawEmail);
         String count = redisTemplate.opsForValue().get(key);
         if (count == null) {
             return false;
@@ -33,8 +33,8 @@ public class LoginAttemptService {
         return Integer.parseInt(count) >= properties.ratelimit().maxLoginFailures();
     }
 
-    public void recordFailure(String rawEmail) {
-        String key = key(rawEmail);
+    public void recordFailure(String clientIp, String rawEmail) {
+        String key = key(clientIp, rawEmail);
         Long value = redisTemplate.opsForValue().increment(key);
         if (value != null && value == 1L) {
             redisTemplate.expire(key,
@@ -42,11 +42,18 @@ public class LoginAttemptService {
         }
     }
 
-    public void reset(String rawEmail) {
-        redisTemplate.delete(key(rawEmail));
+    public void reset(String clientIp, String rawEmail) {
+        redisTemplate.delete(key(clientIp, rawEmail));
     }
 
-    private String key(String rawEmail) {
-        return "login:lock:" + tokenGenerator.sha256(rawEmail.trim().toLowerCase());
+    /**
+     * Keyed on the (client IP, e-mail) pair, not the e-mail alone (security plan
+     * S-04): with an e-mail-only key, anyone could lock any owner out by typing
+     * five wrong passwords. Now a failing client only locks itself out; the
+     * per-IP cap in AuthController bounds how many accounts one client can try.
+     */
+    private String key(String clientIp, String rawEmail) {
+        String ip = clientIp == null ? "" : clientIp.trim();
+        return "login:lock:" + tokenGenerator.sha256(ip + "|" + rawEmail.trim().toLowerCase());
     }
 }

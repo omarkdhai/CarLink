@@ -61,6 +61,8 @@ class AuthServiceTest {
     private final TokenGenerator tokenGenerator = new TokenGenerator();
     private final CarLinkProperties properties = com.carlink.TestProperties.minimal();
 
+    private static final String IP = "203.0.113.7";
+
     private AuthService authService;
 
     @BeforeEach
@@ -168,10 +170,10 @@ class AuthServiceTest {
                 .thenReturn(Optional.of(user));
 
         AuthResponse response = authService.login(
-                new LoginRequest("owner@example.com", "Secret123"));
+                new LoginRequest("owner@example.com", "Secret123"), IP);
 
         assertThat(response.accessToken()).isNotBlank();
-        verify(loginAttemptService).reset("owner@example.com");
+        verify(loginAttemptService).reset(IP, "owner@example.com");
     }
 
     @Test
@@ -180,20 +182,37 @@ class AuthServiceTest {
                 passwordEncoder.encode("Secret123"), "Ali", "Ben", Role.USER);
         when(userRepository.findByEmailIgnoreCase("owner@example.com"))
                 .thenReturn(Optional.of(user));
-        when(loginAttemptService.isBlocked("owner@example.com")).thenReturn(false);
+        when(loginAttemptService.isBlocked(IP, "owner@example.com")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.login(
-                new LoginRequest("owner@example.com", "WrongPass1")))
+                new LoginRequest("owner@example.com", "WrongPass1"), IP))
                 .isInstanceOf(UnauthorizedException.class);
-        verify(loginAttemptService).recordFailure("owner@example.com");
+        verify(loginAttemptService).recordFailure(IP, "owner@example.com");
+    }
+
+    @Test
+    void loginWithUnknownEmailStillPaysForOneBcryptCheck() {
+        // S-04: no fast path for unknown e-mails (timing-based enumeration).
+        PasswordEncoder spyEncoder = org.mockito.Mockito.spy(new BCryptPasswordEncoder(4));
+        AuthService service = new AuthService(
+                userRepository, refreshTokenRepository, emailVerificationTokenRepository,
+                passwordResetTokenRepository, spyEncoder, new JwtService(properties),
+                tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
+                stickerRepository);
+        when(userRepository.findByEmailIgnoreCase("ghost@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.login(new LoginRequest("ghost@example.com", "Secret123"), IP))
+                .isInstanceOf(UnauthorizedException.class);
+        verify(spyEncoder).matches(org.mockito.ArgumentMatchers.eq("Secret123"), anyString());
+        verify(loginAttemptService).recordFailure(IP, "ghost@example.com");
     }
 
     @Test
     void loginIsBlockedAfterTooManyFailures() {
-        when(loginAttemptService.isBlocked("owner@example.com")).thenReturn(true);
+        when(loginAttemptService.isBlocked(IP, "owner@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.login(
-                new LoginRequest("owner@example.com", "Secret123")))
+                new LoginRequest("owner@example.com", "Secret123"), IP))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessageContaining("Too many failed");
         verify(userRepository, never()).findByEmailIgnoreCase(anyString());
@@ -206,10 +225,10 @@ class AuthServiceTest {
         user.setActive(false);
         when(userRepository.findByEmailIgnoreCase("owner@example.com"))
                 .thenReturn(Optional.of(user));
-        when(loginAttemptService.isBlocked("owner@example.com")).thenReturn(false);
+        when(loginAttemptService.isBlocked(IP, "owner@example.com")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.login(
-                new LoginRequest("owner@example.com", "Secret123")))
+                new LoginRequest("owner@example.com", "Secret123"), IP))
                 .isInstanceOf(UnauthorizedException.class);
     }
 
