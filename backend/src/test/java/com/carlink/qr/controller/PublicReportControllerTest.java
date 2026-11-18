@@ -49,7 +49,7 @@ class PublicReportControllerTest {
         when(rateLimiter.tryAcquire(eq("public-report-ip:"
                 + tokenGenerator.sha256("203.0.113.7")), eq(10), eq(60))).thenReturn(true);
 
-        MessageResponse response = controller.file("raw-token", new ReportSubmitRequest(
+        MessageResponse response = controller.file(new ReportSubmitRequest(
                 conversationId, ReportReason.SPAM, "spam"), request);
 
         assertThat(response.message()).isEqualTo("Report submitted");
@@ -65,7 +65,7 @@ class PublicReportControllerTest {
         when(rateLimiter.retryAfterSeconds(eq("public-report-ip:"
                 + tokenGenerator.sha256("203.0.113.7")), eq(10), eq(60))).thenReturn(12L);
 
-        assertThatThrownBy(() -> controller.file("t", new ReportSubmitRequest(
+        assertThatThrownBy(() -> controller.file(new ReportSubmitRequest(
                 conversationId, ReportReason.OTHER, "x"), request))
                 .isInstanceOf(TooManyRequestsException.class);
         verify(reportService, never()).file(conversationId, "203.0.113.7", ReportReason.OTHER, "x");
@@ -80,7 +80,7 @@ class PublicReportControllerTest {
         org.mockito.Mockito.doThrow(new NotFoundException("Conversation not found"))
                 .when(reportService).file(conversationId, "203.0.113.7", ReportReason.ABUSE, "d");
 
-        assertThatThrownBy(() -> controller.file("t", new ReportSubmitRequest(
+        assertThatThrownBy(() -> controller.file(new ReportSubmitRequest(
                 conversationId, ReportReason.ABUSE, "d"), request))
                 .isInstanceOf(NotFoundException.class);
     }

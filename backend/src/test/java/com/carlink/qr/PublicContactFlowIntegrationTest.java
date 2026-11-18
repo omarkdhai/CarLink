@@ -61,7 +61,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(html).doesNotContain("owner@example");
 
         // --- The JSON view ---
-        mockMvc.perform(get("/api/v1/public/qr/{token}", rawToken))
+        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.vehicle.nickname").value("My Car"))
                 .andExpect(jsonPath("$.vehicle.brand").value("Toyota"))
@@ -76,7 +76,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         String[] creds = ownerWithQr();
         String rawToken = creds[1];
 
-        MvcResult result = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        MvcResult result = mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "SMS",
                                 "message", "Hi, is this car still available?",
@@ -122,7 +122,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
                         .header("Authorization", bearer(auth)))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/v1/public/qr/{token}", rawToken))
+        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isNotFound());
     }
 
@@ -132,7 +132,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         String rawToken = creds[1];
 
         long before = messageRepository.count();
-        mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "SMS",
                                 "message", "x".repeat(501), "reason", "BLOCKING"))))
@@ -146,7 +146,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         String[] creds = ownerWithQr();
         String rawToken = creds[1];
 
-        mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "FAX", "message", "hi", "reason", "BLOCKING"))))
                 .andExpect(status().isBadRequest());

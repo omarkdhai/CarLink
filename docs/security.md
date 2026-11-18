@@ -34,6 +34,12 @@ still omit it.
 ## Logging rules
 
 - **Never** log phone numbers, raw QR tokens, passwords, or message bodies.
+- Raw QR / sticker tokens never travel in an API path: clients send them in
+  the `X-CarLink-Token` header (`GET /api/v1/public/qr`,
+  `POST /api/v1/public/qr/contact`, `POST /api/v1/stickers/activate`). The
+  only URL carrying a token is the QR's own `/c/{token}` page; nginx's
+  `carlink` log format masks it in the request line *and* in the Referer of
+  the API calls made from that page (security plan S-08).
 - IP addresses are logged only for rate-limit/audit purposes.
 - Error responses never include stack traces or internal identifiers.
 - The order-confirmation email is the one place customer PII (name, phone,

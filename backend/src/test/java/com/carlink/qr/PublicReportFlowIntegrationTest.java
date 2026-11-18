@@ -39,7 +39,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
         String rawToken = ownerWithQr()[1];
         String convId = submitContact(rawToken, "SMS", "Is this still available?");
 
-        mockMvc.perform(post("/api/v1/public/qr/{token}/report", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/report")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("conversationId", convId,
                                 "reason", "SPAM", "details", "  Suspicious offer  "))))
@@ -63,7 +63,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
     void reportAgainstUnknownConversationReturns404() throws Exception {
         String rawToken = ownerWithQr()[1];
 
-        mockMvc.perform(post("/api/v1/public/qr/{token}/report", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/report")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("conversationId", UUID.randomUUID(),
                                 "reason", "OTHER", "details", "x"))))
@@ -75,7 +75,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
         String rawToken = ownerWithQr()[1];
         String convId = submitContact(rawToken, "SMS", "hi");
 
-        mockMvc.perform(post("/api/v1/public/qr/{token}/report", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/report")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("conversationId", convId))))
                 .andExpect(status().isBadRequest());
@@ -112,7 +112,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
 
     private String submitContact(String rawToken, String channel, String message)
             throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        MvcResult result = mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", channel, "message", message, "reason", "BLOCKING"))))
                 .andExpect(status().isOk())

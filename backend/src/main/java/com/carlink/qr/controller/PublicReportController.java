@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,10 +36,11 @@ public class PublicReportController {
     private final TokenGenerator tokenGenerator;
     private final CarLinkProperties properties;
 
-    @PostMapping("/qr/{token}/report")
+    // The report targets a conversation id; it never needed the QR token
+    // (which used to sit, unused, in the path — security plan S-08).
+    @PostMapping("/qr/report")
     @Operation(summary = "File an anonymous SPAM/ABUSE/OTHER report against a conversation")
-    public MessageResponse file(@PathVariable String token,
-                                @Valid @RequestBody ReportSubmitRequest body,
+    public MessageResponse file(@Valid @RequestBody ReportSubmitRequest body,
                                 HttpServletRequest request) {
         String ip = request.getRemoteAddr();
         String key = "public-report-ip:" + tokenGenerator.sha256(ip);

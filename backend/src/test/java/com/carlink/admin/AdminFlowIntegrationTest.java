@@ -558,7 +558,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         String rawToken = objectMapper.readTree(qr.getResponse().getContentAsString())
                 .get("rawToken").asText();
 
-        MvcResult contact = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        MvcResult contact = mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "SMS", "message", "Buy it now!", "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
@@ -566,7 +566,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         String convId = objectMapper.readTree(contact.getResponse().getContentAsString())
                 .get("conversationId").asText();
 
-        mockMvc.perform(post("/api/v1/public/qr/{token}/report", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/report")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("conversationId", convId,
                                 "reason", "SPAM", "details", "Repeated spam about the sale"))))

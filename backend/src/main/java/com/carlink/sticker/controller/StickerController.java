@@ -1,5 +1,9 @@
 package com.carlink.sticker.controller;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import com.carlink.common.web.TokenHeader;
+
 import com.carlink.security.ratelimit.Throttle;
 import com.carlink.security.ratelimit.ThrottleProperties;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,14 +45,14 @@ public class StickerController {
     private final Throttle throttle;
     private final ThrottleProperties limits;
 
-    @PostMapping("/{token}/activate")
+    @PostMapping("/activate")
     @Operation(summary = "Claim a virgin sticker and link it to one of your cars")
     public MessageResponse activate(@AuthenticationPrincipal UserPrincipal principal,
-                                    @PathVariable String token,
+                                    @RequestHeader(value = TokenHeader.NAME, required = false) String token,
                                     @Valid @RequestBody ActivateStickerRequest body,
                                     HttpServletRequest http) {
         throttleActivation(principal, http);
-        stickerService.activate(requireId(principal), token, body);
+        stickerService.activate(requireId(principal), TokenHeader.require(token), body);
         return new MessageResponse("Sticker activated");
     }
 

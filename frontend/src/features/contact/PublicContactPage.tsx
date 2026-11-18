@@ -95,7 +95,7 @@ export default function PublicContactPage() {
 
   const reportMutation = useMutation({
     mutationFn: () =>
-      publicQrApi.report(token, {
+      publicQrApi.report({
         conversationId: done!.conversationId,
         reason: reportReason,
         details: reportDetails.trim() || undefined,

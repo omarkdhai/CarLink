@@ -253,7 +253,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
     violations in the console (home, order, scan, owner pages, AR/FR/EN).
 - [ ] **S-07** Upgrade Spring Boot to a supported line; update jjwt/springdoc accordingly.
   - **Done when:** 235+ backend tests pass; OWASP dependency-check has no High/Critical.
-- [ ] **S-08** Move tokens out of URL paths (body/header) for public QR + sticker activation; masking
+- [x] **S-08** — done 2026-11-18 (X-CarLink-Token header; nginx masks /c/{token} in URI + Referer; e2e scan→activate→contact left 0 tokens in the log). Move tokens out of URL paths (body/header) for public QR + sticker activation; masking
   `log_format` in nginx as defence in depth.
   - **Done when:** nginx access log contains no 64-char token after a scan + contact (test script).
 - [ ] **S-11** CAPTCHA/Turnstile on order, contact form, report and scan-contact; per-email/phone order cap.
