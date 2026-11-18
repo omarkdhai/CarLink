@@ -251,7 +251,13 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
   - **Done when:** `curl -I http://localhost/` shows CSP, `X-Frame-Options: DENY`/`frame-ancestors 'none'`,
     `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`; app works with no CSP
     violations in the console (home, order, scan, owner pages, AR/FR/EN).
-- [ ] **S-07** Upgrade Spring Boot to a supported line; update jjwt/springdoc accordingly.
+- [~] **S-07** Upgrade Spring Boot to a supported line; update jjwt/springdoc accordingly.
+  - **Step 1 done 2026-11-18:** 3.2.5 → **3.5.16** (springdoc 2.8.17, jjwt 0.12.7, Flyway 11 +
+    `flyway-database-postgresql`); 285 tests pass; live stack + browser crawl clean.
+  - **Step 2 open:** 3.5 OSS support ended June 2026 (3.5.16 is its last free release), so the
+    supported target is **4.1.x** — a major migration (Jackson 3, Spring Security 7, Hibernate 7,
+    Testcontainers 2, springdoc 3, `@MockBean` → `@MockitoBean`). Tracked as its own task.
+  - Not run: OWASP dependency-check (needs the NVD feed / an API key) — folded into S-19 CI.
   - **Done when:** 235+ backend tests pass; OWASP dependency-check has no High/Critical.
 - [x] **S-08** — done 2026-11-18 (X-CarLink-Token header; nginx masks /c/{token} in URI + Referer; e2e scan→activate→contact left 0 tokens in the log). Move tokens out of URL paths (body/header) for public QR + sticker activation; masking
   `log_format` in nginx as defence in depth.
