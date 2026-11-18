@@ -4,7 +4,7 @@
 #
 # Required env (see .env.example): POSTGRES_PASSWORD, REDIS_PASSWORD,
 # JWT_SECRET, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD,
-# APP_BASE_URL, APP_PUBLIC_URL.
+# APP_BASE_URL, APP_PUBLIC_URL, CARLINK_DOMAIN, ACME_EMAIL.
 # ============================================
 
 # Docker's default json-file driver has no size cap, so a chatty container fills
@@ -134,18 +134,49 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     logging: *default-logging
-    ports:
-      - "${FRONTEND_PORT:-80}:80"
+    # Not published: only the Caddy TLS edge talks to nginx (security plan S-02).
+    expose:
+      - "80"
     depends_on:
       backend:
         condition: service_healthy
     networks:
       - carlink-network
 
+  # TLS edge (security plan S-02): automatic certificates for CARLINK_DOMAIN,
+  # HTTP->HTTPS redirect, HSTS. The only service published to the internet.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      CARLINK_DOMAIN: ${CARLINK_DOMAIN:?CARLINK_DOMAIN is required (public hostname, e.g. carlink.tn)}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required (certificate expiry notices)}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    networks:
+      - carlink-network
+
 volumes:
   postgres_data:
   redis_data:
+  # Certificates and ACME account: keep across redeploys (rate limits).
+  caddy_data:
+  caddy_config:
 
 networks:
   carlink-network:
     driver: bridge
+    # Fixed subnet: nginx trusts X-Forwarded-For only from this range, i.e.
+    # from Caddy (set_real_ip_from in frontend/nginx.conf). Keep them in sync.
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24

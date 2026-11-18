@@ -126,3 +126,8 @@ volumes:
 networks:
   carlink-network:
     driver: bridge
+    # Deliberately NOT 172.28.0.0/24: that range is the prod network whose
+    # members nginx trusts for X-Forwarded-For (see frontend/nginx.conf).
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

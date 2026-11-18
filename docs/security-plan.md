@@ -239,7 +239,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 
 ### Phase 1 — Before any public launch (High)
 
-- [ ] **S-02** TLS termination + HTTP→HTTPS redirect + HSTS (prod compose / deployment runbook).
+- [x] **S-02** — done 2026-11-18 (Caddy edge in prod compose: auto certs, 308 redirect, HSTS; real client IP via set_real_ip_from; verified locally with Caddy internal CA). Needs CARLINK_DOMAIN + ACME_EMAIL + DNS at deploy time. TLS termination + HTTP→HTTPS redirect + HSTS (prod compose / deployment runbook).
   - **Done when:** `curl -I http://…` → 301 to https; `Strict-Transport-Security` present; SSL Labs ≥ A.
 - [x] **S-03** — done 2026-11-18 (carlink.throttle.*; AuthThrottleIntegrationTest). Rate limits on `register`, `password-reset`, `password-reset/confirm`, `verify-email`,
   `refresh`, `activate-by-code`, `/{token}/activate` (per IP + per target).
