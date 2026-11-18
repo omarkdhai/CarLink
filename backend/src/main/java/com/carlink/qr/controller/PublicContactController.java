@@ -1,5 +1,7 @@
 package com.carlink.qr.controller;
 
+import com.carlink.security.captcha.CaptchaGuard;
+
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.carlink.common.web.TokenHeader;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PublicContactController {
 
     private final PublicQrService publicQrService;
+    private final CaptchaGuard captchaGuard;
 
     @GetMapping("/qr")
     @Operation(summary = "Safe public data for a QR token "
@@ -45,7 +48,10 @@ public class PublicContactController {
     @Operation(summary = "Submit a visitor contact request to the vehicle owner")
     public ContactSubmitResponse submit(@RequestHeader(value = TokenHeader.NAME, required = false) String token,
                                         @Valid @RequestBody ContactSubmitRequest body,
+                                        @RequestHeader(value = CaptchaGuard.HEADER, required = false) String captcha,
                                         HttpServletRequest request) {
+        // S-11: every accepted alert can become a paid SMS.
+        captchaGuard.require(captcha, request.getRemoteAddr());
         return publicQrService.submit(TokenHeader.require(token), request.getRemoteAddr(), body);
     }
 }

@@ -12,8 +12,8 @@ const BASE = '/public/orders'
 
 export const orderApi = {
   /** Places a guest COD order. Returns raw sticker tokens exactly once. */
-  createOrder(data: OrderCreateRequest): Promise<OrderResponse> {
-    return apiClient.post<OrderResponse>(BASE, data).then((r) => r.data)
+  createOrder(data: OrderCreateRequest, headers: Record<string, string> = {}): Promise<OrderResponse> {
+    return apiClient.post<OrderResponse>(BASE, data, { headers }).then((r) => r.data)
   },
 
   /** Token-free, PII-free summary for post-checkout status. */

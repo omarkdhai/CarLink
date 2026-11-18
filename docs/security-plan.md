@@ -256,7 +256,13 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 - [x] **S-08** — done 2026-11-18 (X-CarLink-Token header; nginx masks /c/{token} in URI + Referer; e2e scan→activate→contact left 0 tokens in the log). Move tokens out of URL paths (body/header) for public QR + sticker activation; masking
   `log_format` in nginx as defence in depth.
   - **Done when:** nginx access log contains no 64-char token after a scan + contact (test script).
-- [ ] **S-11** CAPTCHA/Turnstile on order, contact form, report and scan-contact; per-email/phone order cap.
+- [x] **S-11** — done 2026-11-18. Cloudflare Turnstile on order, contact form, report and scan-contact
+  (`X-Captcha-Token`, fails closed, site key served by `GET /api/v1/public/config`). **Off until
+  `CAPTCHA_ENABLED/SITE_KEY/SECRET_KEY` are set** (prod logs a warning while off). Verified live with
+  Cloudflare test keys: no token → 400 `CAPTCHA_FAILED`, widget renders under the CSP and unlocks submit.
+  - Follow-ups (not done): per-email/phone daily order cap; challenge on login after repeated
+    failures for one account across IPs (the distributed case left open by S-04).
+  CAPTCHA/Turnstile on order, contact form, report and scan-contact; per-email/phone order cap.
 - [x] **S-12** — done 2026-11-18 (visitor cooldown, sticker/day, owner/day caps; links neutralised; Telnyx spend alert documented in deployment.md §14, to set in the portal). Per-sticker daily cap, per-(IP,sticker) cooldown, URL neutralisation, Telnyx spend alert.
 - [x] **S-18** — done 2026-11-18 (JwtService refuses weak/public secrets; JWT_REFRESH_SECRET removed). Remove secret defaults from the base profile; startup secret-strength guard; drop
   `JWT_REFRESH_SECRET`.

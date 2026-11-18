@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 public class ProductionProviderGuard {
 
     private final CarLinkProperties properties;
+    private final com.carlink.security.captcha.CaptchaProperties captcha;
 
     @PostConstruct
     void check() {
@@ -33,6 +34,12 @@ public class ProductionProviderGuard {
                     "EMAIL_PROVIDER=mock is not allowed in the prod profile: verification and "
                             + "password-reset emails would never be delivered. Set EMAIL_PROVIDER=smtp "
                             + "and the MAIL_* variables.");
+        }
+        if (!captcha.isEnabled()) {
+            log.warn("CAPTCHA_ENABLED=false in production: public forms (orders, alerts, contact, "
+                    + "reports) are protected by rate limits only. Configure Turnstile (security plan S-11).");
+        } else if (captcha.getSecretKey() == null || captcha.getSecretKey().isBlank()) {
+            throw new IllegalStateException("CAPTCHA_ENABLED=true but CAPTCHA_SECRET_KEY is empty.");
         }
         if (isMock(properties.contact().provider())) {
             log.warn("CONTACT_PROVIDER=mock in production: visitor alerts are recorded but NOT delivered "

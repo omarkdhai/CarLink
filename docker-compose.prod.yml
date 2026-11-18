@@ -108,6 +108,10 @@ services:
       TELNYX_VOICE_FROM: ${TELNYX_VOICE_FROM:-}
       TELNYX_CONNECTION_ID: ${TELNYX_CONNECTION_ID:-}
       TELNYX_VOICE_AUDIO_URL: ${TELNYX_VOICE_AUDIO_URL:-}
+      # Cloudflare Turnstile on the public forms (security plan S-11)
+      CAPTCHA_ENABLED: ${CAPTCHA_ENABLED:-false}
+      CAPTCHA_SITE_KEY: ${CAPTCHA_SITE_KEY:-}
+      CAPTCHA_SECRET_KEY: ${CAPTCHA_SECRET_KEY:-}
       # Only meaningful once TLS terminates in front of the backend.
       HSTS_ENABLED: ${HSTS_ENABLED:-false}
     depends_on:

@@ -45,6 +45,7 @@ import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
 import { GOVERNORATES } from '@/types'
 import type { Governorate, OrderResponse, StickerPackage } from '@/types'
 import { SuccessMark } from '@/components/shared/SuccessMark'
+import { useCaptcha } from '@/components/shared/useCaptcha'
 
 /** Hard ceiling shared with OrderService (100 stickers per order). */
 const MAX_TOTAL_STICKERS = 100
@@ -154,6 +155,7 @@ export default function OrderPage() {
   const total = subtotal + DELIVERY_FEE
   const minPrice = Math.min(...PACKS.map((p) => p.price))
 
+  const captcha = useCaptcha()
   const placeMutation = useMutation({
     mutationFn: () =>
       orderApi.createOrder({
@@ -164,7 +166,8 @@ export default function OrderPage() {
         governorate: details!.governorate as Governorate,
         deliveryAddress: details!.deliveryAddress,
         deliveryNotes: details?.deliveryNotes?.trim() || undefined,
-      }),
+      }, captcha.headers()),
+    onSettled: () => captcha.reset(),
     onSuccess: (data) => {
       setPlaced(data)
       localStorage.removeItem(DRAFT_KEY)
@@ -685,6 +688,7 @@ export default function OrderPage() {
               </div>
 
               {/* CTA */}
+              {captcha.widget}
               <nav className="mt-5 flex items-center justify-between gap-3">
                 <button
                   type="button"
@@ -696,7 +700,7 @@ export default function OrderPage() {
                 </button>
                 <button
                   type="button"
-                  disabled={placeMutation.isPending}
+                  disabled={placeMutation.isPending || (captcha.required && !captcha.token)}
                   onClick={() => placeMutation.mutate()}
                   className={SUBMIT_BTN}
                 >

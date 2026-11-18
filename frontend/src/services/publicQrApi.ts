@@ -27,13 +27,15 @@ export const publicQrApi = {
   },
 
   /** Submit a visitor contact request to the vehicle owner. */
-  submit(token: string, body: ContactSubmitRequest): Promise<ContactSubmitResponse> {
-    return apiClient.post<ContactSubmitResponse>(`${BASE}/contact`, body, withToken(token)).then((r) => r.data)
+  submit(token: string, body: ContactSubmitRequest, captcha: Record<string, string> = {}): Promise<ContactSubmitResponse> {
+    return apiClient
+      .post<ContactSubmitResponse>(`${BASE}/contact`, body, { headers: { ...withToken(token).headers, ...captcha } })
+      .then((r) => r.data)
   },
 
   /** File an anonymous SPAM/ABUSE/OTHER report against a conversation. */
-  report(body: ReportSubmitRequest): Promise<MessageResponse> {
-    return apiClient.post<MessageResponse>(`${BASE}/report`, body).then((r) => r.data)
+  report(body: ReportSubmitRequest, captcha: Record<string, string> = {}): Promise<MessageResponse> {
+    return apiClient.post<MessageResponse>(`${BASE}/report`, body, { headers: captcha }).then((r) => r.data)
   },
 }
 

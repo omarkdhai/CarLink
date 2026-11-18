@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Profile;
  */
 @Configuration
 @EnableConfigurationProperties({CarLinkProperties.class,
-        com.carlink.security.ratelimit.ThrottleProperties.class})
+        com.carlink.security.ratelimit.ThrottleProperties.class,
+        com.carlink.security.captcha.CaptchaProperties.class})
 public class AppConfig {
 
     /**

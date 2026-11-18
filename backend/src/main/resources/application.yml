@@ -188,6 +188,13 @@ carlink:
     # Enable once TLS is terminated in front of the app.
     hsts-enabled: ${HSTS_ENABLED:false}
 
+  # Bot protection for the public forms (Cloudflare Turnstile, security plan S-11).
+  # Off by default; set all three to turn it on.
+  captcha:
+    enabled: ${CAPTCHA_ENABLED:false}
+    site-key: ${CAPTCHA_SITE_KEY:}
+    secret-key: ${CAPTCHA_SECRET_KEY:}
+
   # Initial ADMIN bootstrap (disabled by default; dev profile sets credentials)
   admin:
     bootstrap-email: ${ADMIN_BOOTSTRAP_EMAIL:}

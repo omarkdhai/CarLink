@@ -44,7 +44,8 @@ class PublicOrderControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new PublicOrderController(orderService, rateLimiter, tokenGenerator, properties);
+        controller = new PublicOrderController(orderService, rateLimiter, tokenGenerator, properties,
+                new com.carlink.security.captcha.CaptchaGuard(new com.carlink.security.captcha.CaptchaVerifier(new com.carlink.security.captcha.CaptchaProperties(), org.springframework.web.client.RestClient.builder())));
     }
 
     private OrderCreateRequest validBody() {
@@ -70,7 +71,7 @@ class PublicOrderControllerTest {
                 Instant.now(), List.of(), List.of());
         when(orderService.create(validBody())).thenReturn(expected);
 
-        OrderResponse response = controller.placeOrder(validBody(), request);
+        OrderResponse response = controller.placeOrder(validBody(), null, request);
 
         assertThat(response.reference()).isEqualTo("CL-ABC12345");
         verify(orderService).create(validBody());
@@ -84,7 +85,7 @@ class PublicOrderControllerTest {
         when(rateLimiter.retryAfterSeconds(eq(ORDER_KEY + tokenGenerator.sha256("203.0.113.7")),
                 eq(10), eq(60))).thenReturn(31L);
 
-        assertThatThrownBy(() -> controller.placeOrder(validBody(), request))
+        assertThatThrownBy(() -> controller.placeOrder(validBody(), null, request))
                 .isInstanceOf(TooManyRequestsException.class)
                 .satisfies(e -> assertThat(
                         ((TooManyRequestsException) e).getRetryAfterSeconds()).isEqualTo(31L));

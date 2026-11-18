@@ -39,7 +39,10 @@ class PublicReportControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new PublicReportController(reportService, rateLimiter, tokenGenerator, properties);
+        controller = new PublicReportController(reportService, rateLimiter, tokenGenerator, properties,
+                new com.carlink.security.captcha.CaptchaGuard(new com.carlink.security.captcha.CaptchaVerifier(
+                        new com.carlink.security.captcha.CaptchaProperties(),
+                        org.springframework.web.client.RestClient.builder())));
     }
 
     @Test
@@ -50,7 +53,7 @@ class PublicReportControllerTest {
                 + tokenGenerator.sha256("203.0.113.7")), eq(10), eq(60))).thenReturn(true);
 
         MessageResponse response = controller.file(new ReportSubmitRequest(
-                conversationId, ReportReason.SPAM, "spam"), request);
+                conversationId, ReportReason.SPAM, "spam"), null, request);
 
         assertThat(response.message()).isEqualTo("Report submitted");
         verify(reportService).file(conversationId, "203.0.113.7", ReportReason.SPAM, "spam");
@@ -66,7 +69,7 @@ class PublicReportControllerTest {
                 + tokenGenerator.sha256("203.0.113.7")), eq(10), eq(60))).thenReturn(12L);
 
         assertThatThrownBy(() -> controller.file(new ReportSubmitRequest(
-                conversationId, ReportReason.OTHER, "x"), request))
+                conversationId, ReportReason.OTHER, "x"), null, request))
                 .isInstanceOf(TooManyRequestsException.class);
         verify(reportService, never()).file(conversationId, "203.0.113.7", ReportReason.OTHER, "x");
     }
@@ -81,7 +84,7 @@ class PublicReportControllerTest {
                 .when(reportService).file(conversationId, "203.0.113.7", ReportReason.ABUSE, "d");
 
         assertThatThrownBy(() -> controller.file(new ReportSubmitRequest(
-                conversationId, ReportReason.ABUSE, "d"), request))
+                conversationId, ReportReason.ABUSE, "d"), null, request))
                 .isInstanceOf(NotFoundException.class);
     }
 }

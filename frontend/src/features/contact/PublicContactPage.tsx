@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -14,6 +14,7 @@ import { http } from '@/services/apiClient'
 import StickerActivation from '@/features/stickers/StickerActivation'
 import type { ContactChannel, ReportReason } from '@/types'
 import { SuccessMark } from '@/components/shared/SuccessMark'
+import { useCaptcha } from '@/components/shared/useCaptcha'
 
 const REASONS = ['BLOCKING', 'LIGHTS', 'LEFT_OPEN', 'HIT_CAR', 'WINDOWS_OPEN', 'EV_CHARGE'] as const
 type ReasonKey = (typeof REASONS)[number]
@@ -82,13 +83,16 @@ export default function PublicContactPage() {
   const [reportDetails, setReportDetails] = useState('')
   const [reportDone, setReportDone] = useState(false)
 
+  const captcha = useCaptcha()
+  const reportCaptcha = useCaptcha()
   const contactMutation = useMutation({
     mutationFn: () =>
       publicQrApi.submit(token, {
         channel: activeChannel!,
         message: message.trim(),
         reason: selectedReason!,
-      }),
+      }, captcha.headers()),
+    onSettled: () => captcha.reset(),
     onSuccess: (data) => setDone({ conversationId: data.conversationId, method: activeChannel! }),
     onError: (err) => setFieldError(http.humanizeError(err)),
   })
@@ -99,7 +103,8 @@ export default function PublicContactPage() {
         conversationId: done!.conversationId,
         reason: reportReason,
         details: reportDetails.trim() || undefined,
-      }),
+      }, reportCaptcha.headers()),
+    onSettled: () => reportCaptcha.reset(),
     onSuccess: () => setReportDone(true),
     onError: (err) => setFieldError(http.humanizeError(err)),
   })
@@ -314,11 +319,12 @@ export default function PublicContactPage() {
           )
         )}
 
+        {captcha.widget}
         <Button
           size="lg"
           className="w-full mt-5"
           loading={contactMutation.isPending}
-          disabled={!activeChannel}
+          disabled={!activeChannel || (captcha.required && !captcha.token)}
           onClick={handleSubmit}
         >
           {t('contact.sendContact')}
@@ -357,6 +363,8 @@ export default function PublicContactPage() {
       onChangeReason: setReportReason,
       onChangeDetails: setReportDetails,
       onSubmit: () => reportMutation.mutate(),
+      captchaWidget: reportCaptcha.widget,
+      submitBlocked: reportCaptcha.required && !reportCaptcha.token,
       onClose: () => setShowReport(false),
       error: fieldError,
     }
@@ -427,6 +435,8 @@ function ReportPanel({
   onChangeReason,
   onChangeDetails,
   onSubmit,
+  captchaWidget,
+  submitBlocked = false,
   onClose,
 }: {
   reason: ReportReason
@@ -437,6 +447,9 @@ function ReportPanel({
   onChangeReason: (r: ReportReason) => void
   onChangeDetails: (d: string) => void
   onSubmit: () => void
+  /** Bot-protection widget (S-11), rendered above the submit button. */
+  captchaWidget?: ReactNode
+  submitBlocked?: boolean
   onClose: () => void
 }) {
   const { t } = useTranslation()
@@ -496,11 +509,12 @@ function ReportPanel({
             maxLength={1000}
           />
 
+          {captchaWidget}
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="ghost" onClick={onClose} disabled={loading}>
               {t('common.cancel')}
             </Button>
-            <Button variant="danger" onClick={onSubmit} loading={loading}>
+            <Button variant="danger" onClick={onSubmit} loading={loading} disabled={submitBlocked}>
               {t('contact.reportSubmit')}
             </Button>
           </div>

@@ -12,7 +12,7 @@ class ProductionProviderGuardTest {
     @Test
     void refusesMockEmailInProduction() {
         CarLinkProperties props = TestProperties.minimal(); // email + contact = mock
-        assertThatThrownBy(() -> new ProductionProviderGuard(props).check())
+        assertThatThrownBy(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties()).check())
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("EMAIL_PROVIDER=mock");
     }
@@ -25,6 +25,6 @@ class ProductionProviderGuardTest {
                 base.ratelimit(), base.contact(), base.contactForm(),
                 new CarLinkProperties.Email("smtp", 60, "noreply@carlink.test", "noreply@carlink.test"),
                 base.security(), base.admin(), base.telnyx());
-        assertThatCode(() -> new ProductionProviderGuard(props).check()).doesNotThrowAnyException();
+        assertThatCode(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties()).check()).doesNotThrowAnyException();
     }
 }

@@ -35,7 +35,8 @@ class PublicContactFormControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new PublicContactFormController(contactFormService, rateLimiter, tokenGenerator, properties);
+        controller = new PublicContactFormController(contactFormService, rateLimiter, tokenGenerator, properties,
+                new com.carlink.security.captcha.CaptchaGuard(new com.carlink.security.captcha.CaptchaVerifier(new com.carlink.security.captcha.CaptchaProperties(), org.springframework.web.client.RestClient.builder())));
     }
 
     @Test
@@ -45,7 +46,7 @@ class PublicContactFormControllerTest {
                 + tokenGenerator.sha256("203.0.113.7")), eq(1000), eq(60))).thenReturn(true);
 
         ContactFormRequest body = new ContactFormRequest("Jane", "jane@example.com", "Question", null, "Hello");
-        MessageResponse response = controller.submit(body, request);
+        MessageResponse response = controller.submit(body, null, request);
 
         assertThat(response.message()).isEqualTo("Message sent");
         verify(contactFormService).submit(body);
@@ -60,7 +61,7 @@ class PublicContactFormControllerTest {
                 + tokenGenerator.sha256("198.51.100.9")), eq(1000), eq(60))).thenReturn(9L);
 
         ContactFormRequest body = new ContactFormRequest("Joe", "joe@example.com", "Hi", null, "There");
-        assertThatThrownBy(() -> controller.submit(body, request))
+        assertThatThrownBy(() -> controller.submit(body, null, request))
                 .isInstanceOf(TooManyRequestsException.class);
         verify(contactFormService, never()).submit(body);
     }
