@@ -43,14 +43,16 @@ class LogContactChannelSenderTest {
     }
 
     @Test
-    void sendReturnsTrueAndLogsChannelAndMessage() {
+    void sendReturnsTrueAndLogsMetadataButNeverTheMessage() {
         boolean delivered = sender.send(new ContactDelivery(Channel.WHATSAPP, ownerPhone, message, reason));
 
         assertThat(delivered).isTrue();
         String log = appender.list.get(0).getFormattedMessage();
         assertThat(log).contains("WHATSAPP");
         assertThat(log).contains(reason);
-        assertThat(log).contains(message);
+        // Security plan S-16: message content never reaches a log.
+        assertThat(log).doesNotContain(message);
+        assertThat(log).contains(message.length() + " chars (not logged)");
     }
 
     @Test

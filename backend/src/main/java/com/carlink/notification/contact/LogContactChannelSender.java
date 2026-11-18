@@ -11,10 +11,11 @@ import org.springframework.stereotype.Component;
  * a scan-and-submit can be exercised without a real provider. The production
  * implementation is {@code TelnyxContactChannelSender} (SMS).
  *
- * <p><strong>Never active in production.</strong> Guarded by
- * {@code carlink.contact.provider=mock} (the default). The owner phone is
- * <em>never</em> logged raw — only its SHA-256, so a dev can correlate the
- * line to an owner without the number ever appearing in a log.</p>
+ * <p>Selected by {@code carlink.contact.provider=mock} (the default — including
+ * in production until a real provider is configured, see
+ * {@code ProductionProviderGuard}). It therefore logs <em>metadata only</em>
+ * (security plan S-16): the visitor's message is never written to a log, and
+ * the owner phone appears only as its SHA-256 so a dev can correlate lines.</p>
  */
 @Slf4j
 @Component
@@ -26,11 +27,12 @@ public class LogContactChannelSender implements ContactChannelSender {
 
     @Override
     public boolean send(ContactDelivery delivery) {
-        log.info("[CONTACT-DEV] channel={} | owner={} | reason={} | message={}",
+        String note = delivery.message();
+        log.info("[CONTACT-DEV] channel={} | owner={} | reason={} | message={} chars (not logged)",
                 delivery.channel(),
                 tokenGenerator.sha256(delivery.ownerPhone()),
                 delivery.reason(),
-                delivery.message());
+                note == null ? 0 : note.length());
         return true;
     }
 }

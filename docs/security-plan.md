@@ -227,7 +227,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 - [x] **S-05** Restrict actuator — done 2026-11-18 (owner 403, admin 200, nginx serves health only)
   - `/actuator/**` except health → `hasRole("ADMIN")`; nginx proxies only `/actuator/health`.
   - **Done when:** an owner token gets 403/404 on `/actuator/prometheus` (integration test).
-- [ ] **S-16** Stop logging content
+- [x] **S-16** Stop logging content — done 2026-11-18 (metadata-only mock senders; prod refuses mock email, warns on mock relay)
   - Mock senders log channel/reason/hash only; prod refuses `CONTACT_PROVIDER=mock` / `EMAIL_PROVIDER=mock`
     (fail fast with a clear message) or the prod compose default changes.
   - **Done when:** test asserts mock senders never log the message body or a URL containing `token=`.
