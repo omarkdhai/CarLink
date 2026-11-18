@@ -231,7 +231,10 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
   - Mock senders log channel/reason/hash only; prod refuses `CONTACT_PROVIDER=mock` / `EMAIL_PROVIDER=mock`
     (fail fast with a clear message) or the prod compose default changes.
   - **Done when:** test asserts mock senders never log the message body or a URL containing `token=`.
-- [ ] **S-07 (part)** `npm audit fix`; bump the frontend build image to `node:22-alpine`.
+- [x] **S-07 (part)** `npm audit fix`; bump the frontend build image to `node:22-alpine`. — done 2026-11-18 (prod deps: 0 vulnerabilities).
+  - Residual, dev-only: `picomatch` ReDoS (via vite/vitest/tinyglobby) has no patched release; npm's
+    "fix" would *downgrade* vite 8→6 and vitest 5→3, so it is not applied. Build-time only, never shipped
+    to browsers. Re-check with `npm audit` when picomatch publishes a fix (tracked under S-19 Dependabot).
   - **Done when:** `npm audit --omit=dev` reports 0 high.
 
 ### Phase 1 — Before any public launch (High)
@@ -285,3 +288,4 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 | Date | Change |
 |---|---|
 | 2026-11-18 | Initial audit: 25 findings (1 critical-local, 6 high, 12 medium, 6 low/info), 4-phase plan. |
+| 2026-11-18 | **Phase 0 complete**: S-01, S-05, S-16, S-07 (npm + Node 22). Remaining S-07 work (Spring Boot upgrade) is in Phase 1. |
