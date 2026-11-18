@@ -259,3 +259,23 @@ Not yet automated, listed so they are not mistaken for oversights:
   deploy time; the outbound dial API cannot speak the visitor's dynamic message.
   Speaking it would require hosting a Call Control `speak` webhook, which this
   app does not do. With no URL set the call is skipped (the SMS still sends).
+
+## 14. Rotating local secrets
+
+The local stack (`docker-compose.yml`) reads every secret from the untracked
+`.env`. `node scripts/dev-secrets.mjs` creates it and replaces any blank,
+placeholder or previously committed value with a random one; it never prints
+values. Rotation of an existing stack:
+
+1. Blank the keys to rotate in `.env` (e.g. `JWT_SECRET=`) and run
+   `node scripts/dev-secrets.mjs`.
+2. **Postgres keeps the password it was initialised with.** Apply the new one
+   inside the database *before* recreating the backend, feeding the SQL on
+   stdin so the value never appears in a command line:
+   `ALTER USER carlink PASSWORD '<new POSTGRES_PASSWORD>';` via
+   `docker exec -i carlink-postgres psql -U carlink -d carlink`.
+3. `docker compose up -d --build` (Redis and the JWT secret take effect on
+   recreate; all access tokens become invalid, users simply sign in again).
+4. The bootstrap admin is only created when absent: changing
+   `ADMIN_BOOTSTRAP_PASSWORD` does not change an existing admin's password —
+   use the password-reset flow for that.

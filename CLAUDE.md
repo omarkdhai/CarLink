@@ -21,9 +21,13 @@ Anonymous QR-based contact with vehicle owners. Modular monolith (Spring Boot 3.
 ## Run the app with Docker Compose (Whole Project)
 
 ```bash
+# Once per clone: create/repair .env with strong random secrets (never printed)
+node scripts/dev-secrets.mjs
 # Start full project stack: PostgreSQL + Redis + Spring Boot Backend + React Frontend
 docker-compose up -d --build
 ```
+
+The local stack publishes every port on `127.0.0.1` only and refuses to start without the `.env` secrets (security plan S-01). The bootstrap admin's credentials are `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` in `.env`.
 
 Access points:
 - Frontend UI: `http://localhost`

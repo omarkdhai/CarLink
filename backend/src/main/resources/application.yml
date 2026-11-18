@@ -115,10 +115,14 @@ carlink:
 
   jwt:
     # Access token (short-lived)
-    secret: ${JWT_SECRET:dev-only-change-me-in-production-please-32chars}
+    # Required, no default (security plan S-01): a committed fallback let anyone
+    # forge tokens for any instance started without JWT_SECRET. Locally it comes
+    # from .env (node scripts/dev-secrets.mjs); tests set their own.
+    secret: ${JWT_SECRET}
     access-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:15}
     # Refresh token (long-lived)
-    refresh-secret: ${JWT_REFRESH_SECRET:dev-only-refresh-secret-please-change-32chars}
+    # Unused (refresh tokens are opaque, hashed in the DB); removal tracked as S-18.
+    refresh-secret: ${JWT_REFRESH_SECRET:}
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
 
   # Conversation / contact

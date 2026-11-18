@@ -217,7 +217,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 
 ### Phase 0 — Immediate (local safety + quick wins, ~1 day)
 
-- [ ] **S-01** Lock down the local stack
+- [x] **S-01** Lock down the local stack — done 2026-11-18 (ports on 127.0.0.1, secrets rotated, committed defaults removed)
   - Publish `5432`, `6379`, `8080`, `80` on `127.0.0.1` only in `docker-compose.yml`.
   - Move dev secrets (JWT, DB, Redis, admin bootstrap) to an untracked `.env`; commit `.env.example`
     with placeholders and a one-line generator command.
