@@ -224,7 +224,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
   - Remove the bootstrap admin password from `application-dev.yml`.
   - **Done when:** `Get-NetTCPConnection` shows only `127.0.0.1/::1`; no secret value remains in tracked
     files (`git grep`); stack still starts with `docker compose up -d`.
-- [ ] **S-05** Restrict actuator
+- [x] **S-05** Restrict actuator — done 2026-11-18 (owner 403, admin 200, nginx serves health only)
   - `/actuator/**` except health → `hasRole("ADMIN")`; nginx proxies only `/actuator/health`.
   - **Done when:** an owner token gets 403/404 on `/actuator/prometheus` (integration test).
 - [ ] **S-16** Stop logging content

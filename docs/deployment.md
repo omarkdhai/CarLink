@@ -237,7 +237,7 @@ Not yet automated, listed so they are not mistaken for oversights:
 
 - **No automated backup schedule.** §7 is a manual command; there is no cron,
   systemd timer or managed-snapshot policy in this repo.
-- **No metrics shipping.** The Prometheus endpoint exists and is authenticated,
+- **No metrics shipping.** The Prometheus endpoint exists, is admin-only and is not proxied by nginx (scrape backend:8080 from inside the network),
   but no scrape config or alert rules are provided.
 - **No log aggregation.** Logs are container-local and lost on host loss.
 - **Redis has no memory cap.** It defaults to `noeviction`; if it fills, writes
