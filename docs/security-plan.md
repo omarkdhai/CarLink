@@ -301,3 +301,4 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 |---|---|
 | 2026-11-18 | Initial audit: 25 findings (1 critical-local, 6 high, 12 medium, 6 low/info), 4-phase plan. |
 | 2026-11-18 | **Phase 0 complete**: S-01, S-05, S-16, S-07 (npm + Node 22). Remaining S-07 work (Spring Boot upgrade) is in Phase 1. |
+| 2026-11-18 | **Phase 1** — done: S-02, S-03, S-04, S-06, S-08, S-11, S-12, S-18, S-07 step 1 (Boot 3.5.16). Open: S-07 step 2 (Boot 4.1 migration); S-11 follow-ups (order cap per e-mail/phone, login challenge); operator actions: Turnstile keys, Telnyx spend alert, CARLINK_DOMAIN/ACME_EMAIL + DNS. |
