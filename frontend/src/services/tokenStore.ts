@@ -4,54 +4,71 @@ import type { AuthResponse, UserResponse } from '@/types'
 /**
  * Auth token + session store.
  *
- * Security model:
- * - Access token lives ONLY in memory — never written to storage. This bounds
- *   XSS exposure: a malicious script can use the token for seconds, not days.
- * - The refresh token (7-day, single-use, server-revocable) is persisted to
- *   sessionStorage so a page reload can restore the session without a re-login.
- *   sessionStorage is cleared on tab close and is not shared across tabs.
- *   This is a documented tradeoff: the backend issues the refresh token in the
- *   response body (no httpOnly cookie flow), so true cookie-bound storage is
- *   only possible if the backend adds it. tokenStorage isolates the mechanics
- *   so that can be swapped later without touching the rest of the app.
+ * Security model (security plan S-09):
+ * - The access token lives ONLY in memory — never written to storage, so an
+ *   XSS can use it for minutes at most, never carry it away for days.
+ * - The refresh token is never visible to JavaScript. The backend keeps it in
+ *   an HttpOnly, SameSite=Strict cookie scoped to /api/v1/auth; the browser
+ *   sends it to /auth/refresh and /auth/logout by itself.
+ * - What we do store is harmless: a "a session probably exists" hint in
+ *   localStorage (so a reload or a new tab knows to call /refresh, and an
+ *   anonymous visitor makes no call at all) and the cached profile in
+ *   sessionStorage (so the UI does not flash blank while /refresh runs).
  */
 
-const REFRESH_KEY = 'carlink.refreshToken'
+const SESSION_HINT_KEY = 'carlink.session'
 const USER_KEY = 'carlink.user'
+const LEGACY_REFRESH_KEY = 'carlink.refreshToken'
+
+/** Anti-CSRF header the backend requires on the cookie endpoints (S-24). */
+export const CSRF_HEADERS = { 'X-Requested-With': 'XMLHttpRequest' } as const
 
 interface Subscriber {
   (user: UserResponse | null): void
 }
 
+function safe<T>(fn: () => T, fallback: T): T {
+  try {
+    return fn()
+  } catch {
+    return fallback
+  }
+}
+
+// Pre-S-09 builds kept the refresh token itself in sessionStorage: wipe it.
+safe(() => sessionStorage.removeItem(LEGACY_REFRESH_KEY), undefined)
+
 let accessToken: string | null = null
 let expiresAt: number | null = null // epoch ms
-let refreshToken: string | null = sessionStorage.getItem(REFRESH_KEY)
+let sessionHint: boolean = safe(() => localStorage.getItem(SESSION_HINT_KEY) === '1', false)
 let user: UserResponse | null = readStoredUser()
 const listeners = new Set<Subscriber>()
 
 function readStoredUser(): UserResponse | null {
-  const raw = sessionStorage.getItem(USER_KEY)
+  const raw = safe(() => sessionStorage.getItem(USER_KEY), null)
   if (!raw) return null
   try {
     return JSON.parse(raw) as UserResponse
   } catch {
-    sessionStorage.removeItem(USER_KEY)
+    safe(() => sessionStorage.removeItem(USER_KEY), undefined)
     return null
   }
 }
 
 function persist() {
-  if (refreshToken) sessionStorage.setItem(REFRESH_KEY, refreshToken)
-  else sessionStorage.removeItem(REFRESH_KEY)
-  if (user) sessionStorage.setItem(USER_KEY, JSON.stringify(user))
-  else sessionStorage.removeItem(USER_KEY)
+  safe(() => {
+    if (sessionHint) localStorage.setItem(SESSION_HINT_KEY, '1')
+    else localStorage.removeItem(SESSION_HINT_KEY)
+    if (user) sessionStorage.setItem(USER_KEY, JSON.stringify(user))
+    else sessionStorage.removeItem(USER_KEY)
+  }, undefined)
 }
 
 /** Called on login/register/refresh. */
 export function setSession(auth: AuthResponse) {
   accessToken = auth.accessToken
-  refreshToken = auth.refreshToken
   expiresAt = Date.now() + auth.expiresIn * 1000
+  sessionHint = true
   user = auth.user
   persist()
   emit()
@@ -65,11 +82,10 @@ export function setUser(next: UserResponse) {
 
 export function clearSession() {
   accessToken = null
-  refreshToken = null
   expiresAt = null
+  sessionHint = false
   user = null
-  sessionStorage.removeItem(REFRESH_KEY)
-  sessionStorage.removeItem(USER_KEY)
+  persist()
   emit()
 }
 
@@ -88,17 +104,13 @@ export function isAccessTokenExpired(): boolean {
   return Date.now() > expiresAt - 15_000
 }
 
-export function getRefreshToken(): string | null {
-  return refreshToken
-}
-
 export function getUser(): UserResponse | null {
   return user
 }
 
-/** True if a refresh token exists that could restore a session. */
+/** True if a refresh cookie probably exists and could restore a session. */
 export function hasSession(): boolean {
-  return refreshToken !== null
+  return sessionHint
 }
 
 export function subscribe(listener: Subscriber): () => void {
@@ -110,35 +122,55 @@ function emit() {
   for (const l of listeners) l(user)
 }
 
+// Signing out in one tab signs out the others: the cookie is gone for all of
+// them, so drop the in-memory token too instead of waiting for it to expire.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === SESSION_HINT_KEY && e.newValue === null && sessionHint) {
+      accessToken = null
+      expiresAt = null
+      sessionHint = false
+      user = null
+      safe(() => sessionStorage.removeItem(USER_KEY), undefined)
+      emit()
+    }
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Singleton session-restore
 // ---------------------------------------------------------------------------
-// A single shared Promise for any in-flight /auth/refresh call.
-// Both AuthContext and the apiClient request interceptor share this reference
-// so that a page reload (which wipes the in-memory access token) only ever
-// triggers ONE backend call, even if multiple callers notice the missing token
-// simultaneously.
-// Single-use refresh tokens mean a second concurrent call with the same token
-// would be rejected by the backend with 401 and the whole session revoked.
+// A single shared Promise for any in-flight /auth/refresh call, so a page
+// reload only ever triggers ONE backend call from this tab.
+// Refresh tokens are single-use and the cookie is shared by every tab: two
+// tabs refreshing at the same instant would both present the same cookie, the
+// second would look like token reuse, and the backend would end the session.
+// The Web Locks API serialises the call across tabs; the tab that waits then
+// sends the already-rotated cookie.
 let _refreshPromise: Promise<boolean> | null = null
 
 export function refreshSession(): Promise<boolean> {
   if (!_refreshPromise) {
-    _refreshPromise = _doRefresh().finally(() => {
+    _refreshPromise = withCrossTabLock(_doRefresh).finally(() => {
       _refreshPromise = null
     })
   }
   return _refreshPromise
 }
 
+function withCrossTabLock(fn: () => Promise<boolean>): Promise<boolean> {
+  const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined
+  if (!locks?.request) return fn()
+  return locks.request('carlink-refresh', fn) as Promise<boolean>
+}
+
 async function _doRefresh(): Promise<boolean> {
-  const token = refreshToken
-  if (!token) return false
+  if (!sessionHint) return false
   try {
-    // Use plain axios — NOT apiClient — to avoid re-entering the request
-    // interceptor that called us (which would recurse into refreshSession again).
-    const { data } = await axios.post<AuthResponse>('/api/v1/auth/refresh', {
-      refreshToken: token,
+    // Plain axios — NOT apiClient — to avoid re-entering the request
+    // interceptor that called us. The cookie goes along by itself (same origin).
+    const { data } = await axios.post<AuthResponse>('/api/v1/auth/refresh', null, {
+      headers: CSRF_HEADERS,
     })
     setSession(data)
     return true

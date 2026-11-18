@@ -54,7 +54,13 @@ still omit it.
 
 - Access token TTL: configurable, default **15 minutes**.
 - Refresh token TTL: configurable, default **7 days**, rotation on use.
-- On refresh, the old refresh token is revoked and a new one issued.
+- On refresh, the old refresh token is revoked and a new one issued. Presenting an already-used token
+  revokes every session of that user (reuse detection).
+- The refresh token is never in a JSON body or in browser storage: it travels only in the
+  `carlink_rt` cookie — `HttpOnly; SameSite=Strict; Path=/api/v1/auth`, plus `Secure` outside the dev
+  profile (`carlink.auth.refresh-cookie-secure`). The SPA keeps the access token in memory only.
+- CSRF: `/auth/refresh` and `/auth/logout` (the only cookie-authenticated endpoints) also require the
+  `X-Requested-With` header, which a cross-site form cannot send (security plan S-09 / S-24).
 
 ## Rate limiting (public endpoint)
 

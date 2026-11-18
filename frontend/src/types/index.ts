@@ -39,9 +39,9 @@ export interface UserResponse {
   phone?: string | null
 }
 
+/** The refresh token never reaches JavaScript: it is an HttpOnly cookie (S-09). */
 export interface AuthResponse {
   accessToken: string
-  refreshToken: string
   expiresIn: number
   user: UserResponse
 }
@@ -59,10 +59,6 @@ export interface RegisterRequest {
 export interface LoginRequest {
   email: string
   password: string
-}
-
-export interface RefreshRequest {
-  refreshToken: string
 }
 
 // ---------- User ----------

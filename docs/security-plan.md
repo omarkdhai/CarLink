@@ -275,7 +275,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 
 ### Phase 2 — Hardening (Medium)
 
-- [ ] **S-09** Refresh token → `HttpOnly; Secure; SameSite=Strict` cookie + CSRF on cookie endpoints (S-24).
+- [x] **S-09** — done 2026-11-18 (carlink_rt HttpOnly/SameSite=Strict cookie on /api/v1/auth, X-Requested-With required on refresh/logout, Web Locks serialise refresh across tabs; also fixed: refresh-token reuse detection was rolled back by the 401 and never took effect). Refresh token → `HttpOnly; Secure; SameSite=Strict` cookie + CSRF on cookie endpoints (S-24).
 - [ ] **S-10** Admin routes re-check `active`/`role`; admin access TTL 5 min; `tokenVersion` claim.
 - [ ] **S-13** Registration checks sticker is claimable; responses reviewed with S-03 in place.
 - [ ] **S-14** Password policy (min length, passphrases, optional HIBP); `@Size(max=72)` on login.

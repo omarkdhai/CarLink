@@ -98,7 +98,7 @@ class AuthThrottleIntegrationTest extends AbstractIntegrationTest {
     void resetConfirmVerifyAndRefreshAreThrottledPerIp() throws Exception {
         assertThrottled("/api/v1/auth/password-reset/confirm", Map.of("token", "nope", "newPassword", "Secret123"));
         assertThrottled("/api/v1/auth/verify-email", Map.of("token", "nope"));
-        assertThrottled("/api/v1/auth/refresh", Map.of("refreshToken", "nope"));
+        assertThrottled("/api/v1/auth/refresh", Map.of());
     }
 
     @Test
@@ -133,6 +133,7 @@ class AuthThrottleIntegrationTest extends AbstractIntegrationTest {
     private ResultActions call(MockHttpServletRequestBuilder request, String ip, Object body) throws Exception {
         return mockMvc.perform(request
                 .with(r -> { r.setRemoteAddr(ip); return r; })
+                .header("X-Requested-With", "XMLHttpRequest")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(body)));
     }

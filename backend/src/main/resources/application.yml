@@ -123,6 +123,12 @@ carlink:
     # Refresh token (long-lived)
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
 
+  auth:
+    # The refresh token travels in an HttpOnly, SameSite=Strict cookie
+    # (security plan S-09). Secure (HTTPS-only) everywhere except the dev
+    # profile, which is served over plain http://localhost.
+    refresh-cookie-secure: ${REFRESH_COOKIE_SECURE:true}
+
   # Conversation / contact
   conversation:
     expiry-hours: ${CONVERSATION_EXPIRY_HOURS:24}

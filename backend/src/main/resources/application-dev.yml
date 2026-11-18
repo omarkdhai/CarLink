@@ -28,6 +28,9 @@ spring:
         format_sql: true
 
 carlink:
+  # Plain http://localhost: a Secure cookie would be dropped by some browsers.
+  auth:
+    refresh-cookie-secure: ${REFRESH_COOKIE_SECURE:false}
   # Initial administrator, created on startup only if absent. Both values come
   # from the untracked .env (node scripts/dev-secrets.mjs) -- never commit them.
   admin:

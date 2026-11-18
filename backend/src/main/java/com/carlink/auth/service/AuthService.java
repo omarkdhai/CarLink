@@ -176,7 +176,10 @@ public class AuthService {
 
     // ---------- Refresh / logout ----------
 
-    @Transactional
+    // noRollbackFor: presenting a used token revokes the whole session family
+    // and then answers 401. Without this the 401 rolled the revocation back, so
+    // reuse detection never took effect.
+    @Transactional(noRollbackFor = UnauthorizedException.class)
     public AuthResponse refresh(String rawRefreshToken) {
         RefreshToken token = refreshTokenRepository
                 .findByTokenHash(tokenGenerator.sha256(rawRefreshToken))
