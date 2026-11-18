@@ -13,6 +13,7 @@ import { toApiError } from '@/services/errors'
 import { http } from '@/services/apiClient'
 import StickerActivation from '@/features/stickers/StickerActivation'
 import type { ContactChannel, ReportReason } from '@/types'
+import { SuccessMark } from '@/components/shared/SuccessMark'
 
 const REASONS = ['BLOCKING', 'LIGHTS', 'LEFT_OPEN', 'HIT_CAR', 'WINDOWS_OPEN', 'EV_CHARGE'] as const
 type ReasonKey = (typeof REASONS)[number]
@@ -179,9 +180,7 @@ export default function PublicContactPage() {
         <Card>
           <Logo link={false} className="justify-center" />
           <div className="mt-6 text-center">
-            <div className="mx-auto h-16 w-16 rounded-full bg-success-soft text-success flex items-center justify-center mb-4">
-              <Check className="h-8 w-8" aria-hidden />
-            </div>
+            <SuccessMark className="mb-4" />
             <h1 className="text-xl font-bold text-heading">{t('contact.contactSuccess')}</h1>
             <p className="text-sm text-muted-fg mt-2">
               {t('contact.contactSuccessHint', { method: t(`contact.${done.method.toLowerCase()}`) })}

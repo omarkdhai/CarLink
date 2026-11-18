@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
-import { ArrowRight, Check, Clock, HelpCircle, Loader2, PackageSearch, Send, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Clock, HelpCircle, Loader2, PackageSearch, Send, ShieldCheck } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Field } from '@/components/ui/Field'
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { PageIntro, PublicContainer } from '@/components/shared/PublicPage'
 import apiClient, { http } from '@/services/apiClient'
 import { cn } from '@/lib/cn'
+import { SuccessMark } from '@/components/shared/SuccessMark'
 
 interface ContactForm {
   name: string
@@ -100,9 +101,7 @@ export default function ContactPage() {
         <div>
           {submitMutation.isSuccess ? (
             <div className="rounded-3xl border border-success/25 bg-success-soft/60 p-6 sm:p-10 text-center" role="status">
-              <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface text-success shadow-card">
-                <Check className="h-7 w-7" aria-hidden />
-              </span>
+              <SuccessMark className="h-14 w-14" onSurface />
               <h2 className="mt-5 text-2xl font-bold text-heading">{t('contact.sendSuccess')}</h2>
               <p className="mx-auto mt-2 max-w-[45ch] text-base leading-relaxed text-muted-fg">{t('contact.sendSuccessHint')}</p>
               <Button

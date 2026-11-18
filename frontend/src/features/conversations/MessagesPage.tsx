@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { MessageSquare, ShieldCheck } from 'lucide-react'
@@ -8,6 +8,7 @@ import { conversationApi, conversationQueryKeys } from '@/services/conversationA
 import { useAccountStatus } from '@/features/account/useAccountStatus'
 import { ConversationRow, InlineEmpty } from '@/features/account/OwnerUI'
 import { cn } from '@/lib/cn'
+import { canAnimate, Flip, gsap, useGSAP } from '@/lib/gsap'
 import type { ConversationSummaryResponse } from '@/types'
 
 type Filter = 'ALL' | 'UNREAD'
@@ -28,6 +29,53 @@ export default function MessagesPage() {
   const status = useAccountStatus()
   const [filter, setFilter] = useState<Filter>('ALL')
   const [vehicle, setVehicle] = useState('')
+  const pageRef = useRef<HTMLDivElement>(null)
+  const thumbRef = useRef<HTMLSpanElement>(null)
+  const flipState = useRef<Flip.FlipState | null>(null)
+  const motionOK = () => canAnimate() && window.matchMedia('(prefers-reduced-motion: no-preference)').matches
+
+  /** Snapshot row positions, then apply the filter change (Flip animates the diff). */
+  const withFlip = (apply: () => void) => {
+    if (motionOK() && pageRef.current) {
+      flipState.current = Flip.getState(pageRef.current.querySelectorAll('[data-flip-id]'))
+    }
+    apply()
+  }
+
+  // Rows that survive a filter change glide to their new place.
+  useGSAP(
+    () => {
+      const state = flipState.current
+      flipState.current = null
+      if (!state || !pageRef.current) return
+      Flip.from(state, {
+        targets: pageRef.current.querySelectorAll('[data-flip-id]'),
+        duration: 0.5,
+        ease: 'power3.inOut',
+        nested: true,
+      })
+    },
+    { dependencies: [filter, vehicle], scope: pageRef },
+  )
+
+  // Segmented control: the white thumb slides under the active option.
+  useGSAP(
+    () => {
+      const thumb = thumbRef.current
+      const active = thumb?.parentElement?.querySelector<HTMLElement>('button[aria-pressed="true"]')
+      if (!thumb || !active) return
+      const first = gsap.getProperty(thumb, 'opacity') === 0
+      gsap.to(thumb, {
+        x: active.offsetLeft - 4,
+        width: active.offsetWidth,
+        autoAlpha: 1,
+        duration: first || !motionOK() ? 0 : 0.4,
+        ease: 'power3.out',
+        overwrite: true,
+      })
+    },
+    { dependencies: [filter, status.unread, status.conversations.data?.length] },
+  )
 
   const markRead = useMutation({
     mutationFn: (id: string) => conversationApi.markRead(id),
@@ -56,22 +104,27 @@ export default function MessagesPage() {
   const error = status.conversations.error
 
   return (
-    <div className="motion-stagger space-y-6">
+    <div ref={pageRef} className="motion-stagger space-y-6">
       <PageHeader title={t('message.title')} subtitle={t('message.subtitle')} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div role="group" aria-label={t('message.filter')} className="inline-flex self-start gap-1 rounded-xl bg-muted/60 p-1">
+        <div role="group" aria-label={t('message.filter')} className="relative inline-flex self-start gap-1 rounded-xl bg-muted/60 p-1">
+          <span
+            ref={thumbRef}
+            className="pointer-events-none absolute start-1 top-1 bottom-1 w-0 rounded-lg bg-surface opacity-0 shadow-sm rtl:start-auto rtl:left-1"
+            aria-hidden
+          />
           {(['ALL', 'UNREAD'] as Filter[]).map((f) => {
             const count = f === 'ALL' ? all.length : status.unread
             return (
               <button
                 key={f}
                 type="button"
-                onClick={() => setFilter(f)}
+                onClick={() => withFlip(() => setFilter(f))}
                 aria-pressed={filter === f}
                 className={cn(
-                  'inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold transition-colors',
-                  filter === f ? 'bg-surface text-heading shadow-sm' : 'text-muted-fg hover:text-foreground',
+                  'relative inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-semibold transition-colors',
+                  filter === f ? 'text-heading' : 'text-muted-fg hover:text-foreground',
                 )}
               >
                 {f === 'ALL' ? t('common.all') : t('message.unreadFilter')}
@@ -87,7 +140,10 @@ export default function MessagesPage() {
             <span className="text-muted-fg">{t('message.vehicle')}</span>
             <select
               value={vehicle}
-              onChange={(e) => setVehicle(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value
+                withFlip(() => setVehicle(v))
+              }}
               className="h-11 rounded-lg border border-input-border bg-surface px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">{t('message.allVehicles')}</option>
@@ -132,7 +188,7 @@ export default function MessagesPage() {
                   </h2>
                   <ul className="motion-stagger bg-surface border border-border rounded-2xl shadow-card divide-y divide-border overflow-hidden">
                     {groups[g].map((conv) => (
-                      <li key={conv.id}>
+                      <li key={conv.id} data-flip-id={conv.id}>
                         <ConversationRow conv={conv} onOpen={() => conv.unread && markRead.mutate(conv.id)} />
                       </li>
                     ))}

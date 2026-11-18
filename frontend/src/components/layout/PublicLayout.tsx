@@ -8,6 +8,7 @@ import { PageTransition } from '@/components/shared/PageTransition'
 import { buttonClasses } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/AuthContext'
 import { cn } from '@/lib/cn'
+import { canAnimate, gsap, MQ, ScrollTrigger, useGSAP } from '@/lib/gsap'
 
 const NAV_LINKS = [
   { to: '/', key: 'home' },
@@ -47,6 +48,22 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const progressRef = useRef<HTMLDivElement>(null)
+
+  // Reading-progress hairline under the navbar, scrubbed to the scroll position.
+  useGSAP(() => {
+    const bar = progressRef.current
+    if (!bar || !canAnimate()) return
+    gsap.matchMedia().add(MQ.MOTION, () => {
+      gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: 0.3 } })
+    })
+  })
+  // New route = new page height: re-measure every ScrollTrigger once it has rendered.
+  useEffect(() => {
+    if (!canAnimate()) return
+    const id = window.setTimeout(() => ScrollTrigger.refresh(), 250)
+    return () => window.clearTimeout(id)
+  }, [location.key])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -181,6 +198,11 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
         )}
+        <div
+          ref={progressRef}
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 origin-left scale-x-0 bg-primary rtl:origin-right motion-reduce:hidden"
+          aria-hidden
+        />
       </header>
       <main id="main-content" ref={mainRef} className="reveal-host flex-1 flex flex-col bg-transparent">
         <PageTransition key={location.pathname} className="flex-1 flex flex-col">{children}</PageTransition>

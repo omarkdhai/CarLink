@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
-import { Check, LogIn, QrCode, ScanLine, UserRound } from 'lucide-react'
+import { LogIn, QrCode, ScanLine, UserRound } from 'lucide-react'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
@@ -19,6 +19,7 @@ import {
 } from '@/features/stickers/stickerSchemas'
 import { cn } from '@/lib/cn'
 import { AuthShell } from '@/features/auth/AuthShell'
+import { SuccessMark } from '@/components/shared/SuccessMark'
 
 /**
  * The activation flow behind a scanned virgin sticker (/c/:token when its
@@ -71,9 +72,7 @@ export default function StickerActivation({ token }: { token: string }) {
       <Shell>
         <Card>
           <div className="mt-6 text-center">
-            <div className="mx-auto h-16 w-16 rounded-full bg-success-soft text-success flex items-center justify-center mb-4">
-              <Check className="h-8 w-8" aria-hidden />
-            </div>
+            <SuccessMark className="mb-4" />
             <h1 className="text-xl font-bold text-heading">{t('stickers.activated')}</h1>
             <p className="text-sm text-muted-fg mt-2">{t('stickers.activatedHint')}</p>
             <Button className="mt-6 w-full" onClick={() => navigate('/stickers', { replace: true })}>
