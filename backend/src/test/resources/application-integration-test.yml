@@ -68,6 +68,15 @@ carlink:
     login-ip:
       max: 100000
       window-seconds: 60
+    relay-visitor-cooldown:
+      max: 100000
+      window-seconds: 60
+    relay-sticker-day:
+      max: 100000
+      window-seconds: 60
+    relay-owner-day:
+      max: 100000
+      window-seconds: 60
   contact:
     provider: mock
     enabled-channels: SMS

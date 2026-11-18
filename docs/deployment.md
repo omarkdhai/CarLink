@@ -262,7 +262,26 @@ Not yet automated, listed so they are not mistaken for oversights:
   Speaking it would require hosting a Call Control `speak` webhook, which this
   app does not do. With no URL set the call is skipped (the SMS still sends).
 
-## 14. Rotating local secrets
+## 14. SMS relay abuse limits (security plan S-12)
+
+Every visitor alert can become a paid SMS. The backend caps it in layers, all
+tunable under `carlink.throttle.*` (`max` / `window-seconds`):
+
+| Limit | Default | Purpose |
+|---|---|---|
+| `relay-visitor-cooldown` | 1 per 120 s per (IP, sticker) | one visitor cannot spam one owner |
+| `relay-sticker-day` | 30 per day per sticker | harassment through one sticker |
+| `relay-owner-day` | 60 per day per owner | all of an owner's stickers together |
+| `ratelimit.qr-per-hour` | 20 per hour per token | scans + submissions together |
+
+Links in a visitor's note are replaced by `[link removed]` before the note is
+stored or relayed (no phishing through a trusted sender).
+
+**Also configure, in the Telnyx portal** (cannot be done from this repo): a
+low-balance / spend alert on the account and a daily spend limit on the
+messaging profile, so a bypass of these limits costs a bounded amount.
+
+## 15. Rotating local secrets
 
 The local stack (`docker-compose.yml`) reads every secret from the untracked
 `.env`. `node scripts/dev-secrets.mjs` creates it and replaces any blank,

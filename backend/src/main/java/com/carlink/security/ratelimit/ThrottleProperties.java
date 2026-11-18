@@ -35,6 +35,12 @@ public class ThrottleProperties {
     private Limit stickerActivateIp = new Limit(20, 3600);
     /** Login attempts per IP, whatever the e-mail (credential stuffing). */
     private Limit loginIp = new Limit(20, 300);
+    /** S-12: one relayed alert per (visitor IP, sticker) per window. */
+    private Limit relayVisitorCooldown = new Limit(1, 120);
+    /** S-12: relayed alerts per sticker per day (harassment / SMS cost). */
+    private Limit relayStickerDay = new Limit(30, 86400);
+    /** S-12: relayed alerts per owner per day, across all their stickers. */
+    private Limit relayOwnerDay = new Limit(60, 86400);
 
     @Getter
     @Setter

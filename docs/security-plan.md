@@ -257,7 +257,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
   `log_format` in nginx as defence in depth.
   - **Done when:** nginx access log contains no 64-char token after a scan + contact (test script).
 - [ ] **S-11** CAPTCHA/Turnstile on order, contact form, report and scan-contact; per-email/phone order cap.
-- [ ] **S-12** Per-sticker daily cap, per-(IP,sticker) cooldown, URL neutralisation, Telnyx spend alert.
+- [x] **S-12** — done 2026-11-18 (visitor cooldown, sticker/day, owner/day caps; links neutralised; Telnyx spend alert documented in deployment.md §14, to set in the portal). Per-sticker daily cap, per-(IP,sticker) cooldown, URL neutralisation, Telnyx spend alert.
 - [x] **S-18** — done 2026-11-18 (JwtService refuses weak/public secrets; JWT_REFRESH_SECRET removed). Remove secret defaults from the base profile; startup secret-strength guard; drop
   `JWT_REFRESH_SECRET`.
 

@@ -84,5 +84,5 @@ writeFileSync(envPath, out.join(eol))
 console.log(generated.length ? `Generated new values for: ${generated.join(', ')}` : 'All secrets already set; nothing changed.')
 if (generated.includes('POSTGRES_PASSWORD')) {
   console.log('Note: an existing Postgres volume keeps its old password. Apply the new one inside the database')
-  console.log('      (docs/deployment.md, "Rotating local secrets") or start from an empty volume.')
+  console.log('      (docs/deployment.md, §15 "Rotating local secrets") or start from an empty volume.')
 }

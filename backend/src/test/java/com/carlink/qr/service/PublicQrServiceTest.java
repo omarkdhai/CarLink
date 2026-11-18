@@ -68,7 +68,9 @@ class PublicQrServiceTest {
     @BeforeEach
     void setUp() {
         service = new PublicQrService(qrCodeRepository, stickerRepository,
-                conversationService, contactDeliveryService, tokenGenerator,
+                conversationService, contactDeliveryService,
+                new com.carlink.security.ratelimit.Throttle(rateLimiter, tokenGenerator),
+                new com.carlink.security.ratelimit.ThrottleProperties(), tokenGenerator,
                 rateLimiter, properties);
     }
 
@@ -189,6 +191,46 @@ class PublicQrServiceTest {
                 org.mockito.ArgumentMatchers.eq("+21655123456"),
                 org.mockito.ArgumentMatchers.eq("Hi! Is this car for sale?"),
                 org.mockito.ArgumentMatchers.eq("BLOCKING"));
+    }
+
+    @Test
+    void submitNeutralisesLinksBeforeStoringAndRelaying() {
+        // S-12: the relay must not carry phishing links to an owner.
+        allowAllRequests();
+        when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
+                .thenReturn(Optional.of(activeCode()));
+        when(conversationService.open(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any())).thenReturn(UUID.randomUUID());
+
+        service.submit(rawToken, clientIp,
+                new ContactSubmitRequest("SMS", "Car towed, pay at https://evil.example/pay", "BLOCKING"));
+
+        String cleaned = "Car towed, pay at [link removed]";
+        verify(conversationService).appendMessage(org.mockito.ArgumentMatchers.any(UUID.class),
+                org.mockito.ArgumentMatchers.eq(cleaned), org.mockito.ArgumentMatchers.eq("BLOCKING"));
+        verify(contactDeliveryService).deliver(org.mockito.ArgumentMatchers.any(UUID.class),
+                org.mockito.ArgumentMatchers.eq(Channel.SMS), anyString(),
+                org.mockito.ArgumentMatchers.eq(cleaned), org.mockito.ArgumentMatchers.eq("BLOCKING"));
+    }
+
+    @Test
+    void submitStopsAtTheDailyStickerCapBeforeAnySms() {
+        // Everything is allowed except the S-12 per-sticker daily cap.
+        when(rateLimiter.tryAcquire(anyString(), org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenAnswer(inv -> !inv.getArgument(0, String.class).startsWith("throttle:relay-sticker:"));
+        when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
+                .thenReturn(Optional.of(activeCode()));
+
+        assertThatThrownBy(() -> service.submit(rawToken, clientIp,
+                new ContactSubmitRequest("SMS", "hi", "BLOCKING")))
+                .isInstanceOf(TooManyRequestsException.class);
+        verify(conversationService, never()).open(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(contactDeliveryService, never()).deliver(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
 
     @Test

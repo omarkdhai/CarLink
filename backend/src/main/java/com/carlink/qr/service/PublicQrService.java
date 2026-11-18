@@ -16,6 +16,8 @@ import com.carlink.qr.model.ContactReason;
 import com.carlink.qr.model.QrCode;
 import com.carlink.qr.repository.QrCodeRepository;
 import com.carlink.security.ratelimit.RateLimiter;
+import com.carlink.security.ratelimit.Throttle;
+import com.carlink.security.ratelimit.ThrottleProperties;
 import com.carlink.sticker.model.Sticker;
 import com.carlink.sticker.model.StickerStatus;
 import com.carlink.sticker.repository.StickerRepository;
@@ -58,6 +60,8 @@ public class PublicQrService {
     private final StickerRepository stickerRepository;
     private final ConversationService conversationService;
     private final ContactDeliveryService contactDeliveryService;
+    private final Throttle throttle;
+    private final ThrottleProperties limits;
     private final TokenGenerator tokenGenerator;
     private final RateLimiter rateLimiter;
     private final CarLinkProperties properties;
@@ -97,32 +101,45 @@ public class PublicQrService {
             if (s.getStatus() != StickerStatus.BOUND || s.getVehicle() == null) {
                 throw new NotFoundException("QR code not found");
             }
-            return doSubmit(s.getVehicle(), request);
+            return doSubmit(s.getVehicle(), request, rawToken, clientIp);
         }
 
         // Fallback: legacy qr_codes
         QrCode qr = activeQrByHash(tokenHash);
-        return doSubmit(qr.getVehicle(), request);
+        return doSubmit(qr.getVehicle(), request, rawToken, clientIp);
     }
 
     // ————————— internal —————————
 
-    private ContactSubmitResponse doSubmit(Vehicle vehicle, ContactSubmitRequest request) {
+    private ContactSubmitResponse doSubmit(Vehicle vehicle, ContactSubmitRequest request,
+                                           String rawToken, String clientIp) {
         Channel channel = Channel.valueOf(request.channel());
         if (!advertisedChannels().contains(channel.name())) {
             throw new BadRequestException("Unsupported contact channel: " + channel);
         }
+        // S-12: each alert can become a paid SMS to a phone the visitor cannot
+        // see. Beyond the per-token hourly limit above: one alert per visitor per
+        // sticker per cooldown, a daily cap per sticker, and per owner (all of
+        // their stickers together).
+        String tokenHash = tokenGenerator.sha256(rawToken);
+        throttle.require("relay-visitor", limits.getRelayVisitorCooldown(), clientIp + "|" + tokenHash);
+        throttle.require("relay-sticker", limits.getRelayStickerDay(), tokenHash);
+        throttle.require("relay-owner", limits.getRelayOwnerDay(), vehicle.getOwner().getId().toString());
+
+        // Links have no place in a parking alert and make the relay a phishing
+        // channel: neutralise them before the note is stored or sent.
+        String note = RelayTextSanitizer.neutraliseLinks(request.message());
         // The note is optional — when absent, the reason label alone is the content.
-        String content = request.message() == null || request.message().isBlank()
+        String content = note == null || note.isBlank()
                 ? ContactReason.from(request.reason()).label()
-                : request.message().trim();
+                : note.trim();
         UUID conversationId = conversationService.open(vehicle,
                 channel, ConversationStatus.PENDING);
         conversationService.appendMessage(conversationId, content, request.reason());
 
         // Owner phone stays server-side: passed to the relay, never exposed.
         contactDeliveryService.deliver(conversationId, channel,
-                vehicle.getOwner().getPhone(), request.message(), request.reason());
+                vehicle.getOwner().getPhone(), note, request.reason());
 
         return new ContactSubmitResponse(conversationId, "Message sent to the owner.");
     }
