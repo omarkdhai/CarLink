@@ -106,12 +106,24 @@ logging the real client IP even when a spoofed `X-Forwarded-For` is sent.
 
 ## 4. First deploy
 
+The server never builds the application. Releases are images published by
+`.github/workflows/release.yml`: push a tag `vX.Y.Z` and, once the full CI
+passes on that commit, `ghcr.io/omarkdhai/carlink-backend:X.Y.Z` and
+`carlink-frontend:X.Y.Z` (plus an immutable `sha-<commit>` tag) are pushed to
+GitHub Container Registry. `CARLINK_VERSION` in `.env.prod` selects the release.
+
+GHCR packages are private when first created. Either make both packages public
+(the repository is public and the images contain no secrets), or log the server
+in once with a read-only token: a classic PAT with only `read:packages`,
+`docker login ghcr.io -u <user>` (password on stdin, never on the command line).
+
 ```bash
 cp .env.example .env.prod
-$EDITOR .env.prod          # fill in secrets and URLs from §2
+$EDITOR .env.prod          # fill in secrets and URLs from §2, and CARLINK_VERSION
 
-# Build and start
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Pull the release and start
+docker compose -f docker-compose.prod.yml --env-file .env.prod pull --ignore-buildable
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --no-build
 
 # Watch it come up
 docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f backend
@@ -120,6 +132,10 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f backend
 Startup order is enforced by healthchecks: Postgres and Redis must be healthy
 before the backend starts, and the backend must be healthy before Nginx starts.
 Flyway runs automatically at backend startup.
+
+Local dry-run of the production stack (no registry needed): set
+`CARLINK_VERSION=local` and use `up -d --build`; compose builds both images
+under the release names.
 
 ## 5. Database migrations
 
@@ -204,14 +220,13 @@ registered after it. Take a fresh dump first if that data matters.
 Rollback is only safe if no migration ran (§5).
 
 ```bash
-# Redeploy the previous code. compose cannot pull an older image by reference,
-# so check the ref out and rebuild.
-git checkout <previous-ref>
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Point CARLINK_VERSION in .env.prod back at the previous release, then:
+docker compose -f docker-compose.prod.yml --env-file .env.prod pull --ignore-buildable
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --no-build
 ```
 
-Keep the previous tag's images before rebuilding, so a rollback does not have to
-re-resolve every dependency from Maven Central.
+Every release stays in GHCR, so nothing is rebuilt and no dependency is
+re-resolved from Maven Central during a rollback.
 
 If a migration *did* run, roll the code back **and** restore the database from
 the pre-deploy dump (§8). There is no down-migration to fall back on.
