@@ -191,15 +191,39 @@ Postgres holds everything that matters. Redis only holds rate-limit counters
 and short-lived caches, so losing it costs a burst of un-throttled requests, not
 data.
 
+`scripts/backup.sh` dumps the database (custom format), checks the archive,
+keeps the newest 14 dumps in `/var/backups/carlink` (root only) and, when
+configured, copies each dump off the server and pings a dead-man check. It never
+prints a secret; the dump does not contain `PHONE_ENCRYPTION_KEY`.
+
 ```bash
-# Daily, from the host
-docker compose -f docker-compose.prod.yml --env-file .env.prod \
-  exec -T postgres pg_dump -U carlink -Fc carlink \
-  > "carlink-$(date +%F).dump"
+# Once by hand, from /opt/carlink
+sh scripts/backup.sh
+
+# Nightly at 02:30 (before the 03:30 retention job): crontab -e as root
+30 2 * * * cd /opt/carlink && BACKUP_REMOTE=b2crypt:carlink-backups BACKUP_PING_URL=https://hc-ping.com/<uuid> sh scripts/backup.sh >> /var/log/carlink-backup.log 2>&1
 ```
 
-Store dumps **off-host**, and test a restore at least once (below). A backup you
-have never restored is a guess.
+**Off-site copy (free).** Server snapshots live at the same provider as the
+server, so also keep a copy elsewhere:
+
+1. Backblaze B2 (10 GB free): create a private bucket and an application key
+   limited to that bucket.
+2. On the server: `apt -y install rclone`, then `rclone config`: a `b2` remote
+   with that key, and a `crypt` remote named `b2crypt` on top of it (the dumps
+   hold e-mail addresses; crypt encrypts them before they leave the server).
+   Store the crypt passwords in your password manager.
+3. Set `BACKUP_REMOTE=b2crypt:carlink-backups`; remote dumps older than 30 days
+   are deleted (`BACKUP_REMOTE_DAYS`).
+
+**Know when it stops.** Create a free check on healthchecks.io (daily period)
+and put its ping URL in `BACKUP_PING_URL`; if a night is missed or fails, it
+e-mails you.
+
+**Test a restore every month**: copy a dump to your PC and restore it into a
+throwaway container (§8 commands against `docker run --rm -e POSTGRES_PASSWORD=t
+postgres:15-alpine`), then count a few tables. A backup you have never
+restored is a guess.
 
 ## 8. Restore
 
@@ -302,8 +326,6 @@ others. Also watch Postgres disk growth and readiness flapping.
 
 Not yet automated, listed so they are not mistaken for oversights:
 
-- **No automated backup schedule.** §7 is a manual command; there is no cron,
-  systemd timer or managed-snapshot policy in this repo.
 - **No metrics shipping.** The Prometheus endpoint exists, is admin-only and is not proxied by nginx (scrape backend:8080 from inside the network),
   but no scrape config or alert rules are provided.
 - **No log aggregation.** Logs are container-local and lost on host loss.
