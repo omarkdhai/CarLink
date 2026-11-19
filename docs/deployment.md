@@ -308,10 +308,10 @@ Not yet automated, listed so they are not mistaken for oversights:
 - **No metrics shipping.** The Prometheus endpoint exists, is admin-only and is not proxied by nginx (scrape backend:8080 from inside the network),
   but no scrape config or alert rules are provided.
 - **No log aggregation.** Logs are container-local and lost on host loss.
-- **Redis has no memory cap.** It defaults to `noeviction`; if it fills, writes
-  fail and rate limiting breaks. Note that switching to an eviction policy would
-  discard rate-limit counters, which weakens abuse protection — this needs a
-  deliberate decision, not a config flip.
+- **Redis is capped at 64 MB with `noeviction`** (`docker-compose.prod.yml`). At
+  the cap, writes fail and rate limiting breaks rather than silently dropping
+  counters; CarLink needs a few KB per active visitor, so the cap is far away.
+  Every container also has a memory limit sized for a 4 GB server.
 - **No TLS or reverse-proxy config in this repo.** §3 assumes one exists
   elsewhere.
 - **Contact relay defaults to the logging mock.** With `CONTACT_PROVIDER=mock`,
