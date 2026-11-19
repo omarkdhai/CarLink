@@ -22,6 +22,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import com.carlink.auth.service.SessionInvalidator;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -34,12 +35,13 @@ class AdminUserServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private VehicleRepository vehicleRepository;
     @Mock private AuditLogService auditLogService;
+    @Mock private SessionInvalidator sessionInvalidator;
 
     private AdminUserService service;
 
     @BeforeEach
     void setUp() {
-        service = new AdminUserService(userRepository, vehicleRepository, auditLogService);
+        service = new AdminUserService(userRepository, vehicleRepository, auditLogService, sessionInvalidator);
     }
 
     // ---------- list / get ----------
@@ -75,6 +77,7 @@ class AdminUserServiceTest {
         service.deactivate(owner.getId(), actor);
 
         assertThat(owner.isActive()).isFalse();
+        verify(sessionInvalidator).invalidateAll(owner);
         verify(auditLogService).record(eq("USER_DEACTIVATE"), eq("USER"), eq(owner.getId()),
                 eq(actor.adminId()), eq(actor.ipAddress()), eq(actor.userAgent()), any());
     }
@@ -116,6 +119,7 @@ class AdminUserServiceTest {
         service.changeRole(owner.getId(), Role.ADMIN, actor);
 
         assertThat(owner.getRole()).isEqualTo(Role.ADMIN);
+        verify(sessionInvalidator).invalidateAll(owner);
         verify(auditLogService).record(eq("USER_ROLE_CHANGE"), eq("USER"), eq(owner.getId()),
                 eq(actor.adminId()), eq(actor.ipAddress()), eq(actor.userAgent()),
                 argThat(details -> "USER".equals(details.get("from"))

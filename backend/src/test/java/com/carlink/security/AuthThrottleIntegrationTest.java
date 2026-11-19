@@ -103,8 +103,9 @@ class AuthThrottleIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void stickerActivationIsThrottledPerAccount() throws Exception {
-        String bearer = "Bearer " + jwtService.issueAccessToken(User.builder()
-                .id(UUID.randomUUID()).email("guess@example.com").role(Role.USER).build());
+        String bearer = "Bearer " + jwtService.issueAccessToken(userRepository.save(User.builder()
+                .id(UUID.randomUUID()).email("guess@example.com").passwordHash("x")
+                .role(Role.USER).active(true).build()));
         Map<String, Object> body = Map.of("code", "ZZZZ-ZZZZ",
                 "details", Map.of("licensePlate", "123 TU 4567", "birthDate", "1990-01-01"));
         for (int i = 0; i < 2; i++) {

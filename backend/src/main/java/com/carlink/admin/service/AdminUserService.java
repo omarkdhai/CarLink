@@ -2,6 +2,7 @@ package com.carlink.admin.service;
 
 import com.carlink.admin.dto.AdminActor;
 import com.carlink.admin.dto.AdminUserResponse;
+import com.carlink.auth.service.SessionInvalidator;
 import com.carlink.common.exception.ForbiddenException;
 import com.carlink.common.exception.NotFoundException;
 import com.carlink.user.model.Role;
@@ -29,6 +30,7 @@ public class AdminUserService {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final AuditLogService auditLogService;
+    private final SessionInvalidator sessionInvalidator;
 
     @Transactional(readOnly = true)
     public List<AdminUserResponse> list(String q, Boolean active, Role role) {
@@ -49,6 +51,7 @@ public class AdminUserService {
             throw new ForbiddenException("You cannot deactivate your own account");
         }
         user.setActive(false);
+        sessionInvalidator.invalidateAll(user); // S-10: out now, not in 15 minutes
         auditLogService.record("USER_DEACTIVATE", "USER", userId,
                 actor.adminId(), actor.ipAddress(), actor.userAgent(), Map.of("action", "deactivate"));
     }
@@ -70,6 +73,7 @@ public class AdminUserService {
             throw new ForbiddenException("Cannot demote the last administrator");
         }
         user.setRole(newRole);
+        sessionInvalidator.invalidateAll(user); // S-10: old tokens carry the old role
         auditLogService.record("USER_ROLE_CHANGE", "USER", userId,
                 actor.adminId(), actor.ipAddress(), actor.userAgent(),
                 Map.of("from", from.name(), "to", newRole.name()));

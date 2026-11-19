@@ -64,14 +64,25 @@ public class JwtService {
         return Keys.hmacShaKeyFor(bytes);
     }
 
+    /** Claim holding {@link User#getTokenVersion()} (security plan S-10). */
+    public static final String TOKEN_VERSION_CLAIM = "tv";
+
+    /** Access-token lifetime: shorter for administrators (security plan S-10). */
+    public Duration accessTtl(User user) {
+        long minutes = user.getRole() == Role.ADMIN
+                ? properties.jwt().adminAccessExpirationMinutes()
+                : properties.jwt().accessExpirationMinutes();
+        return Duration.ofMinutes(minutes);
+    }
+
     public String issueAccessToken(User user) {
         Instant now = Instant.now();
-        Instant expiresAt = now.plus(
-                Duration.ofMinutes(properties.jwt().accessExpirationMinutes()));
+        Instant expiresAt = now.plus(accessTtl(user));
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
+                .claim(TOKEN_VERSION_CLAIM, user.getTokenVersion())
                 .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
@@ -100,6 +111,12 @@ public class JwtService {
     public String extractRole(Claims claims) {
         Object role = claims.get("role");
         return role == null ? Role.USER.name() : role.toString();
+    }
+
+    /** The token's version; tokens minted before S-10 carry none and count as 0. */
+    public int extractTokenVersion(Claims claims) {
+        Object tv = claims.get(TOKEN_VERSION_CLAIM);
+        return tv instanceof Number n ? n.intValue() : 0;
     }
 
     public boolean isAccessTokenExpired(Claims claims) {

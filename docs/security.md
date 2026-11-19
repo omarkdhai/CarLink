@@ -53,6 +53,12 @@ still omit it.
 ## JWT lifecycle
 
 - Access token TTL: configurable, default **15 minutes**.
+- Admin access tokens live **5 minutes** (`JWT_ADMIN_ACCESS_EXPIRATION_MINUTES`).
+- Every access token carries the account's token version (`tv`). The JWT filter checks it, together with
+  `active` and the role, against the live account (fresh from the database on `/api/v1/admin/**`, cached
+  for 30 s elsewhere and evicted on change). Deactivation, a role change and a password reset bump the
+  version and revoke refresh tokens, so every session ends at once. The role used for authorisation is
+  the database's, not the token's (security plan S-10).
 - Refresh token TTL: configurable, default **7 days**, rotation on use.
 - On refresh, the old refresh token is revoked and a new one issued. Presenting an already-used token
   revokes every session of that user (reuse detection).

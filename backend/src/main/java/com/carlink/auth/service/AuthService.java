@@ -64,6 +64,7 @@ public class AuthService {
     private final CarLinkProperties properties;
     private final LoginAttemptService loginAttemptService;
     private final StickerRepository stickerRepository;
+    private final SessionInvalidator sessionInvalidator;
 
     // ---------- Register ----------
 
@@ -256,15 +257,11 @@ public class AuthService {
         User user = token.getUser();
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setEmailVerified(true);
+        // End every existing session: refresh tokens AND live access tokens (S-10).
+        sessionInvalidator.invalidateAll(user);
         userRepository.save(user);
         token.markUsed();
         passwordResetTokenRepository.save(token);
-
-        // Invalidate all existing sessions after a password change.
-        refreshTokenRepository.findAllByUserIdAndRevokedAtIsNull(user.getId()).forEach(it -> {
-            it.revoke();
-            refreshTokenRepository.save(it);
-        });
     }
 
     // ---------- Helpers ----------
@@ -293,7 +290,7 @@ public class AuthService {
         return new AuthResponse(
                 accessToken,
                 rawRefresh,
-                properties.jwt().accessExpirationMinutes() * 60L,
+                jwtService.accessTtl(user).toSeconds(),
                 UserResponse.from(user));
     }
 

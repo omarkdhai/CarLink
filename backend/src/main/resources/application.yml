@@ -120,6 +120,8 @@ carlink:
     # from .env (node scripts/dev-secrets.mjs); tests set their own.
     secret: ${JWT_SECRET}
     access-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:15}
+    # Admin access tokens are shorter-lived (security plan S-10)
+    admin-access-expiration-minutes: ${JWT_ADMIN_ACCESS_EXPIRATION_MINUTES:5}
     # Refresh token (long-lived)
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
 

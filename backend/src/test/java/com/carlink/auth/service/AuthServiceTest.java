@@ -1,6 +1,7 @@
 package com.carlink.auth.service;
 
 import com.carlink.auth.dto.AuthResponse;
+import com.carlink.security.session.SessionStateCache;
 import com.carlink.auth.dto.LoginRequest;
 import com.carlink.auth.dto.PasswordResetRequest;
 import com.carlink.auth.dto.RegisterRequest;
@@ -72,7 +73,7 @@ class AuthServiceTest {
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, passwordEncoder, jwtService,
                 tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
-                stickerRepository);
+                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)));
     }
 
     /** Stub a claimable sticker so register() can validate the supplied code. */
@@ -198,7 +199,7 @@ class AuthServiceTest {
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, spyEncoder, new JwtService(properties),
                 tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
-                stickerRepository);
+                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)));
         when(userRepository.findByEmailIgnoreCase("ghost@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.login(new LoginRequest("ghost@example.com", "Secret123"), IP))

@@ -4,6 +4,7 @@ import com.carlink.AbstractIntegrationTest;
 import com.carlink.auth.service.JwtService;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
+import com.carlink.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,6 +22,9 @@ class ActuatorAccessIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     void healthIsPublic() throws Exception {
@@ -52,11 +56,15 @@ class ActuatorAccessIntegrationTest extends AbstractIntegrationTest {
     }
 
     private String bearer(Role role) {
-        User user = User.builder()
-                .id(UUID.randomUUID())
-                .email(role.name().toLowerCase() + "@actuator.test")
+        // Persisted: since S-10 a token is only honoured for a live, active account.
+        UUID id = UUID.randomUUID();
+        User user = userRepository.save(User.builder()
+                .id(id)
+                .email(role.name().toLowerCase() + "-" + id + "@actuator.test")
+                .passwordHash("x")
                 .role(role)
-                .build();
+                .active(true)
+                .build());
         return "Bearer " + jwtService.issueAccessToken(user);
     }
 }
