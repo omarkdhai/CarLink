@@ -80,7 +80,6 @@ public class JwtService {
         Instant expiresAt = now.plus(accessTtl(user));
         return Jwts.builder()
                 .subject(user.getId().toString())
-                .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
                 .claim(TOKEN_VERSION_CLAIM, user.getTokenVersion())
                 .id(UUID.randomUUID().toString())

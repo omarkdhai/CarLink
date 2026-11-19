@@ -7,7 +7,7 @@ import com.carlink.conversation.model.Channel;
 import com.telnyx.sdk.client.TelnyxClient;
 import com.telnyx.sdk.models.messages.MessageSendParams;
 import com.telnyx.sdk.models.messages.MessageSendResponse;
-import com.telnyx.sdk.models.messages.MessagingOutboundMessagePayload;
+import com.telnyx.sdk.models.messages.OutboundMessagePayload;
 import com.telnyx.sdk.services.blocking.MessageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +29,7 @@ class TelnyxContactChannelSenderTest {
     @Mock private TelnyxClient telnyxClient;
     @Mock private MessageService messageService;
     @Mock private MessageSendResponse response;
-    @Mock private MessagingOutboundMessagePayload payload;
+    @Mock private OutboundMessagePayload payload;
 
     private final TokenGenerator tokenGenerator = new TokenGenerator();
     private final CarLinkProperties properties = TestProperties.minimal();

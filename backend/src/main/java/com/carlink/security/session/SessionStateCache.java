@@ -27,10 +27,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SessionStateCache {
 
     /** What a token is checked against. */
-    public record SessionState(boolean active, Role role, int tokenVersion) {
+    /** {@code email} feeds the principal, so the JWT need not carry it (pentest PT-3). */
+    public record SessionState(boolean active, Role role, int tokenVersion, String email) {
 
         static SessionState of(User user) {
-            return new SessionState(user.isActive(), user.getRole(), user.getTokenVersion());
+            return new SessionState(user.isActive(), user.getRole(), user.getTokenVersion(), user.getEmail());
         }
     }
 

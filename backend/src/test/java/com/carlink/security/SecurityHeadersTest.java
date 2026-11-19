@@ -76,10 +76,11 @@ class SecurityHeadersTest extends AbstractIntegrationTest {
 
     @Test
     void headersSurviveOnUnauthenticatedRoutesToo() throws Exception {
-        // The QR page is the most exposed surface in the app.
-        mockMvc.perform(get("/c/nonexistent-token"))
+        // The public QR lookup is the most exposed surface in the app.
+        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", "nonexistent-token"))
                 .andExpect(status().isNotFound());
-        var response = mockMvc.perform(get("/c/nonexistent-token")).andReturn().getResponse();
+        var response = mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", "nonexistent-token"))
+                .andReturn().getResponse();
         assertThat(response.getHeader("X-Content-Type-Options")).isEqualTo("nosniff");
     }
 }

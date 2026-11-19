@@ -7,7 +7,7 @@ import com.carlink.qr.model.ContactReason;
 import com.telnyx.sdk.client.TelnyxClient;
 import com.telnyx.sdk.models.messages.MessageSendParams;
 import com.telnyx.sdk.models.messages.MessageSendResponse;
-import com.telnyx.sdk.models.messages.MessagingOutboundMessagePayload;
+import com.telnyx.sdk.models.messages.OutboundMessagePayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -60,7 +60,7 @@ public class TelnyxContactChannelSender implements ContactChannelSender {
         MessageSendResponse response = telnyxClient.messages().send(request);
 
         String messageId = response.data()
-                .flatMap(MessagingOutboundMessagePayload::id)
+                .flatMap(OutboundMessagePayload::id)
                 .orElse(null);
         if (messageId == null) {
             // Accepted by the SDK but with no id means we cannot correlate it;

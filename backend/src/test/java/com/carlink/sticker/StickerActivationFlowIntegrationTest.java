@@ -40,11 +40,6 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.state").value("UNBOUND"))
                 .andExpect(jsonPath("$.channels").isEmpty());
 
-        // The raw HTML page also works (neutral "not yet activated" page).
-        mockMvc.perform(get("/c/{token}", rawToken))
-                .andExpect(status().isOk())
-                .andExpect(content().string(
-                        org.hamcrest.Matchers.containsString("hasn't been activated")));
 
         // Owner registers and claims the sticker with car details.
         String[] owner = registerAndLogin("stkr-owner" + (++seq) + "@example.com");
