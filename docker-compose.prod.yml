@@ -96,6 +96,11 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       PHONE_ENCRYPTION_KEY: ${PHONE_ENCRYPTION_KEY:?PHONE_ENCRYPTION_KEY is required (64 hex chars)}
+      # First administrator, first deploy only: created at startup if no account
+      # has this e-mail (password 12+ chars, or startup stops). After signing in
+      # and changing the password, remove ADMIN_BOOTSTRAP_PASSWORD from .env.prod.
+      ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
+      ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
       # Prometheus scrape credential for /actuator/prometheus (S-25); optional.
       METRICS_SCRAPE_TOKEN: ${METRICS_SCRAPE_TOKEN:-}
       MAIL_HOST: ${MAIL_HOST:?MAIL_HOST is required}
