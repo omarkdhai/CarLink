@@ -2,7 +2,7 @@ package com.carlink.admin.service;
 
 import com.carlink.admin.model.AuditLog;
 import com.carlink.admin.repository.AuditLogRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,7 @@
 package com.carlink.vehicle;
 
 import com.carlink.AbstractIntegrationTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -48,7 +48,7 @@ class VehicleFlowIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
 
         String id = objectMapper.readTree(created.getResponse().getContentAsString())
-                .get("id").asText();
+                .get("id").asString();
 
         // List shows it once
         mockMvc.perform(get("/api/v1/vehicles").header("Authorization", bearer(token)))
@@ -105,7 +105,7 @@ class VehicleFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String id = objectMapper.readTree(created.getResponse().getContentAsString())
-                .get("id").asText();
+                .get("id").asString();
 
         // Owner 2 cannot read it (404 — no existence leak)
         mockMvc.perform(get("/api/v1/vehicles/{id}", id)
@@ -162,7 +162,7 @@ class VehicleFlowIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
 
         return objectMapper.readTree(login.getResponse().getContentAsString())
-                .get("accessToken").asText();
+                .get("accessToken").asString();
     }
 
     /** Orders a SINGLE sticker as a guest and returns the printed activation code. */
@@ -179,7 +179,7 @@ class VehicleFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asText();
+                .get("stickers").get(0).get("activationCode").asString();
     }
 
     private String bearer(String token) {

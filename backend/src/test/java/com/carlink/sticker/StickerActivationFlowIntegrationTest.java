@@ -1,8 +1,8 @@
 package com.carlink.sticker;
 
 import com.carlink.AbstractIntegrationTest;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -151,7 +151,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
         JsonNode list = objectMapper.readTree(r.getResponse().getContentAsString());
         assertThat(list).hasSize(1);
-        return list.get(0).get("id").asText();
+        return list.get(0).get("id").asString();
     }
 
     /** Buys a SINGLE sticker pack as an anonymous guest and returns the raw token. */
@@ -168,7 +168,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("rawToken").asText();
+                .get("stickers").get(0).get("rawToken").asString();
     }
 
     /** Orders a SINGLE sticker as a guest and returns the printed activation code. */
@@ -185,7 +185,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asText();
+                .get("stickers").get(0).get("activationCode").asString();
     }
 
     private String[] registerAndLogin(String email) throws Exception {
@@ -207,7 +207,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return new String[]{objectMapper.readTree(login.getResponse().getContentAsString())
-                .get("accessToken").asText()};
+                .get("accessToken").asString()};
     }
 
     private String bearer(String token) {

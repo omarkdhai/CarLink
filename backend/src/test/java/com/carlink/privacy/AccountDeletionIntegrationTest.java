@@ -5,7 +5,7 @@ import com.carlink.auth.service.JwtService;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
 import com.carlink.user.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -153,7 +153,7 @@ class AccountDeletionIntegrationTest extends AbstractIntegrationTest {
                                 "deliveryAddress", "1 Place de la République"))))
                 .andExpect(status().isOk()).andReturn();
         var sticker = objectMapper.readTree(order.getResponse().getContentAsString()).get("stickers").get(0);
-        String code = sticker.get("activationCode").asText();
+        String code = sticker.get("activationCode").asString();
 
         MvcResult registered = mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -161,10 +161,10 @@ class AccountDeletionIntegrationTest extends AbstractIntegrationTest {
                                 "firstName", "D", "lastName", "Owner", "phone", PHONE, "stickerCode", code))))
                 .andExpect(status().isOk()).andReturn();
         var body = objectMapper.readTree(registered.getResponse().getContentAsString());
-        UUID id = UUID.fromString(body.get("user").get("id").asText());
+        UUID id = UUID.fromString(body.get("user").get("id").asString());
         UUID stickerId = jdbc.queryForObject("SELECT id FROM stickers WHERE activation_code_hash = ?",
                 UUID.class, tokenGenerator.sha256(tokenGenerator.normalizeActivationCode(code)));
-        return new Owner(id, "Bearer " + body.get("accessToken").asText(), code, stickerId);
+        return new Owner(id, "Bearer " + body.get("accessToken").asString(), code, stickerId);
     }
 
     private long count(String sql, Object arg) {

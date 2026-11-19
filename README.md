@@ -30,7 +30,7 @@ scans the code and sends an SMS through the platform.
 
 | Layer      | Technology                                                |
 |------------|-----------------------------------------------------------|
-| Backend    | Java 17, Spring Boot 3.2, Spring Security, Spring Data JPA |
+| Backend    | Java 17, Spring Boot 4.1, Spring Security 7, Spring Data JPA (Hibernate 7) |
 | Database   | PostgreSQL 15 + Flyway migrations                          |
 | Cache/Rate-limit | Redis 7                                             |
 | QR         | ZXing                                                     |

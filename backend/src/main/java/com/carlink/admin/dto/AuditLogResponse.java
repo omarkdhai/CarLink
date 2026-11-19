@@ -1,9 +1,9 @@
 package com.carlink.admin.dto;
 
 import com.carlink.admin.model.AuditLog;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public record AuditLogResponse(
         }
         try {
             return MAPPER.readTree(stored);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             // An audit row that never round-trips JSON shouldn't break the admin view.
             log.warn("Audit log row {} holds invalid JSON; exposing null details", "malformed");
             return null;

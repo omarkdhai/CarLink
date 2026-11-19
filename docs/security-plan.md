@@ -245,13 +245,16 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
   - **Done when:** `curl -I http://localhost/` shows CSP, `X-Frame-Options: DENY`/`frame-ancestors 'none'`,
     `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`; app works with no CSP
     violations in the console (home, order, scan, owner pages, AR/FR/EN).
-- [~] **S-07** Upgrade Spring Boot to a supported line; update jjwt/springdoc accordingly.
+- [x] **S-07** Upgrade Spring Boot to a supported line; update jjwt/springdoc accordingly.
   - **Step 1 done 2026-11-18:** 3.2.5 → **3.5.16** (springdoc 2.8.17, jjwt 0.12.7, Flyway 11 +
     `flyway-database-postgresql`); 285 tests pass; live stack + browser crawl clean.
-  - **Step 2 open:** 3.5 OSS support ended June 2026 (3.5.16 is its last free release), so the
-    supported target is **4.1.x** — a major migration (Jackson 3, Spring Security 7, Hibernate 7,
-    Testcontainers 2, springdoc 3, `@MockBean` → `@MockitoBean`). Tracked as its own task.
-  - Not run: OWASP dependency-check (needs the NVD feed / an API key) — folded into S-19 CI.
+  - **Step 2 done 2026-11-19:** 3.5.16 → **4.1.2** (Spring Framework 7.0.10, Security 7.1,
+    Hibernate 7.4, Jackson 3.1, Tomcat 11, Testcontainers 2.0.5, springdoc 3.2.0, jjwt 0.13.0,
+    MapStruct 1.6.3). Webmvc / Flyway / RestClient / webmvc-test starters, Jackson 3 packages,
+    `@MockitoBean`, `DaoAuthenticationProvider(UserDetailsService)`, `spring.web.error.*`.
+    333 tests pass with zero deprecation warnings; the two Spring CVEs accepted in
+    `.trivyignore.yaml` are fixed and removed from it; live stack smoke-tested.
+  - Dependency scanning: Trivy fs + image scans in CI (S-19) instead of OWASP dependency-check.
   - **Done when:** 235+ backend tests pass; OWASP dependency-check has no High/Critical.
 - [x] **S-08** — done 2026-11-18 (X-CarLink-Token header; nginx masks /c/{token} in URI + Referer; e2e scan→activate→contact left 0 tokens in the log). Move tokens out of URL paths (body/header) for public QR + sticker activation; masking
   `log_format` in nginx as defence in depth.
@@ -297,3 +300,4 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 | 2026-11-18 | **Phase 1** — done: S-02, S-03, S-04, S-06, S-08, S-11, S-12, S-18, S-07 step 1 (Boot 3.5.16). Open: S-07 step 2 (Boot 4.1 migration); S-11 follow-ups (order cap per e-mail/phone, login challenge); operator actions: Turnstile keys, Telnyx spend alert, CARLINK_DOMAIN/ACME_EMAIL + DNS. |
 | 2026-11-19 | **Phase 2** — done: S-09, S-10, S-13, S-14, S-17, S-19. S-15 (admin MFA) removed from the plan at the owner's request. |
 | 2026-11-19 | **Phase 3** — done: S-20, S-21, S-22, S-23, S-25. Open: S-07 step 2 (Boot 4.1), S-11 follow-ups, external penetration test. |
+| 2026-11-19 | **S-07 complete**: Spring Boot 4.1.2. Open: S-11 follow-ups, external penetration test. |

@@ -1,8 +1,8 @@
 package com.carlink.order;
 
 import com.carlink.AbstractIntegrationTest;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -53,19 +53,19 @@ class OrderFlowIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
 
         JsonNode node = objectMapper.readTree(result.getResponse().getContentAsString());
-        String reference = node.get("reference").asText();
+        String reference = node.get("reference").asString();
         assertThat(reference).startsWith("CL-").hasSize(11);
 
         // Server-side total: DOUBLE (35.00) × 2 + 7.00 delivery = 77.00 TND.
-        assertThat(new java.math.BigDecimal(node.get("totalAmount").asText()))
+        assertThat(new java.math.BigDecimal(node.get("totalAmount").asString()))
                 .isEqualByComparingTo("77.00");
 
         // Exactly Σ(quantity × stickers_per_pack) = 4 raw tokens, each with a QR.
         assertThat(node.get("stickers")).hasSize(4);
         for (JsonNode s : node.get("stickers")) {
-            String rawToken = s.get("rawToken").asText();
-            assertThat(s.get("publicUrl").asText()).isEqualTo("http://localhost:8080/c/" + rawToken);
-            assertThat(s.get("imageDataUri").asText()).startsWith("data:image/png;base64,");
+            String rawToken = s.get("rawToken").asString();
+            assertThat(s.get("publicUrl").asString()).isEqualTo("http://localhost:8080/c/" + rawToken);
+            assertThat(s.get("imageDataUri").asString()).startsWith("data:image/png;base64,");
         }
     }
 
@@ -131,7 +131,7 @@ class OrderFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("reference").asText();
+                .get("reference").asString();
     }
 
     private String json(Object value) throws Exception {

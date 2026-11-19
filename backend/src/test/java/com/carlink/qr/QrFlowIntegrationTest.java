@@ -1,8 +1,8 @@
 package com.carlink.qr;
 
 import com.carlink.AbstractIntegrationTest;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
@@ -51,7 +51,7 @@ class QrFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String vehicleId = objectMapper.readTree(vehicleResult.getResponse().getContentAsString())
-                .get("id").asText();
+                .get("id").asString();
 
         // --- Generate a QR ---
         MvcResult issued = mockMvc.perform(post("/api/v1/vehicles/{id}/qr", vehicleId)
@@ -63,14 +63,14 @@ class QrFlowIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
 
         JsonNode issue = objectMapper.readTree(issued.getResponse().getContentAsString());
-        String rawToken = issue.get("rawToken").asText();
+        String rawToken = issue.get("rawToken").asString();
 
         // The public URL encodes only the public route with the raw token.
-        String publicUrl = issue.get("publicUrl").asText();
+        String publicUrl = issue.get("publicUrl").asString();
         assertThat(publicUrl).endsWith("/c/" + rawToken);
 
         // --- The QR image decodes back to exactly that URL (ZXing round-trip) ---
-        String decoded = decodePng(issue.get("imageDataUri").asText());
+        String decoded = decodePng(issue.get("imageDataUri").asString());
         assertThat(decoded).isEqualTo(publicUrl);
         assertThat(decoded).doesNotContain("owner", "phone", "vehicle");
 
@@ -88,7 +88,7 @@ class QrFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.rawToken").isNotEmpty())
                 .andReturn();
         String secondToken = objectMapper.readTree(secondIssued.getResponse().getContentAsString())
-                .get("rawToken").asText();
+                .get("rawToken").asString();
         assertThat(secondToken).isNotEqualTo(rawToken); // fresh token, old one burned
 
         // History contains both codes, newest first
@@ -156,7 +156,7 @@ class QrFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(result.getResponse().getContentAsString())
-                .get("id").asText();
+                .get("id").asString();
     }
 
     private String uniqueEmail() {
@@ -183,7 +183,7 @@ class QrFlowIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
 
         return objectMapper.readTree(login.getResponse().getContentAsString())
-                .get("accessToken").asText();
+                .get("accessToken").asString();
     }
 
     private String bearer(String token) {
@@ -208,6 +208,6 @@ class QrFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asText();
+                .get("stickers").get(0).get("activationCode").asString();
     }
 }
