@@ -182,11 +182,12 @@ carlink:
   email:
     provider: ${EMAIL_PROVIDER:mock}
     token-expiry-minutes: ${EMAIL_TOKEN_EXPIRY_MINUTES:60}
-    # Envelope sender. Gmail only accepts the authenticated account (or an
-    # alias it owns), so this must stay omarkdhai@gmail.com until a branded
-    # mailbox is created. Change MAIL_FROM (and MAIL_REPLY_TO) at that point.
-    from: ${MAIL_FROM:omarkdhai@gmail.com}
-    reply-to: ${MAIL_REPLY_TO:omarkdhai@gmail.com}
+    # Envelope sender and Reply-To. No personal default (security plan S-22):
+    # set MAIL_FROM to an address the SMTP account may send as (Gmail: the
+    # account itself or an alias it owns). The .invalid placeholder can never
+    # deliver, and the prod profile refuses to start with it.
+    from: ${MAIL_FROM:no-reply@carlink.invalid}
+    reply-to: ${MAIL_REPLY_TO:no-reply@carlink.invalid}
 
   # Security
   security:

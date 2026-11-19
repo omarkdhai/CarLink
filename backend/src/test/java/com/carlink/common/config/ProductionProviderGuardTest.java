@@ -27,4 +27,18 @@ class ProductionProviderGuardTest {
                 base.security(), base.admin(), base.telnyx());
         assertThatCode(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties()).check()).doesNotThrowAnyException();
     }
+
+    @Test
+    void refusesTheNeutralPlaceholderSender() {
+        // S-22: the committed default is no-reply@carlink.invalid; prod must set MAIL_FROM.
+        CarLinkProperties base = TestProperties.minimal();
+        CarLinkProperties props = new CarLinkProperties(
+                base.baseUrl(), base.publicUrl(), base.jwt(), base.conversation(), base.qr(),
+                base.ratelimit(), base.contact(), base.contactForm(),
+                new CarLinkProperties.Email("smtp", 60, "no-reply@carlink.invalid", "no-reply@carlink.invalid"),
+                base.security(), base.admin(), base.telnyx());
+        assertThatThrownBy(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties()).check())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("MAIL_FROM");
+    }
 }
