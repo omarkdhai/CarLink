@@ -75,7 +75,7 @@ RUN --mount=type=cache,target=/root/.m2,sharing=locked \
     && mv "$(ls -1 target/*.jar | head -n 1)" /build/app.jar
 
 # ---- Runtime stage ----
-FROM eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
+FROM eclipse-temurin:24-jre@sha256:8cb2387a28af84cf0db0948d9c67d4480192f4e567027a3963f145d218e8b4f2
 WORKDIR /app
 
 # Non-root user for production safety; curl for the compose healthcheck
