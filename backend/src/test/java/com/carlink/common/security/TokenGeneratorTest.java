@@ -16,7 +16,15 @@ class TokenGeneratorTest {
         String a = generator.generateUrlSafe(32);
         String b = generator.generateUrlSafe(32);
         assertThat(a).isNotBlank().isNotEqualTo(b);
-        assertThat(a).matches("[A-Za-z0-9._~-]+");
+        assertThat(a).matches("[A-Za-z0-9_-]+");
+    }
+
+    @Test
+    void urlSafeTokensCarryEveryRandomBit() {
+        // S-23: 32 bytes -> 43 Base64URL chars that decode back to 32 bytes (256 bits).
+        String token = generator.generateUrlSafe(32);
+        assertThat(token).hasSize(43);
+        assertThat(java.util.Base64.getUrlDecoder().decode(token)).hasSize(32);
     }
 
     @Test
