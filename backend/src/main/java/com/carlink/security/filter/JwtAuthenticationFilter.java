@@ -63,7 +63,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             Claims claims = jwtService.parseAccessToken(token);
             UUID userId = UUID.fromString(claims.getSubject());
-            String email = claims.get("email", String.class);
 
             boolean adminRoute = request.getRequestURI().startsWith(ADMIN_PREFIX);
             Optional<SessionState> state = adminRoute
@@ -77,6 +76,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             String role = state.get().role().name();
+            // Pentest PT-3: the e-mail is no longer a JWT claim (tokens are only
+            // signed, so anyone holding one could read it); take it from the account.
+            String email = state.get().email();
 
             UserPrincipal principal = new UserPrincipal(userId, email, role);
             UsernamePasswordAuthenticationToken authentication =

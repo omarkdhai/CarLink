@@ -32,7 +32,8 @@ class JwtServiceTest {
 
         Claims claims = jwtService.parseAccessToken(token);
         assertThat(claims.getSubject()).isEqualTo(user.getId().toString());
-        assertThat(claims.get("email")).isEqualTo("owner@example.com");
+        // Pentest PT-3: no personal data in the (readable) token payload.
+        assertThat(claims.get("email")).isNull();
         assertThat(claims.get("role")).isEqualTo("USER");
         assertThat(claims.getExpiration()).isAfter(new java.util.Date());
     }
