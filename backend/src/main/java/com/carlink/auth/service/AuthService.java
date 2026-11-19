@@ -247,6 +247,8 @@ public class AuthService {
     public void requestPasswordReset(PasswordResetRequest request) {
         String email = request.email().trim().toLowerCase();
         userRepository.findByEmailIgnoreCase(email).ifPresent(user -> {
+            // S-21: a new link voids every earlier unused one.
+            passwordResetTokenRepository.invalidateUnused(user.getId(), Instant.now());
             String raw = rawToken();
             PasswordResetToken token = PasswordResetToken.create(
                     user,
@@ -278,6 +280,8 @@ public class AuthService {
         userRepository.save(user);
         token.markUsed();
         passwordResetTokenRepository.save(token);
+        // S-21: no other outstanding link may change the password again.
+        passwordResetTokenRepository.invalidateUnused(user.getId(), Instant.now());
     }
 
     // ---------- Helpers ----------
