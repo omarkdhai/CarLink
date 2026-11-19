@@ -3,9 +3,21 @@
 #     node scripts/dev-secrets.mjs
 # - Every port is published on 127.0.0.1 only: nothing here is reachable from
 #   the network. Never expose this stack publicly; use docker-compose.prod.yml.
+# Security plan S-20: every container gets no-new-privileges and starts with
+# no Linux capabilities; services add back only what their entrypoint needs.
+# Images are pinned by digest (Dependabot keeps them current).
+x-hardened: &hardened
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15-alpine@sha256:23799e521dee9265a8b388ecf3bc0f1eaa34b95be67f5a76af4f8f6adb44c720
+    <<: *hardened
+    # The entrypoint chowns the data dir, then drops to the postgres user.
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
     container_name: carlink-postgres
     restart: unless-stopped
     environment:
@@ -25,7 +37,10 @@ services:
       - carlink-network
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
+    <<: *hardened
+    # The entrypoint walks and chowns /data (owned by redis), then drops to it.
+    cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
     container_name: carlink-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is not set - run node scripts/dev-secrets.mjs}
@@ -47,6 +62,10 @@ services:
       dockerfile: Dockerfile
     container_name: carlink-backend
     restart: unless-stopped
+    <<: *hardened
+    read_only: true
+    tmpfs:
+      - /tmp
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
     environment:
@@ -98,8 +117,13 @@ services:
       dockerfile: Dockerfile
     container_name: carlink-frontend
     restart: unless-stopped
+    <<: *hardened
+    read_only: true
+    tmpfs:
+      - /tmp
     ports:
-      - "127.0.0.1:${FRONTEND_PORT:-80}:80"
+      # nginx runs unprivileged on 8080 inside the container (S-20).
+      - "127.0.0.1:${FRONTEND_PORT:-80}:8080"
     depends_on:
       backend:
         condition: service_healthy
@@ -108,8 +132,9 @@ services:
 
   mailhog:
     # Dev-only email catcher. Start with: docker compose --profile email up -d
-    image: mailhog/mailhog:v1.0.1
+    image: mailhog/mailhog:v1.0.1@sha256:8d76a3d4ffa32a3661311944007a415332c4bb855657f4f6c57996405c009bea
     container_name: carlink-mailhog
+    <<: *hardened
     restart: unless-stopped
     profiles:
       - email

@@ -15,9 +15,21 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "5"
 
+# Security plan S-20: every container gets no-new-privileges and starts with
+# no Linux capabilities; services add back only what their entrypoint needs.
+# Images are pinned by digest (Dependabot keeps them current).
+x-hardened: &hardened
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15-alpine@sha256:23799e521dee9265a8b388ecf3bc0f1eaa34b95be67f5a76af4f8f6adb44c720
+    <<: *hardened
+    # The entrypoint chowns the data dir, then drops to the postgres user.
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
     restart: unless-stopped
     logging: *default-logging
     environment:
@@ -35,7 +47,10 @@ services:
       - carlink-network
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
+    <<: *hardened
+    # The entrypoint walks and chowns /data (owned by redis), then drops to it.
+    cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
     restart: unless-stopped
     logging: *default-logging
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
@@ -55,6 +70,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    <<: *hardened
+    read_only: true
+    tmpfs:
+      - /tmp
     # Bound to loopback on purpose. nginx reaches the backend over the internal
     # network by service name, so publishing the port to 0.0.0.0 would only add
     # a second, unfiltered way in -- straight to the API and /actuator,
@@ -134,9 +153,14 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     logging: *default-logging
+    <<: *hardened
+    read_only: true
+    tmpfs:
+      - /tmp
     # Not published: only the Caddy TLS edge talks to nginx (security plan S-02).
+    # nginx runs unprivileged on 8080 (S-20).
     expose:
-      - "80"
+      - "8080"
     depends_on:
       backend:
         condition: service_healthy
@@ -146,9 +170,15 @@ services:
   # TLS edge (security plan S-02): automatic certificates for CARLINK_DOMAIN,
   # HTTP->HTTPS redirect, HSTS. The only service published to the internet.
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
     restart: unless-stopped
     logging: *default-logging
+    <<: *hardened
+    # Binds 80/443.
+    cap_add: [NET_BIND_SERVICE]
+    read_only: true
+    tmpfs:
+      - /tmp
     environment:
       CARLINK_DOMAIN: ${CARLINK_DOMAIN:?CARLINK_DOMAIN is required (public hostname, e.g. carlink.tn)}
       ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required (certificate expiry notices)}
