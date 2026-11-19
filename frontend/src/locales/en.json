@@ -106,16 +106,15 @@
     "resetSubtitle": "Choose a new password.",
     "confirmPassword": "Confirm password",
     "newPassword": "New password",
-    "newPasswordPlaceholder": "8+ characters, letters and digits",
+    "newPasswordPlaceholder": "10+ characters — a phrase works too",
     "resetPassword": "Reset password",
     "passwordUpdated": "Password updated",
     "verifyEmailTitle": "Email verification",
     "verifyEmailSuccess": "Your email address is verified.",
     "verifyEmailError": "Invalid or expired link.",
     "verifyEmailButton": "Go to my space",
-    "passwordRule": "Password must be at least 8 characters with a letter and a digit.",
-    "passwordTooShort": "Password must be at least 8 characters",
-    "passwordNeedsLetterDigit": "Password must contain a letter and a digit",
+    "passwordRule": "At least 10 characters. An easy-to-remember phrase works well.",
+    "passwordTooShort": "Password must be at least 10 characters",
     "invalidCredentials": "Invalid email or password",
     "emailAlreadyRegistered": "This email is already registered.",
     "signInInstead": "Sign in instead",
@@ -1184,7 +1183,10 @@
     "forbidden": "You don't have access to this resource.",
     "notFound": "Not found.",
     "tooManyRequests": "Too many requests. Try again later.",
-    "validation": "Some fields are invalid."
+    "validation": "Some fields are invalid.",
+    "passwordTooLong": "Password is too long",
+    "passwordTooCommon": "This password is too easy to guess. Try a short phrase.",
+    "passwordBreached": "This password appeared in a known data breach. Please choose another one."
   },
   "validation": {
     "email": "Invalid email address",
@@ -1228,9 +1230,8 @@
     "pwOk": "met",
     "pwMissing": "missing",
     "pw": {
-      "length": "8+ characters",
-      "letter": "A letter",
-      "digit": "A number"
+      "length": "10+ characters",
+      "pattern": "Not a simple pattern"
     },
     "gotSticker": "Just received a sticker?",
     "gotStickerHint": "Activate it with the code printed under the QR.",

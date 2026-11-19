@@ -2,6 +2,8 @@ package com.carlink.auth.service;
 
 import com.carlink.auth.dto.AuthResponse;
 import com.carlink.security.session.SessionStateCache;
+import com.carlink.auth.password.BreachedPasswordChecker;
+import com.carlink.auth.password.PasswordPolicy;
 import com.carlink.auth.dto.LoginRequest;
 import com.carlink.auth.dto.PasswordResetRequest;
 import com.carlink.auth.dto.RegisterRequest;
@@ -75,7 +77,8 @@ class AuthServiceTest {
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, passwordEncoder, jwtService,
                 tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
-                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)));
+                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)),
+                new PasswordPolicy(new BreachedPasswordChecker(false, "http://127.0.0.1:9/")));
     }
 
     /** Stub a claimable sticker so register() can validate the supplied code. */
@@ -90,7 +93,7 @@ class AuthServiceTest {
 
     private User savedUser() {
         User user = User.newUser("owner@example.com",
-                passwordEncoder.encode("Secret123"), "Ali", "Ben", Role.USER);
+                passwordEncoder.encode("Secret1234"), "Ali", "Ben", Role.USER);
         // Optional setup stubs — individual tests may not exercise every save.
         org.mockito.Mockito.lenient()
                 .when(userRepository.save(any(User.class)))
@@ -113,7 +116,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
 
         AuthResponse response = authService.register(
-                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q"));
+                new RegisterRequest("owner@example.com", "Secret1234", "Ali", "Ben", "", "CL-4F7K-2M9Q"));
 
         assertThat(response.accessToken()).isNotBlank();
         assertThat(response.refreshToken()).isNotBlank();
@@ -129,7 +132,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(
-                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
+                new RegisterRequest("owner@example.com", "Secret1234", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("already registered");
         verify(userRepository, never()).save(any(User.class));
@@ -144,13 +147,41 @@ class AuthServiceTest {
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
 
         authService.register(
-                new RegisterRequest("Owner@Example.COM", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q"));
+                new RegisterRequest("Owner@Example.COM", "Secret1234", "Ali", "Ben", "", "CL-4F7K-2M9Q"));
 
         verify(userRepository).save(captor.capture());
         User saved = captor.getValue();
         assertThat(saved.getEmail()).isEqualTo("owner@example.com");
-        assertThat(saved.getPasswordHash()).isNotEqualTo("Secret123");
-        assertThat(passwordEncoder.matches("Secret123", saved.getPasswordHash())).isTrue();
+        assertThat(saved.getPasswordHash()).isNotEqualTo("Secret1234");
+        assertThat(passwordEncoder.matches("Secret1234", saved.getPasswordHash())).isTrue();
+    }
+
+    @Test
+    void registerAppliesThePasswordPolicy() {
+        stubClaimableSticker();
+        when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.register(
+                new RegisterRequest("owner@example.com", "Short1", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
+                .isInstanceOf(BadRequestException.class)
+                .extracting("code").isEqualTo("PASSWORD_TOO_SHORT");
+        assertThatThrownBy(() -> authService.register(
+                new RegisterRequest("owner@example.com", "password123", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
+                .isInstanceOf(BadRequestException.class)
+                .extracting("code").isEqualTo("PASSWORD_TOO_COMMON");
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void loginWithAPasswordOverSeventyTwoBytesIsJustInvalid() {
+        User user = savedUser();
+        when(userRepository.findByEmailIgnoreCase("owner@example.com")).thenReturn(Optional.of(user));
+
+        // Spring Security's BCrypt throws on > 72 bytes; this must stay a 401.
+        assertThatThrownBy(() -> authService.login(
+                new LoginRequest("owner@example.com", "ض".repeat(40)), "10.0.0.1"))
+                .isInstanceOf(UnauthorizedException.class)
+                .extracting("code").isEqualTo("INVALID_CREDENTIALS");
     }
 
     @Test
@@ -158,7 +189,7 @@ class AuthServiceTest {
         // No sticker stub → findByActivationCodeHash returns empty.
 
         assertThatThrownBy(() -> authService.register(
-                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "",
+                new RegisterRequest("owner@example.com", "Secret1234", "Ali", "Ben", "",
                         "ZZ-9999-9999")))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("sticker code");
@@ -172,7 +203,7 @@ class AuthServiceTest {
         stubClaimableSticker().setStatus(StickerStatus.BOUND);
 
         assertThatThrownBy(() -> authService.register(
-                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
+                new RegisterRequest("owner@example.com", "Secret1234", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
                 .isInstanceOf(ConflictException.class)
                 .extracting("code").isEqualTo("STICKER_ALREADY_BOUND");
         verify(userRepository, never()).save(any(User.class));
@@ -186,7 +217,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
 
         assertThat(authService.register(
-                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q"))
+                new RegisterRequest("owner@example.com", "Secret1234", "Ali", "Ben", "", "CL-4F7K-2M9Q"))
                 .accessToken()).isNotBlank();
     }
 
@@ -199,7 +230,7 @@ class AuthServiceTest {
                 .thenReturn(Optional.of(user));
 
         AuthResponse response = authService.login(
-                new LoginRequest("owner@example.com", "Secret123"), IP);
+                new LoginRequest("owner@example.com", "Secret1234"), IP);
 
         assertThat(response.accessToken()).isNotBlank();
         verify(loginAttemptService).reset(IP, "owner@example.com");
@@ -208,7 +239,7 @@ class AuthServiceTest {
     @Test
     void loginFailsOnWrongPasswordAndRecordsFailure() {
         User user = User.newUser("owner@example.com",
-                passwordEncoder.encode("Secret123"), "Ali", "Ben", Role.USER);
+                passwordEncoder.encode("Secret1234"), "Ali", "Ben", Role.USER);
         when(userRepository.findByEmailIgnoreCase("owner@example.com"))
                 .thenReturn(Optional.of(user));
         when(loginAttemptService.isBlocked(IP, "owner@example.com")).thenReturn(false);
@@ -227,12 +258,13 @@ class AuthServiceTest {
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, spyEncoder, new JwtService(properties),
                 tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
-                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)));
+                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)),
+                new PasswordPolicy(new BreachedPasswordChecker(false, "http://127.0.0.1:9/")));
         when(userRepository.findByEmailIgnoreCase("ghost@example.com")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.login(new LoginRequest("ghost@example.com", "Secret123"), IP))
+        assertThatThrownBy(() -> service.login(new LoginRequest("ghost@example.com", "Secret1234"), IP))
                 .isInstanceOf(UnauthorizedException.class);
-        verify(spyEncoder).matches(org.mockito.ArgumentMatchers.eq("Secret123"), anyString());
+        verify(spyEncoder).matches(org.mockito.ArgumentMatchers.eq("Secret1234"), anyString());
         verify(loginAttemptService).recordFailure(IP, "ghost@example.com");
     }
 
@@ -241,7 +273,7 @@ class AuthServiceTest {
         when(loginAttemptService.isBlocked(IP, "owner@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.login(
-                new LoginRequest("owner@example.com", "Secret123"), IP))
+                new LoginRequest("owner@example.com", "Secret1234"), IP))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessageContaining("Too many failed");
         verify(userRepository, never()).findByEmailIgnoreCase(anyString());
@@ -250,14 +282,14 @@ class AuthServiceTest {
     @Test
     void loginFailsForDisabledAccount() {
         User user = User.newUser("owner@example.com",
-                passwordEncoder.encode("Secret123"), "Ali", "Ben", Role.USER);
+                passwordEncoder.encode("Secret1234"), "Ali", "Ben", Role.USER);
         user.setActive(false);
         when(userRepository.findByEmailIgnoreCase("owner@example.com"))
                 .thenReturn(Optional.of(user));
         when(loginAttemptService.isBlocked(IP, "owner@example.com")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.login(
-                new LoginRequest("owner@example.com", "Secret123"), IP))
+                new LoginRequest("owner@example.com", "Secret1234"), IP))
                 .isInstanceOf(UnauthorizedException.class);
     }
 

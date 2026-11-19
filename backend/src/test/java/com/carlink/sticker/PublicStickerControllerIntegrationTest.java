@@ -99,7 +99,7 @@ class PublicStickerControllerIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", email,
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "A",
                                 "lastName", "B",
                                 "phone", "+2165570" + seq,
@@ -107,7 +107,7 @@ class PublicStickerControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", email, "password", "Secret123"))))
+                        .content(json(Map.of("email", email, "password", "Secret1234"))))
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(login.getResponse().getContentAsString())

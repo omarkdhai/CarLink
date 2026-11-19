@@ -39,10 +39,10 @@ class LoginHardeningIntegrationTest extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
         }
         // The attacker's (IP, e-mail) pair is now locked, even with the right password...
-        login(attacker, email, "Secret123").andExpect(status().isUnauthorized())
+        login(attacker, email, "Secret1234").andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("TOO_MANY_LOGIN_ATTEMPTS"));
         // ...but the owner, from their own network, signs in normally.
-        login("10.4.0.2", email, "Secret123").andExpect(status().isOk());
+        login("10.4.0.2", email, "Secret1234").andExpect(status().isOk());
     }
 
     @Test
@@ -61,7 +61,7 @@ class LoginHardeningIntegrationTest extends AbstractIntegrationTest {
         String email = "lh-" + UUID.randomUUID() + "@example.com";
         userRepository.save(User.builder()
                 .id(UUID.randomUUID()).email(email)
-                .passwordHash(passwordEncoder.encode("Secret123"))
+                .passwordHash(passwordEncoder.encode("Secret1234"))
                 .firstName("L").lastName("H").role(Role.USER).active(true).emailVerified(true)
                 .build());
         return email;

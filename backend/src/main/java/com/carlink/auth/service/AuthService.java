@@ -7,6 +7,7 @@ import com.carlink.auth.email.PasswordResetEmailComposer;
 import com.carlink.auth.dto.RegisterRequest;
 import com.carlink.auth.dto.ResetPasswordRequest;
 import com.carlink.auth.model.EmailVerificationToken;
+import com.carlink.auth.password.PasswordPolicy;
 import com.carlink.auth.model.PasswordResetToken;
 import com.carlink.auth.model.RefreshToken;
 import com.carlink.auth.repository.EmailVerificationTokenRepository;
@@ -31,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -52,9 +54,6 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final String PASSWORD_PATTERN_MESSAGE =
-            "Password must be 8-72 characters and contain letters and digits";
-
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
@@ -68,6 +67,7 @@ public class AuthService {
     private final LoginAttemptService loginAttemptService;
     private final StickerRepository stickerRepository;
     private final SessionInvalidator sessionInvalidator;
+    private final PasswordPolicy passwordPolicy;
 
     // ---------- Register ----------
 
@@ -98,6 +98,7 @@ public class AuthService {
             throw new BadRequestException("EMAIL_ALREADY_REGISTERED",
                     "This email is already registered. Please sign in instead.");
         }
+        passwordPolicy.check(request.password(), email);
 
         User user = User.newUser(
                 email,
@@ -169,8 +170,12 @@ public class AuthService {
         // S-04: always pay for one BCrypt comparison. Skipping it for unknown
         // e-mails made those answers measurably faster, revealing which
         // addresses have an account.
-        boolean passwordOk = passwordEncoder.matches(request.password(),
-                candidate.map(User::getPasswordHash).orElseGet(this::timingDummyHash));
+        // No stored password exceeds 72 bytes (S-14) and BCrypt refuses longer
+        // input, so such a password cannot match. Still pay one comparison.
+        boolean tooLong = request.password().getBytes(StandardCharsets.UTF_8).length
+                > PasswordPolicy.MAX_BYTES;
+        boolean passwordOk = passwordEncoder.matches(tooLong ? "-" : request.password(),
+                candidate.map(User::getPasswordHash).orElseGet(this::timingDummyHash)) && !tooLong;
         User user = candidate
                 .filter(u -> passwordOk)
                 .filter(User::isActive)
@@ -265,6 +270,7 @@ public class AuthService {
         }
 
         User user = token.getUser();
+        passwordPolicy.check(request.newPassword(), user.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setEmailVerified(true);
         // End every existing session: refresh tokens AND live access tokens (S-10).

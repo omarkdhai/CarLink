@@ -53,6 +53,8 @@ development-grade default if omitted.
 | `TELNYX_CONNECTION_ID` | Call Control connection the outbound alert call is placed on. |
 | `TELNYX_VOICE_AUDIO_URL` | Public HTTPS URL of the clip played when the owner answers. Without it the alert call is skipped (a call to silence is worse than none). |
 | `HSTS_ENABLED` | `false` until TLS is confirmed working — see §3. |
+| `PASSWORD_BREACH_CHECK` | Default `true` in prod: new passwords are checked against Have I Been Pwned by k-anonymity (only 5 hex characters of the SHA-1 leave the server). Needs outbound HTTPS to `api.pwnedpasswords.com`; if it is unreachable the check fails open. |
+| `JWT_ADMIN_ACCESS_EXPIRATION_MINUTES` | Admin access-token lifetime, default `5` (S-10). |
 
 **Rotating `JWT_SECRET` invalidates every issued access token.** Sessions
 recover transparently through their (database-backed) refresh token; to force

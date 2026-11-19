@@ -46,6 +46,10 @@ carlink:
     # Browsers ignore HSTS over plain HTTP, and includeSubDomains cannot be
     # withdrawn once a browser has cached it.
     hsts-enabled: ${HSTS_ENABLED:false}
+  # Refuse passwords found in public breaches (Have I Been Pwned, k-anonymity:
+  # only 5 hex chars of the SHA-1 leave the server). Fails open. S-14.
+  password:
+    breach-check: ${PASSWORD_BREACH_CHECK:true}
 
 # Do not publish the API surface in production. /v3/api-docs and /swagger-ui
 # are permitAll, so leaving them on hands anonymous visitors every endpoint,

@@ -82,7 +82,7 @@ class SessionRevocationIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                Map.of("email", admin.getEmail(), "password", "Secret123"))))
+                                Map.of("email", admin.getEmail(), "password", "Secret1234"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.expiresIn").value(5 * 60));
 
@@ -90,7 +90,7 @@ class SessionRevocationIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                Map.of("email", owner.getEmail(), "password", "Secret123"))))
+                                Map.of("email", owner.getEmail(), "password", "Secret1234"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.expiresIn").value(15 * 60));
     }
@@ -99,7 +99,7 @@ class SessionRevocationIntegrationTest extends AbstractIntegrationTest {
         UUID id = UUID.randomUUID();
         return userRepository.save(User.builder()
                 .id(id).email("s10-" + id + "@example.com")
-                .passwordHash(passwordEncoder.encode("Secret123"))
+                .passwordHash(passwordEncoder.encode("Secret1234"))
                 .firstName("S").lastName("Ten").role(role).active(true).emailVerified(true)
                 .build());
     }

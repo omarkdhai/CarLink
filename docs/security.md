@@ -81,6 +81,13 @@ with a `Retry-After` header.
 ## Data at rest
 
 - Passwords: BCrypt strength 12.
+- Password policy (security plan S-14, NIST SP 800-63B): at least 10 characters and at most 72 bytes
+  (BCrypt's limit), any characters — passphrases welcome, no composition rule. Refused: common
+  passwords (`security/common-passwords.txt`), one or two repeated characters, keyboard/digit runs,
+  passwords built on the e-mail name, and — in prod — passwords found by the Have I Been Pwned range
+  API (k-anonymity, fails open). Each refusal has its own code (`PASSWORD_TOO_SHORT`, `_TOO_LONG`,
+  `_TOO_COMMON`, `PASSWORD_BREACHED`). Login input is capped, and a > 72-byte login is a plain 401.
+  Existing passwords are not forced to change; the rule applies whenever one is chosen.
 - Qr / refresh / reset / verification tokens: SHA-256 **hashed**.
 - Sticker tokens: stored as SHA-256 hashes only; the raw token is returned **exactly once** on the order creation response.
 - Licence plates are stored but never returned in public payloads.

@@ -106,16 +106,15 @@
     "resetSubtitle": "Choisissez un nouveau mot de passe.",
     "confirmPassword": "Confirmer le mot de passe",
     "newPassword": "Nouveau mot de passe",
-    "newPasswordPlaceholder": "8 caractères min., lettres et chiffres",
+    "newPasswordPlaceholder": "10 caractères min. — une phrase marche aussi",
     "resetPassword": "Réinitialiser",
     "passwordUpdated": "Mot de passe mis à jour",
     "verifyEmailTitle": "Vérification de l'e-mail",
     "verifyEmailSuccess": "Votre adresse e-mail est vérifiée.",
     "verifyEmailError": "Lien invalide ou expiré.",
     "verifyEmailButton": "Explorer mon espace",
-    "passwordRule": "Le mot de passe doit contenir au moins 8 caractères, une lettre et un chiffre.",
-    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
-    "passwordNeedsLetterDigit": "Le mot de passe doit contenir une lettre et un chiffre",
+    "passwordRule": "Au moins 10 caractères. Une phrase facile à retenir marche très bien.",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 10 caractères",
     "invalidCredentials": "E-mail ou mot de passe invalide",
     "emailAlreadyRegistered": "Cette adresse e-mail est déjà enregistrée.",
     "signInInstead": "Se connecter à la place",
@@ -1204,7 +1203,10 @@
     "forbidden": "Vous n'avez pas accès à cette ressource.",
     "notFound": "Introuvable.",
     "tooManyRequests": "Trop de demandes. Réessayez plus tard.",
-    "validation": "Certains champs sont invalides."
+    "validation": "Certains champs sont invalides.",
+    "passwordTooLong": "Le mot de passe est trop long",
+    "passwordTooCommon": "Ce mot de passe est trop facile à deviner. Essayez une petite phrase.",
+    "passwordBreached": "Ce mot de passe a fuité lors d’un piratage connu. Choisissez-en un autre."
   },
   "validation": {
     "email": "Adresse e-mail invalide",
@@ -1248,9 +1250,8 @@
     "pwOk": "respectée",
     "pwMissing": "manquante",
     "pw": {
-      "length": "8 caractères min.",
-      "letter": "Une lettre",
-      "digit": "Un chiffre"
+      "length": "10 caractères min.",
+      "pattern": "Pas une suite simple"
     },
     "gotSticker": "Vous venez de recevoir un sticker ?",
     "gotStickerHint": "Activez-le avec le code imprimé sous le QR.",

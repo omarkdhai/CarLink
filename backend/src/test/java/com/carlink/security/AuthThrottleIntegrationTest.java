@@ -58,7 +58,7 @@ class AuthThrottleIntegrationTest extends AbstractIntegrationTest {
     void registerIsThrottledPerIp() throws Exception {
         String ip = nextIp();
         Map<String, String> body = Map.of("email", "t" + UUID.randomUUID() + "@example.com",
-                "password", "Secret123", "firstName", "A", "lastName", "B", "phone", "",
+                "password", "Secret1234", "firstName", "A", "lastName", "B", "phone", "",
                 "stickerCode", "ZZZZ-ZZZZ");
         call(post("/api/v1/auth/register"), ip, body).andExpect(status().isBadRequest());
         call(post("/api/v1/auth/register"), ip, body).andExpect(status().isBadRequest());
@@ -84,7 +84,7 @@ class AuthThrottleIntegrationTest extends AbstractIntegrationTest {
         String email = "victim-" + UUID.randomUUID() + "@example.com";
         userRepository.save(User.builder()
                 .id(UUID.randomUUID()).email(email)
-                .passwordHash(passwordEncoder.encode("Secret123"))
+                .passwordHash(passwordEncoder.encode("Secret1234"))
                 .firstName("V").lastName("W").role(Role.USER).active(true).emailVerified(true)
                 .build());
 
@@ -96,7 +96,7 @@ class AuthThrottleIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void resetConfirmVerifyAndRefreshAreThrottledPerIp() throws Exception {
-        assertThrottled("/api/v1/auth/password-reset/confirm", Map.of("token", "nope", "newPassword", "Secret123"));
+        assertThrottled("/api/v1/auth/password-reset/confirm", Map.of("token", "nope", "newPassword", "Secret1234"));
         assertThrottled("/api/v1/auth/verify-email", Map.of("token", "nope"));
         assertThrottled("/api/v1/auth/refresh", Map.of());
     }

@@ -125,6 +125,10 @@ carlink:
     # Refresh token (long-lived)
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
 
+  password:
+    # Breached-password check (security plan S-14); on in the prod profile.
+    breach-check: ${PASSWORD_BREACH_CHECK:false}
+
   auth:
     # The refresh token travels in an HttpOnly, SameSite=Strict cookie
     # (security plan S-09). Secure (HTTPS-only) everywhere except the dev

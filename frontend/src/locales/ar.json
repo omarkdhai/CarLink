@@ -111,16 +111,15 @@
     "resetSubtitle": "اختار كلمة سرّ جديدة",
     "confirmPassword": "عاود اكتب كلمة السرّ",
     "newPassword": "كلمة سرّ جديدة",
-    "newPasswordPlaceholder": "8 حروف ولا أكثر، فيها حروف و أرقام",
+    "newPasswordPlaceholder": "10 حروف على الأقل — تنجّم تكتب جملة",
     "resetPassword": "بدّل",
     "passwordUpdated": "كلمة السرّ تبدّلت",
     "verifyEmailTitle": "أكّد الإيميل متاعك",
     "verifyEmailSuccess": "الإيميل متاعك تأكّد",
     "verifyEmailError": "الرابط هذا موش صالح ولا وفاتت مدّتو",
     "verifyEmailButton": "امشي لحسابي",
-    "passwordRule": "كلمة السرّ لازمها 8 حروف ولا أكثر، و فيها حرف و رقم",
-    "passwordTooShort": "كلمة السرّ لازمها 8 حروف ولا أكثر",
-    "passwordNeedsLetterDigit": "لازمها حرف و رقم",
+    "passwordRule": "كلمة السرّ لازمها 10 حروف على الأقل. جملة ساهلة تتفكّرها تمشي مزيان.",
+    "passwordTooShort": "كلمة السرّ لازمها 10 حروف على الأقل",
     "invalidCredentials": "الإيميل ولا كلمة السرّ موش صحاح",
     "emailAlreadyRegistered": "الإيميل هذا عندو حساب ديجا",
     "signInInstead": "ادخل من هنا",
@@ -1117,7 +1116,10 @@
     "forbidden": "ما عندكش الحق",
     "notFound": "ما لقيناهش",
     "tooManyRequests": "طلبات برشا. عاود جرّب بعد شوية",
-    "validation": "فمّا خانات موش صحاح"
+    "validation": "فمّا خانات موش صحاح",
+    "passwordTooLong": "كلمة السرّ طويلة برشا",
+    "passwordTooCommon": "كلمة السرّ هذي ساهلة برشا باش يتخمّنوها. جرّب جملة صغيرة.",
+    "passwordBreached": "كلمة السرّ هذي طلعت في اختراق معروف. اختار وحدة أخرى."
   },
   "validation": {
     "email": "الإيميل موش صحيح",
@@ -1161,9 +1163,8 @@
     "pwOk": "موجود",
     "pwMissing": "ناقص",
     "pw": {
-      "length": "8 حروف على الأقل",
-      "letter": "حرف",
-      "digit": "رقم"
+      "length": "10 حروف على الأقل",
+      "pattern": "موش حاجة ساهلة كيف 123"
     },
     "gotSticker": "جاك ملصق توّا؟",
     "gotStickerHint": "فعّلو بالكود المكتوب تحت الـ QR.",

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import i18n from '@/lib/i18n'
+import { PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH, isSimplePattern, passwordBytes, passwordLength } from '@/features/auth/passwordRules'
 
 /**
  * Client-side validation schemas (React Hook Form + Zod v4).
@@ -9,7 +10,14 @@ import i18n from '@/lib/i18n'
 
 const t = (key: string) => i18n.t(key)
 
-const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).+$/
+/** New-password rule (security plan S-14); the server also refuses common and breached ones. */
+const newPassword = () =>
+  z
+    .string()
+    .refine((v) => passwordLength(v) >= PASSWORD_MIN_LENGTH, t('auth.passwordTooShort'))
+    .refine((v) => passwordBytes(v) <= PASSWORD_MAX_BYTES, t('errors.passwordTooLong'))
+    .refine((v) => !isSimplePattern(v), t('errors.passwordTooCommon'))
+
 const phoneCode = /^\+[1-9][0-9]{0,3}$/
 const nationalNumber = /^[0-9]{6,14}$/
 
@@ -22,10 +30,7 @@ export type LoginValues = z.infer<typeof loginSchema>
 
 export const registerSchema = z.object({
   email: z.string().min(1, t('validation.emailRequired')).email(t('validation.email')),
-  password: z
-    .string()
-    .min(8, t('auth.passwordTooShort'))
-    .refine((v) => passwordRegex.test(v), t('auth.passwordNeedsLetterDigit')),
+  password: newPassword(),
   firstName: z.string().min(1, t('validation.firstNameRequired')).max(100),
   lastName: z.string().min(1, t('validation.lastNameRequired')).max(100),
   stickerCode: z.string().trim().min(1, t('validation.stickerCodeRequired')).max(32),
@@ -48,10 +53,7 @@ export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>
 
 export const resetPasswordSchema = z
   .object({
-    newPassword: z
-      .string()
-      .min(8, t('auth.passwordTooShort'))
-      .refine((v) => passwordRegex.test(v), t('auth.passwordNeedsLetterDigit')),
+    newPassword: newPassword(),
     confirmPassword: z.string().min(1, t('validation.passwordRequired')),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

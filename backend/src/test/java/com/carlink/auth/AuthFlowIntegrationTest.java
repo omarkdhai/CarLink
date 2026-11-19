@@ -72,7 +72,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", "owner@example.com",
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "Ali",
                                 "lastName", "Ben",
                                 "phone", "",
@@ -104,7 +104,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         // --- Login ---
         MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", "owner@example.com", "password", "Secret123"))))
+                        .content(json(Map.of("email", "owner@example.com", "password", "Secret1234"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.refreshToken").doesNotExist())
                 .andReturn();
@@ -137,7 +137,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
         MvcResult again = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", "owner@example.com", "password", "Secret123"))))
+                        .content(json(Map.of("email", "owner@example.com", "password", "Secret1234"))))
                 .andExpect(status().isOk()).andReturn();
         String session = refreshCookieOf(again);
 
@@ -175,7 +175,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         String code = freshStickerCode();
         MvcResult first = mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", "first@example.com", "password", "Secret123",
+                        .content(json(Map.of("email", "first@example.com", "password", "Secret1234",
                                 "firstName", "F", "lastName", "O", "phone", "", "stickerCode", code))))
                 .andExpect(status().isOk()).andReturn();
         String bearer = "Bearer " + objectMapper.readTree(first.getResponse().getContentAsString())
@@ -190,7 +190,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         // S-13: a BOUND sticker no longer opens registration.
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", "second@example.com", "password", "Secret123",
+                        .content(json(Map.of("email", "second@example.com", "password", "Secret1234",
                                 "firstName", "S", "lastName", "O", "phone", "", "stickerCode", code))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("STICKER_ALREADY_BOUND"));
@@ -198,7 +198,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         // S-13: without a valid code, a registered e-mail is not revealed.
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", "first@example.com", "password", "Secret123",
+                        .content(json(Map.of("email", "first@example.com", "password", "Secret1234",
                                 "firstName", "F", "lastName", "O", "phone", "",
                                 "stickerCode", "ZZZZ-ZZZZ"))))
                 .andExpect(status().isBadRequest())
@@ -218,7 +218,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", "who@example.com",
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "X",
                                 "lastName", "Y",
                                 "phone", "",
@@ -239,7 +239,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", "reset@example.com",
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "A",
                                 "lastName", "B",
                                 "phone", "",
@@ -256,20 +256,20 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/password-reset/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("token", resetToken,
-                                "newPassword", "BrandNew1"))))
+                                "newPassword", "BrandNew123"))))
                 .andExpect(status().isOk());
 
         // Old password fails, new password works
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("email", "reset@example.com",
-                                "password", "Secret123"))))
+                                "password", "Secret1234"))))
                 .andExpect(status().isUnauthorized());
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("email", "reset@example.com",
-                                "password", "BrandNew1"))))
+                                "password", "BrandNew123"))))
                 .andExpect(status().isOk());
     }
 
