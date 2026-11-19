@@ -1,8 +1,8 @@
 package com.carlink.sticker;
 
 import com.carlink.AbstractIntegrationTest;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -88,8 +88,8 @@ class PublicStickerControllerIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
         JsonNode root = objectMapper.readTree(r.getResponse().getContentAsString());
         return new String[]{
-                root.get("stickers").get(0).get("rawToken").asText(),
-                root.get("stickers").get(0).get("activationCode").asText(),
+                root.get("stickers").get(0).get("rawToken").asString(),
+                root.get("stickers").get(0).get("activationCode").asString(),
         };
     }
 
@@ -111,7 +111,7 @@ class PublicStickerControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(login.getResponse().getContentAsString())
-                .get("accessToken").asText();
+                .get("accessToken").asString();
     }
 
     private String json(Object value) throws Exception {

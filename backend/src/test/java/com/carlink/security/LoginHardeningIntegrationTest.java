@@ -4,7 +4,7 @@ import com.carlink.AbstractIntegrationTest;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
 import com.carlink.user.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

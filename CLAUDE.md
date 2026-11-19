@@ -1,6 +1,6 @@
 # CarLink Project
 
-Anonymous QR-based contact with vehicle owners. Modular monolith (Spring Boot 3.2 / Java 17) + React 19 (Vite + TypeScript).
+Anonymous QR-based contact with vehicle owners. Modular monolith (Spring Boot 4.1 / Java 17) + React 19 (Vite + TypeScript).
 
 ## Verified environment (this machine)
 

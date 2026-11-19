@@ -4,8 +4,8 @@ import com.carlink.AbstractIntegrationTest;
 import com.carlink.conversation.model.ConversationStatus;
 import com.carlink.conversation.repository.ConversationRepository;
 import com.carlink.conversation.service.ConversationService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -232,14 +232,14 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String vehicleId = objectMapper.readTree(vehicle.getResponse().getContentAsString())
-                .get("id").asText();
+                .get("id").asString();
 
         MvcResult qr = mockMvc.perform(post("/api/v1/vehicles/{id}/qr", vehicleId)
                         .header("Authorization", bearer(auth)))
                 .andExpect(status().isOk())
                 .andReturn();
         String rawToken = objectMapper.readTree(qr.getResponse().getContentAsString())
-                .get("rawToken").asText();
+                .get("rawToken").asString();
 
         return new String[]{auth, rawToken, vehicleId};
     }
@@ -253,7 +253,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
-        return body.get("conversationId").asText();
+        return body.get("conversationId").asString();
     }
 
     private String uniqueEmail() {
@@ -280,7 +280,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
 
         return objectMapper.readTree(login.getResponse().getContentAsString())
-                .get("accessToken").asText();
+                .get("accessToken").asString();
     }
 
     private String bearer(String token) {
@@ -305,6 +305,6 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asText();
+                .get("stickers").get(0).get("activationCode").asString();
     }
 }

@@ -11,8 +11,8 @@ updates:
       maven-minor-patch:
         update-types: [minor, patch]
     ignore:
-      # Spring Boot 4 is a planned migration (security plan S-07 step 2), not
-      # a version bump: Jackson 3, Security 7, Hibernate 7, Testcontainers 2.
+      # A Spring Boot major is a migration, not a bump (see security plan
+      # S-07: 3.5 -> 4.1 needed Jackson 3, Security 7, Hibernate 7, TC 2).
       - dependency-name: org.springframework.boot:spring-boot-starter-parent
         update-types: [version-update:semver-major]
 

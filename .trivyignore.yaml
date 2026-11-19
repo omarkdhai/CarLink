@@ -1,14 +1,7 @@
 # Accepted vulnerabilities (security plan S-19). Each entry needs a reason
 # and an expiry date: after it, Trivy reports the CVE again and CI fails.
-
-vulnerabilities:
-  # Spring Framework 6.2.x: fixed only in 7.0.9, i.e. Spring Boot 4 (security
-  # plan S-07 step 2). Neither is reachable in CarLink: no XsltView and no
-  # Server-Sent Events / view rendering anywhere in the backend (checked
-  # 2026-11-19). Remove with the Boot 4 migration.
-  - id: CVE-2026-47884
-    statement: XsltView RCE; CarLink renders no XSLT views. Fixed by the Boot 4 migration (S-07).
-    expired_at: 2027-01-31
-  - id: CVE-2026-47890
-    statement: SSE stream corruption with views; CarLink uses no SSE. Fixed by the Boot 4 migration (S-07).
-    expired_at: 2027-01-31
+#
+# Empty since the Spring Boot 4.1 migration (S-07 step 2): the two Spring
+# Framework 6.2 CVEs accepted here before (CVE-2026-47884, CVE-2026-47890)
+# are fixed in Spring Framework 7.0.10.
+vulnerabilities: []

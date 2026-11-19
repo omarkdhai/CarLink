@@ -1,14 +1,14 @@
 package com.carlink;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Base class for integration tests that need a real PostgreSQL and Redis.
@@ -34,8 +34,8 @@ public abstract class AbstractIntegrationTest {
      * JVM so every cached application context can reach them.
      */
     static final class Containers {
-        static final PostgreSQLContainer<?> POSTGRES =
-                new PostgreSQLContainer<>("postgres:15-alpine")
+        static final PostgreSQLContainer POSTGRES =
+                new PostgreSQLContainer("postgres:15-alpine")
                         .withDatabaseName("carlink_test")
                         .withUsername("test")
                         .withPassword("test");

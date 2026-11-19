@@ -5,7 +5,7 @@ import com.carlink.admin.model.Report;
 import com.carlink.admin.model.ReportReason;
 import com.carlink.admin.model.ReportStatus;
 import com.carlink.admin.repository.ReportRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -98,14 +98,14 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String vehicleId = objectMapper.readTree(vehicle.getResponse().getContentAsString())
-                .get("id").asText();
+                .get("id").asString();
 
         MvcResult qr = mockMvc.perform(post("/api/v1/vehicles/{id}/qr", vehicleId)
                         .header("Authorization", bearer(auth)))
                 .andExpect(status().isOk())
                 .andReturn();
         String rawToken = objectMapper.readTree(qr.getResponse().getContentAsString())
-                .get("rawToken").asText();
+                .get("rawToken").asString();
 
         return new String[]{auth, rawToken, vehicleId};
     }
@@ -118,7 +118,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(result.getResponse().getContentAsString())
-                .get("conversationId").asText();
+                .get("conversationId").asString();
     }
 
     private String registerAndLogin(String email) throws Exception {
@@ -140,7 +140,7 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(login.getResponse().getContentAsString())
-                .get("accessToken").asText();
+                .get("accessToken").asString();
     }
 
     private String bearer(String token) {
@@ -165,6 +165,6 @@ class PublicReportFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asText();
+                .get("stickers").get(0).get("activationCode").asString();
     }
 }

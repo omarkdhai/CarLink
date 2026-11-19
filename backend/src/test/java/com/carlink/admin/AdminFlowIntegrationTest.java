@@ -5,8 +5,8 @@ import com.carlink.conversation.repository.ConversationRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
 import com.carlink.user.repository.UserRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -62,7 +62,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         JsonNode searched = getJson(admin.auth, "/api/v1/admin/users?q=" + fragment);
         boolean found = false;
         for (JsonNode u : searched) {
-            if (owner.email.equals(u.get("email").asText())) {
+            if (owner.email.equals(u.get("email").asString())) {
                 found = true;
                 assertThat(u.get("vehicleCount").asLong()).isGreaterThanOrEqualTo(0);
             }
@@ -72,11 +72,11 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         // Role filter keeps only admins
         JsonNode adminsOnly = getJson(admin.auth, "/api/v1/admin/users?role=ADMIN");
         assertThat(adminsOnly.findValues("role"))
-                .allMatch(n -> "ADMIN".equals(n.asText()));
+                .allMatch(n -> "ADMIN".equals(n.asString()));
 
         // Single-user lookup
         JsonNode got = getJson(admin.auth, "/api/v1/admin/users/" + owner.userId);
-        assertThat(got.get("email").asText()).isEqualTo(owner.email);
+        assertThat(got.get("email").asString()).isEqualTo(owner.email);
     }
 
     @Test
@@ -101,7 +101,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
 
         // The deactivation is in the audit trail
         JsonNode audit = getJson(admin.auth, "/api/v1/admin/audit-logs?action=USER_DEACTIVATE");
-        assertThat(audit.at("/0/entityId").asText()).isEqualTo(owner.userId.toString());
+        assertThat(audit.at("/0/entityId").asString()).isEqualTo(owner.userId.toString());
 
         // Reactivation restores access
         mockMvc.perform(post("/api/v1/admin/users/{id}/activate", owner.userId)
@@ -141,10 +141,10 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         // The promotion is audit-logged with from/to and the acting admin
         JsonNode audit = getJson(admin.auth, "/api/v1/admin/audit-logs?action=USER_ROLE_CHANGE");
         JsonNode newest = audit.get(0);
-        assertThat(newest.get("entityId").asText()).isEqualTo(owner.userId.toString());
-        assertThat(newest.get("details").get("from").asText()).isEqualTo("USER");
-        assertThat(newest.get("details").get("to").asText()).isEqualTo("ADMIN");
-        assertThat(newest.get("actorEmail").asText()).isEqualTo(admin.email);
+        assertThat(newest.get("entityId").asString()).isEqualTo(owner.userId.toString());
+        assertThat(newest.get("details").get("from").asString()).isEqualTo("USER");
+        assertThat(newest.get("details").get("to").asString()).isEqualTo("ADMIN");
+        assertThat(newest.get("actorEmail").asString()).isEqualTo(admin.email);
 
         // Two admins exist now, so demoting the new admin succeeds
         mockMvc.perform(post("/api/v1/admin/users/{id}/role", owner.userId)
@@ -164,14 +164,14 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
 
         // The report shows up in the OPEN queue, linked to its conversation
         JsonNode mine = findReportByConversation(admin.auth, convId);
-        String reportId = mine.get("id").asText();
-        assertThat(mine.get("reason").asText()).isEqualTo("SPAM");
-        assertThat(mine.get("status").asText()).isEqualTo("OPEN");
+        String reportId = mine.get("id").asString();
+        assertThat(mine.get("reason").asString()).isEqualTo("SPAM");
+        assertThat(mine.get("status").asString()).isEqualTo("OPEN");
 
         // Detail exposes the reported message content (admin-only exception)
         JsonNode detail = getJson(admin.auth, "/api/v1/admin/reports/" + reportId);
-        assertThat(detail.get("conversation").get("conversationId").asText()).isEqualTo(convId);
-        assertThat(detail.get("conversation").get("lastMessageContent").asText())
+        assertThat(detail.get("conversation").get("conversationId").asString()).isEqualTo(convId);
+        assertThat(detail.get("conversation").get("lastMessageContent").asString())
                 .isEqualTo("Buy it now!");
         assertThat(detail.get("conversation").get("messageCount").asLong()).isEqualTo(1);
 
@@ -209,7 +209,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         Admin admin = newAdmin();
         Owner owner = newOwner();
         String convId = fileReportAsVisitor(owner.auth);
-        String reportId = findReportByConversation(admin.auth, convId).get("id").asText();
+        String reportId = findReportByConversation(admin.auth, convId).get("id").asString();
 
         // Deleting the reported conversation must SET NULL the FK, keeping the report
         conversationRepository.deleteById(UUID.fromString(convId));
@@ -269,7 +269,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(raw).doesNotContain("Buy it now!").doesNotContain("+21655");
 
         JsonNode d = objectMapper.readTree(raw);
-        assertThat(d.get("granularity").asText()).isEqualTo("day");
+        assertThat(d.get("granularity").asString()).isEqualTo("day");
         assertThat(d.get("sales")).hasSize(30);
         assertThat(d.get("growth")).hasSize(30);
         assertThat(d.get("contactsByHour")).hasSize(24);
@@ -287,9 +287,9 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(lastSales.get("stickers").asLong()).isGreaterThanOrEqualTo(1);
 
         // Longer windows switch granularity; arbitrary windows are rejected
-        assertThat(getJson(admin.auth, "/api/v1/admin/stats/dashboard?days=90").get("granularity").asText())
+        assertThat(getJson(admin.auth, "/api/v1/admin/stats/dashboard?days=90").get("granularity").asString())
                 .isEqualTo("week");
-        assertThat(getJson(admin.auth, "/api/v1/admin/stats/dashboard?days=365").get("granularity").asText())
+        assertThat(getJson(admin.auth, "/api/v1/admin/stats/dashboard?days=365").get("granularity").asString())
                 .isEqualTo("month");
         mockMvc.perform(get("/api/v1/admin/stats/dashboard?days=12")
                         .header("Authorization", bearer(admin.auth)))
@@ -314,14 +314,14 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                                 "deliveryAddress", "2 Rue du Test"))))
                 .andExpect(status().isOk())
                 .andReturn();
-        String ref = objectMapper.readTree(placed.getResponse().getContentAsString()).get("reference").asText();
+        String ref = objectMapper.readTree(placed.getResponse().getContentAsString()).get("reference").asString();
 
         // Text + matching status finds it, with its items loaded
         JsonNode hit = getJson(admin.auth, "/api/v1/admin/orders?status=PLACED&q=zed" + seq + "@example.com");
         assertThat(hit.get("totalElements").asLong()).isEqualTo(1);
-        assertThat(hit.at("/content/0/reference").asText()).isEqualTo(ref);
+        assertThat(hit.at("/content/0/reference").asString()).isEqualTo(ref);
         assertThat(hit.at("/content/0/stickerCount").asInt()).isEqualTo(2);
-        assertThat(hit.at("/content/0/items/0/stickerPackage").asText()).isEqualTo("DOUBLE");
+        assertThat(hit.at("/content/0/items/0/stickerPackage").asString()).isEqualTo("DOUBLE");
 
         // Text + another status must not ignore the text
         assertThat(getJson(admin.auth, "/api/v1/admin/orders?status=DELIVERED&q=" + ref)
@@ -352,19 +352,19 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         JsonNode page = objectMapper.readTree(raw);
         assertThat(page.get("totalElements").asLong()).isEqualTo(1);
         JsonNode v = page.at("/content/0");
-        assertThat(v.at("/owner/email").asText()).isEqualTo(owner.email);
-        assertThat(v.at("/owner/id").asText()).isEqualTo(owner.userId.toString());
-        assertThat(v.get("brand").asText()).isEqualTo("Toyota");
-        assertThat(v.get("status").asText()).isEqualTo("ACTIVE");
+        assertThat(v.at("/owner/email").asString()).isEqualTo(owner.email);
+        assertThat(v.at("/owner/id").asString()).isEqualTo(owner.userId.toString());
+        assertThat(v.get("brand").asString()).isEqualTo("Toyota");
+        assertThat(v.get("status").asString()).isEqualTo("ACTIVE");
         assertThat(v.get("conversationCount").asLong()).isEqualTo(1);
         assertThat(v.get("unreadCount").asLong()).isEqualTo(1);
         assertThat(v.get("lastContactAt").isNull()).isFalse();
 
         // Search by plate fragment and single-vehicle lookup agree
-        String plate = v.get("licensePlate").asText();
+        String plate = v.get("licensePlate").asString();
         JsonNode byPlate = getJson(admin.auth, "/api/v1/admin/vehicles?q=" + plate);
-        assertThat(byPlate.at("/content/0/id").asText()).isEqualTo(v.get("id").asText());
-        JsonNode got = getJson(admin.auth, "/api/v1/admin/vehicles/" + v.get("id").asText());
+        assertThat(byPlate.at("/content/0/id").asString()).isEqualTo(v.get("id").asString());
+        JsonNode got = getJson(admin.auth, "/api/v1/admin/vehicles/" + v.get("id").asString());
         assertThat(got.get("conversationCount").asLong()).isEqualTo(1);
 
         // Unknown status is rejected; non-admins are forbidden
@@ -382,14 +382,14 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         Owner owner = newOwner();
         fileReportAsVisitor(owner.auth);
         String vehicleId = getJson(admin.auth, "/api/v1/admin/vehicles?q=" + owner.email)
-                .at("/content/0/id").asText();
+                .at("/content/0/id").asString();
 
         mockMvc.perform(post("/api/v1/admin/vehicles/{id}/archive", vehicleId)
                         .header("Authorization", bearer(admin.auth)))
                 .andExpect(status().isOk());
         JsonNode archived = getJson(admin.auth,
                 "/api/v1/admin/vehicles?status=ARCHIVED&q=" + owner.email);
-        assertThat(archived.at("/content/0/id").asText()).isEqualTo(vehicleId);
+        assertThat(archived.at("/content/0/id").asString()).isEqualTo(vehicleId);
         assertThat(getJson(admin.auth, "/api/v1/admin/vehicles?status=ACTIVE&q=" + owner.email)
                 .get("totalElements").asLong()).isZero();
 
@@ -399,13 +399,13 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isConflict());
 
         JsonNode audit = getJson(admin.auth, "/api/v1/admin/audit-logs?action=VEHICLE_ARCHIVE");
-        assertThat(audit.at("/0/entityId").asText()).isEqualTo(vehicleId);
+        assertThat(audit.at("/0/entityId").asString()).isEqualTo(vehicleId);
 
         mockMvc.perform(post("/api/v1/admin/vehicles/{id}/restore", vehicleId)
                         .header("Authorization", bearer(admin.auth)))
                 .andExpect(status().isOk());
         assertThat(getJson(admin.auth, "/api/v1/admin/vehicles/" + vehicleId)
-                .get("status").asText()).isEqualTo("ACTIVE");
+                .get("status").asString()).isEqualTo("ACTIVE");
 
         mockMvc.perform(post("/api/v1/admin/vehicles/{id}/restore", UUID.randomUUID())
                         .header("Authorization", bearer(admin.auth)))
@@ -440,17 +440,17 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         JsonNode page = objectMapper.readTree(raw);
         assertThat(page.get("totalElements").asLong()).isEqualTo(1);
         JsonNode s = page.at("/content/0");
-        assertThat(s.get("status").asText()).isEqualTo("BOUND");
+        assertThat(s.get("status").asString()).isEqualTo("BOUND");
         assertThat(s.get("legacy").asBoolean()).isFalse();
-        assertThat(s.at("/order/reference").asText()).startsWith("CL-");
-        assertThat(s.at("/owner/email").asText()).isEqualTo(owner.email);
-        assertThat(s.at("/vehicle/licensePlate").asText()).isEqualTo(plate);
+        assertThat(s.at("/order/reference").asString()).startsWith("CL-");
+        assertThat(s.at("/owner/email").asString()).isEqualTo(owner.email);
+        assertThat(s.at("/vehicle/licensePlate").asString()).isEqualTo(plate);
         assertThat(s.get("boundAt").isNull()).isFalse();
 
         // Search by order reference and by owner email find the same sticker
-        String ref = s.at("/order/reference").asText();
-        assertThat(getJson(admin.auth, "/api/v1/admin/stickers?q=" + ref).at("/content/0/id").asText())
-                .isEqualTo(s.get("id").asText());
+        String ref = s.at("/order/reference").asString();
+        assertThat(getJson(admin.auth, "/api/v1/admin/stickers?q=" + ref).at("/content/0/id").asString())
+                .isEqualTo(s.get("id").asString());
         assertThat(getJson(admin.auth, "/api/v1/admin/stickers?status=BOUND&q=" + owner.email)
                 .get("totalElements").asLong()).isGreaterThanOrEqualTo(1);
 
@@ -480,13 +480,13 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                                 "birthDate", "1990-01-01", "licensePlate", plate)))))
                 .andExpect(status().isOk());
         String stickerId = getJson(admin.auth, "/api/v1/admin/stickers?q=" + plate)
-                .at("/content/0/id").asText();
+                .at("/content/0/id").asString();
 
         mockMvc.perform(post("/api/v1/admin/stickers/{id}/deactivate", stickerId)
                         .header("Authorization", bearer(admin.auth)))
                 .andExpect(status().isOk());
         JsonNode after = getJson(admin.auth, "/api/v1/admin/stickers/" + stickerId);
-        assertThat(after.get("status").asText()).isEqualTo("DEACTIVATED");
+        assertThat(after.get("status").asString()).isEqualTo("DEACTIVATED");
         assertThat(after.hasNonNull("vehicle")).isFalse();
         assertThat(after.get("deactivatedAt").isNull()).isFalse();
 
@@ -496,7 +496,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isConflict());
 
         JsonNode audit = getJson(admin.auth, "/api/v1/admin/audit-logs?action=STICKER_DEACTIVATE");
-        assertThat(audit.at("/0/entityId").asText()).isEqualTo(stickerId);
+        assertThat(audit.at("/0/entityId").asString()).isEqualTo(stickerId);
 
         mockMvc.perform(post("/api/v1/admin/stickers/{id}/deactivate", UUID.randomUUID())
                         .header("Authorization", bearer(admin.auth)))
@@ -521,8 +521,8 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
 
         JsonNode body = postJson("/api/v1/auth/login",
                 Map.of("email", email, "password", "Admin123"));
-        return new Admin(body.get("accessToken").asText(),
-                UUID.fromString(body.get("user").get("id").asText()), email);
+        return new Admin(body.get("accessToken").asString(),
+                UUID.fromString(body.get("user").get("id").asString()), email);
     }
 
     private Owner newOwner() throws Exception {
@@ -531,8 +531,8 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 Map.of("email", email, "password", "Secret1234",
                         "firstName", "Own", "lastName", "Er", "phone", "+21655100" + seq,
                         "stickerCode", freshStickerCode()));
-        return new Owner(body.get("accessToken").asText(),
-                UUID.fromString(body.get("user").get("id").asText()), email);
+        return new Owner(body.get("accessToken").asString(),
+                UUID.fromString(body.get("user").get("id").asString()), email);
     }
 
     /** owner → vehicle → QR → contact → anonymous SPAM report; returns the conversation id. */
@@ -549,14 +549,14 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String vehicleId = objectMapper.readTree(vehicle.getResponse().getContentAsString())
-                .get("id").asText();
+                .get("id").asString();
 
         MvcResult qr = mockMvc.perform(post("/api/v1/vehicles/{id}/qr", vehicleId)
                         .header("Authorization", bearer(ownerAuth)))
                 .andExpect(status().isOk())
                 .andReturn();
         String rawToken = objectMapper.readTree(qr.getResponse().getContentAsString())
-                .get("rawToken").asText();
+                .get("rawToken").asString();
 
         MvcResult contact = mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -564,7 +564,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String convId = objectMapper.readTree(contact.getResponse().getContentAsString())
-                .get("conversationId").asText();
+                .get("conversationId").asString();
 
         mockMvc.perform(post("/api/v1/public/qr/report")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -580,7 +580,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         JsonNode list = getJson(adminAuth, "/api/v1/admin/reports");
         for (JsonNode report : list) {
             if (!report.get("conversationId").isNull()
-                    && conversationId.equals(report.get("conversationId").asText())) {
+                    && conversationId.equals(report.get("conversationId").asString())) {
                 return report;
             }
         }
@@ -633,7 +633,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asText();
+                .get("stickers").get(0).get("activationCode").asString();
     }
 
     private record Admin(String auth, UUID userId, String email) {}

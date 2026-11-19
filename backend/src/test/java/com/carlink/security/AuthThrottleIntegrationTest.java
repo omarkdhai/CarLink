@@ -6,10 +6,10 @@ import com.carlink.notification.email.EmailSender;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
 import com.carlink.user.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
@@ -52,7 +52,7 @@ class AuthThrottleIntegrationTest extends AbstractIntegrationTest {
     @Autowired private JwtService jwtService;
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
-    @MockBean private EmailSender emailSender;
+    @MockitoBean private EmailSender emailSender;
 
     @Test
     void registerIsThrottledPerIp() throws Exception {

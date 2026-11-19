@@ -4,7 +4,7 @@ import com.carlink.admin.dto.AuditLogResponse;
 import com.carlink.admin.model.AuditLog;
 import com.carlink.admin.repository.AuditLogRepository;
 import com.carlink.user.model.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;

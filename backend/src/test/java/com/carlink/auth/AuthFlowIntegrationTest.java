@@ -5,12 +5,12 @@ import com.carlink.auth.controller.RefreshCookie;
 import jakarta.servlet.http.Cookie;
 import org.springframework.http.HttpHeaders;
 import com.carlink.notification.email.EmailSender;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -41,7 +41,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
     private ObjectMapper objectMapper;
 
     /** Replaces the dev LogEmailSender so emails are captured instead of logged. */
-    @MockBean
+    @MockitoBean
     private EmailSender emailSender;
 
     private String capturedEmailBody;
@@ -109,7 +109,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.refreshToken").doesNotExist())
                 .andReturn();
         String accessToken = objectMapper.readTree(loginResult.getResponse().getContentAsString())
-                .get("accessToken").asText();
+                .get("accessToken").asString();
         String refreshToken = refreshCookieOf(loginResult);
 
         // --- /me with the access token ---
@@ -179,7 +179,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                                 "firstName", "F", "lastName", "O", "phone", "", "stickerCode", code))))
                 .andExpect(status().isOk()).andReturn();
         String bearer = "Bearer " + objectMapper.readTree(first.getResponse().getContentAsString())
-                .get("accessToken").asText();
+                .get("accessToken").asString();
         mockMvc.perform(post("/api/v1/stickers/activate-by-code")
                         .header("Authorization", bearer)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -346,6 +346,6 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asText();
+                .get("stickers").get(0).get("activationCode").asString();
     }
 }
