@@ -16,7 +16,7 @@ API proxy), Spring Boot, PostgreSQL and Redis.
 - A domain with DNS pointing at the host, and TLS terminated in front of it
   (see §3).
 - SMTP credentials for the sending domain.
-- A copy of `.env.example` filled in as `.env.prod`. **`.env.prod` is
+- A copy of `.env.prod.example` filled in as `.env.prod` (§4). **`.env.prod` is
   gitignored; never commit it.**
 
 ## 2. Secrets
@@ -118,8 +118,9 @@ in once with a read-only token: a classic PAT with only `read:packages`,
 `docker login ghcr.io -u <user>` (password on stdin, never on the command line).
 
 ```bash
-cp .env.example .env.prod
-$EDITOR .env.prod          # fill in secrets and URLs from §2, and CARLINK_VERSION
+cp .env.prod.example .env.prod
+sh scripts/prod-secrets.sh .env.prod   # generates every secret, prints none, lists what is left
+$EDITOR .env.prod          # fill every value under a "# FILL" line (see §2)
 
 # Pull the release and start
 docker compose -f docker-compose.prod.yml --env-file .env.prod pull --ignore-buildable
