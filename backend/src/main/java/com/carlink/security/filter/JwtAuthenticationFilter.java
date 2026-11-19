@@ -2,6 +2,8 @@ package com.carlink.security.filter;
 
 import com.carlink.auth.service.JwtService;
 import com.carlink.security.principal.UserPrincipal;
+import com.carlink.security.session.SessionStateCache;
+import com.carlink.security.session.SessionStateCache.SessionState;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -20,19 +22,30 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Extracts and validates the {@code Authorization: Bearer <jwt>} header on each
  * request. On success, builds a {@link UserPrincipal} and populates the
- * SecurityContext — no database lookup is performed on ordinary requests.
+ * SecurityContext.
+ *
+ * <p>Security plan S-10: a valid signature is not enough. The token is checked
+ * against the account's live state ({@link SessionStateCache}): the account
+ * must still exist and be active, and the token's version must be current
+ * (deactivation, role change and password reset bump it). The role is taken
+ * from that state, not from the token. Admin routes read the database on every
+ * request; other routes use a copy cached for a few seconds.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    static final String ADMIN_PREFIX = "/api/v1/admin";
+
     private final JwtService jwtService;
+    private final SessionStateCache sessionStateCache;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -51,7 +64,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Claims claims = jwtService.parseAccessToken(token);
             UUID userId = UUID.fromString(claims.getSubject());
             String email = claims.get("email", String.class);
-            String role = jwtService.extractRole(claims);
+
+            boolean adminRoute = request.getRequestURI().startsWith(ADMIN_PREFIX);
+            Optional<SessionState> state = adminRoute
+                    ? sessionStateCache.fresh(userId)
+                    : sessionStateCache.get(userId);
+            if (state.isEmpty() || !state.get().active()
+                    || state.get().tokenVersion() != jwtService.extractTokenVersion(claims)) {
+                // Revoked session: proceed unauthenticated (protected routes answer 401).
+                log.debug("Rejected access token of a revoked session");
+                filterChain.doFilter(request, response);
+                return;
+            }
+            String role = state.get().role().name();
 
             UserPrincipal principal = new UserPrincipal(userId, email, role);
             UsernamePasswordAuthenticationToken authentication =

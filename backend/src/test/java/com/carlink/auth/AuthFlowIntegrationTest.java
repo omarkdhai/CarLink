@@ -1,8 +1,10 @@
 package com.carlink.auth;
 
 import com.carlink.AbstractIntegrationTest;
+import com.carlink.auth.controller.RefreshCookie;
+import jakarta.servlet.http.Cookie;
+import org.springframework.http.HttpHeaders;
 import com.carlink.notification.email.EmailSender;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,26 +67,28 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void fullAuthLifecycleWorks() throws Exception {
-        // --- Register ---
+        // --- Register: refresh token only in the HttpOnly cookie, never the body ---
         MvcResult registered = mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", "owner@example.com",
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "Ali",
                                 "lastName", "Ben",
                                 "phone", "",
                                 "stickerCode", freshStickerCode()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
                 .andExpect(jsonPath("$.user.email").value("owner@example.com"))
                 .andExpect(jsonPath("$.user.role").value("USER"))
                 .andExpect(jsonPath("$.user.emailVerified").value(false))
                 .andReturn();
-
-        String refreshToken = objectMapper.readTree(registered.getResponse().getContentAsString())
-                .get("refreshToken").asText();
+        String setCookie = registered.getResponse().getHeader(HttpHeaders.SET_COOKIE);
+        assertThat(setCookie)
+                .startsWith(RefreshCookie.NAME + "=")
+                .contains("HttpOnly", "SameSite=Strict", "Path=/api/v1/auth", "Secure");
+        assertThat(refreshCookieOf(registered)).isNotBlank();
 
         // A verification link was "emailed"
         verify(emailSender).send(anyString(), anyString(), anyString());
@@ -98,10 +102,15 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Email verified"));
 
         // --- Login ---
-        JsonNode login = postJson("/api/v1/auth/login",
-                Map.of("email", "owner@example.com", "password", "Secret123"));
-        String accessToken = login.get("accessToken").asText();
-        refreshToken = login.get("refreshToken").asText();
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "owner@example.com", "password", "Secret1234"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andReturn();
+        String accessToken = objectMapper.readTree(loginResult.getResponse().getContentAsString())
+                .get("accessToken").asText();
+        String refreshToken = refreshCookieOf(loginResult);
 
         // --- /me with the access token ---
         mockMvc.perform(get("/api/v1/users/me")
@@ -111,29 +120,89 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                 // Privacy: the phone must never be serialized.
                 .andExpect(jsonPath("$.phone").doesNotExist());
 
-        // --- Refresh rotates the session ---
-        JsonNode refreshed = postJson("/api/v1/auth/refresh",
-                Map.of("refreshToken", refreshToken));
-        String rotatedRefresh = refreshed.get("refreshToken").asText();
-        assertThat(rotatedRefresh).isNotEqualTo(refreshToken);
+        // --- Refresh rotates the cookie ---
+        MvcResult refreshed = refresh(refreshToken)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andReturn();
+        String rotatedRefresh = refreshCookieOf(refreshed);
+        assertThat(rotatedRefresh).isNotBlank().isNotEqualTo(refreshToken);
 
-        // Old refresh token must no longer work
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("refreshToken", refreshToken))))
-                .andExpect(status().isUnauthorized());
+        // Old refresh token must no longer work (and its cookie is cleared).
+        // Reuse revokes the whole family -- so log in again for the logout part.
+        MvcResult reused = refresh(refreshToken).andExpect(status().isUnauthorized()).andReturn();
+        assertThat(reused.getResponse().getHeader(HttpHeaders.SET_COOKIE)).contains("Max-Age=0");
+        refresh(rotatedRefresh).andExpect(status().isUnauthorized());
 
-        // --- Logout revokes the rotated token ---
-        mockMvc.perform(post("/api/v1/auth/logout")
+        MvcResult again = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("refreshToken", rotatedRefresh))))
-                .andExpect(status().isOk());
+                        .content(json(Map.of("email", "owner@example.com", "password", "Secret1234"))))
+                .andExpect(status().isOk()).andReturn();
+        String session = refreshCookieOf(again);
+
+        // --- Logout revokes the token and clears the cookie ---
+        MvcResult loggedOut = mockMvc.perform(post("/api/v1/auth/logout")
+                        .header(RefreshCookie.CSRF_HEADER, "XMLHttpRequest")
+                        .cookie(new Cookie(RefreshCookie.NAME, session)))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertThat(loggedOut.getResponse().getHeader(HttpHeaders.SET_COOKIE)).contains("Max-Age=0");
 
         // That refresh token no longer refreshes either
+        refresh(session).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void cookieEndpointsRequireTheCsrfHeader() throws Exception {
+        // Without X-Requested-With a cross-site request is refused before the
+        // cookie is even looked at (security plan S-24).
         mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("refreshToken", rotatedRefresh))))
+                        .cookie(new Cookie(RefreshCookie.NAME, "anything")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .cookie(new Cookie(RefreshCookie.NAME, "anything")))
+                .andExpect(status().isForbidden());
+        // With the header but no cookie: just no session.
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .header(RefreshCookie.CSRF_HEADER, "XMLHttpRequest"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void registrationNeedsAClaimableStickerBeforeAnythingElse() throws Exception {
+        // First owner registers with a code and binds that sticker to a car.
+        String code = freshStickerCode();
+        MvcResult first = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "first@example.com", "password", "Secret1234",
+                                "firstName", "F", "lastName", "O", "phone", "", "stickerCode", code))))
+                .andExpect(status().isOk()).andReturn();
+        String bearer = "Bearer " + objectMapper.readTree(first.getResponse().getContentAsString())
+                .get("accessToken").asText();
+        mockMvc.perform(post("/api/v1/stickers/activate-by-code")
+                        .header("Authorization", bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("code", code, "details", Map.of(
+                                "birthDate", "1990-01-01", "licensePlate", "131 TU 1313")))))
+                .andExpect(status().isOk());
+
+        // S-13: a BOUND sticker no longer opens registration.
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "second@example.com", "password", "Secret1234",
+                                "firstName", "S", "lastName", "O", "phone", "", "stickerCode", code))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("STICKER_ALREADY_BOUND"));
+
+        // S-13: without a valid code, a registered e-mail is not revealed.
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "first@example.com", "password", "Secret1234",
+                                "firstName", "F", "lastName", "O", "phone", "",
+                                "stickerCode", "ZZZZ-ZZZZ"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_STICKER_CODE"));
     }
 
     @Test
@@ -149,7 +218,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", "who@example.com",
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "X",
                                 "lastName", "Y",
                                 "phone", "",
@@ -170,7 +239,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", "reset@example.com",
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "A",
                                 "lastName", "B",
                                 "phone", "",
@@ -187,20 +256,20 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/password-reset/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("token", resetToken,
-                                "newPassword", "BrandNew1"))))
+                                "newPassword", "BrandNew123"))))
                 .andExpect(status().isOk());
 
         // Old password fails, new password works
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("email", "reset@example.com",
-                                "password", "Secret123"))))
+                                "password", "Secret1234"))))
                 .andExpect(status().isUnauthorized());
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("email", "reset@example.com",
-                                "password", "BrandNew1"))))
+                                "password", "BrandNew123"))))
                 .andExpect(status().isOk());
     }
 
@@ -214,13 +283,16 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         return m.group(1);
     }
 
-    private JsonNode postJson(String url, Map<String, String> body) throws Exception {
-        MvcResult result = mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(body)))
-                .andExpect(status().isOk())
-                .andReturn();
-        return objectMapper.readTree(result.getResponse().getContentAsString());
+    private org.springframework.test.web.servlet.ResultActions refresh(String rawRefresh) throws Exception {
+        return mockMvc.perform(post("/api/v1/auth/refresh")
+                .header(RefreshCookie.CSRF_HEADER, "XMLHttpRequest")
+                .cookie(new Cookie(RefreshCookie.NAME, rawRefresh)));
+    }
+
+    private static String refreshCookieOf(MvcResult result) {
+        Cookie cookie = result.getResponse().getCookie(RefreshCookie.NAME);
+        assertThat(cookie).as("refresh cookie").isNotNull();
+        return cookie.getValue();
     }
 
     private String json(Object value) throws Exception {

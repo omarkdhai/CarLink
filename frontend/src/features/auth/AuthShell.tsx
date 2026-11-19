@@ -5,6 +5,7 @@ import { ArrowLeft, BellRing, Check, EyeOff, Lock, Smartphone, Zap } from 'lucid
 import { Logo } from '@/components/layout/Logo'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { cn } from '@/lib/cn'
+import { PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH, isSimplePattern, passwordBytes, passwordLength } from '@/features/auth/passwordRules'
 
 type Variant = 'account' | 'sticker'
 
@@ -155,16 +156,15 @@ export function AuthFootnote({ children }: { children: ReactNode }) {
   return <p className="mt-8 text-center text-sm text-muted-fg">{children}</p>
 }
 
-/** Live checklist matching the real password rule (8+ chars, a letter, a digit). */
+/** Live checklist for the password rule (security plan S-14): length, not a simple pattern. */
 export function PasswordChecklist({ password }: { password: string }) {
   const { t } = useTranslation()
   const checks = [
-    { key: 'length', ok: password.length >= 8 },
-    { key: 'letter', ok: /[A-Za-z]/.test(password) },
-    { key: 'digit', ok: /\d/.test(password) },
+    { key: 'length', ok: passwordLength(password) >= PASSWORD_MIN_LENGTH && passwordBytes(password) <= PASSWORD_MAX_BYTES },
+    { key: 'pattern', ok: password.length > 0 && !isSimplePattern(password) },
   ]
   return (
-    <ul className="mt-3 grid gap-1.5 sm:grid-cols-3" aria-label={t('authShell.pwTitle')}>
+    <ul className="mt-3 grid gap-1.5 sm:grid-cols-2" aria-label={t('authShell.pwTitle')}>
       {checks.map((c) => (
         <li
           key={c.key}

@@ -115,11 +115,25 @@ carlink:
 
   jwt:
     # Access token (short-lived)
-    secret: ${JWT_SECRET:dev-only-change-me-in-production-please-32chars}
+    # Required, no default (security plan S-01): a committed fallback let anyone
+    # forge tokens for any instance started without JWT_SECRET. Locally it comes
+    # from .env (node scripts/dev-secrets.mjs); tests set their own.
+    secret: ${JWT_SECRET}
     access-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:15}
+    # Admin access tokens are shorter-lived (security plan S-10)
+    admin-access-expiration-minutes: ${JWT_ADMIN_ACCESS_EXPIRATION_MINUTES:5}
     # Refresh token (long-lived)
-    refresh-secret: ${JWT_REFRESH_SECRET:dev-only-refresh-secret-please-change-32chars}
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
+
+  password:
+    # Breached-password check (security plan S-14); on in the prod profile.
+    breach-check: ${PASSWORD_BREACH_CHECK:false}
+
+  auth:
+    # The refresh token travels in an HttpOnly, SameSite=Strict cookie
+    # (security plan S-09). Secure (HTTPS-only) everywhere except the dev
+    # profile, which is served over plain http://localhost.
+    refresh-cookie-secure: ${REFRESH_COOKIE_SECURE:true}
 
   # Conversation / contact
   conversation:
@@ -185,6 +199,13 @@ carlink:
     # includeSubDomains cannot be withdrawn once a browser has cached it.
     # Enable once TLS is terminated in front of the app.
     hsts-enabled: ${HSTS_ENABLED:false}
+
+  # Bot protection for the public forms (Cloudflare Turnstile, security plan S-11).
+  # Off by default; set all three to turn it on.
+  captcha:
+    enabled: ${CAPTCHA_ENABLED:false}
+    site-key: ${CAPTCHA_SITE_KEY:}
+    secret-key: ${CAPTCHA_SECRET_KEY:}
 
   # Initial ADMIN bootstrap (disabled by default; dev profile sets credentials)
   admin:

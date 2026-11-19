@@ -65,6 +65,14 @@ public class User extends BaseEntity {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
+    /**
+     * Security plan S-10: copied into every access token as the "tv" claim.
+     * Bumped by {@code SessionInvalidator} to kill all outstanding tokens.
+     */
+    @Builder.Default
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
+
     public static User newUser(String email, String passwordHash, String firstName,
                                String lastName, Role role) {
         return User.builder()

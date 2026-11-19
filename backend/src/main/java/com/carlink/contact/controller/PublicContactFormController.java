@@ -1,5 +1,9 @@
 package com.carlink.contact.controller;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import com.carlink.security.captcha.CaptchaGuard;
+
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.dto.MessageResponse;
 import com.carlink.common.exception.TooManyRequestsException;
@@ -34,10 +38,12 @@ public class PublicContactFormController {
     private final RateLimiter rateLimiter;
     private final TokenGenerator tokenGenerator;
     private final CarLinkProperties properties;
+    private final CaptchaGuard captchaGuard;
 
     @PostMapping("/contact")
     @Operation(summary = "Send a message to the CarLink team via the website contact form")
     public MessageResponse submit(@Valid @RequestBody ContactFormRequest body,
+                                  @RequestHeader(value = CaptchaGuard.HEADER, required = false) String captcha,
                                   HttpServletRequest request) {
         String ip = request.getRemoteAddr();
         String key = "public-contact-ip:" + tokenGenerator.sha256(ip);
@@ -47,6 +53,7 @@ public class PublicContactFormController {
                     "Too many requests. Try again later.",
                     rateLimiter.retryAfterSeconds(key, max, WINDOW_SECONDS));
         }
+        captchaGuard.require(captcha, ip); // S-11
         contactFormService.submit(body);
         return MessageResponse.of("Message sent");
     }

@@ -33,6 +33,7 @@ import { joinPhone } from '@/lib/phone'
 import { useQrScanner } from '@/features/stickers/useQrScanner'
 import { AuthShell } from '@/features/auth/AuthShell'
 import { cn } from '@/lib/cn'
+import { SuccessMark } from '@/components/shared/SuccessMark'
 
 type Step = 'entry' | 'claimable' | 'details' | 'done'
 
@@ -493,9 +494,7 @@ function DoneStep({ onViewStickers }: { onViewStickers: () => void }) {
   const { t } = useTranslation()
   return (
     <div className="mt-6 text-center">
-      <div className="mx-auto h-16 w-16 rounded-full bg-success-soft text-success flex items-center justify-center mb-4">
-        <Check className="h-8 w-8" aria-hidden />
-      </div>
+      <SuccessMark className="mb-4" />
       <h1 className="text-xl font-bold text-heading">{t('stickers.activated')}</h1>
       <p className="text-sm text-muted-fg mt-2">{t('stickers.activatedHint')}</p>
       <Button className="mt-6 w-full" onClick={onViewStickers}>

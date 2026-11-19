@@ -35,7 +35,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
         String rawToken = orderSingleToken();
 
         // Public view: virgin sticker, no vehicle data at all.
-        mockMvc.perform(get("/api/v1/public/qr/{token}", rawToken))
+        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.state").value("UNBOUND"))
                 .andExpect(jsonPath("$.channels").isEmpty());
@@ -48,7 +48,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
 
         // Owner registers and claims the sticker with car details.
         String[] owner = registerAndLogin("stkr-owner" + (++seq) + "@example.com");
-        mockMvc.perform(post("/api/v1/stickers/{token}/activate", rawToken)
+        mockMvc.perform(post("/api/v1/stickers/activate").header("X-CarLink-Token", rawToken)
                         .header("Authorization", bearer(owner[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
@@ -62,7 +62,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("activated")));
 
         // Public view now BOUND with the safe vehicle summary — still no plate.
-        MvcResult bound = mockMvc.perform(get("/api/v1/public/qr/{token}", rawToken))
+        MvcResult bound = mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.state").value("BOUND"))
                 .andExpect(jsonPath("$.vehicle.nickname").value("My Car"))
@@ -70,7 +70,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(bound.getResponse().getContentAsString()).doesNotContain("TN-123-AB");
 
         // A second claim of the same sticker conflicts (sticker → one owner).
-        mockMvc.perform(post("/api/v1/stickers/{token}/activate", rawToken)
+        mockMvc.perform(post("/api/v1/stickers/activate").header("X-CarLink-Token", rawToken)
                         .header("Authorization", bearer(owner[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("birthDate", "1985-01-01", "licensePlate", "TN-999-XX"))))
@@ -84,18 +84,18 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                         .header("Authorization", bearer(owner[0])))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/v1/public/qr/{token}", rawToken))
+        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.state").value("DEACTIVATED"))
                 .andExpect(jsonPath("$.channels").isEmpty());
 
-        mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "SMS", "message", "hi", "reason", "BLOCKING"))))
                 .andExpect(status().isNotFound());
 
         // Owner can re-claim the released sticker (plate already exists → reuse).
-        mockMvc.perform(post("/api/v1/stickers/{token}/activate", rawToken)
+        mockMvc.perform(post("/api/v1/stickers/activate").header("X-CarLink-Token", rawToken)
                         .header("Authorization", bearer(owner[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("birthDate", "1990-05-04", "licensePlate", "TN-123-AB"))))
@@ -113,7 +113,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
         String[] stranger = registerAndLogin("stranger" + (++seq) + "@example.com");
 
         // Cannot claim the foreign BOUND sticker (409, without revealing who owns it)…
-        mockMvc.perform(post("/api/v1/stickers/{token}/activate", rawToken)
+        mockMvc.perform(post("/api/v1/stickers/activate").header("X-CarLink-Token", rawToken)
                         .header("Authorization", bearer(stranger[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("birthDate", "1999-01-01", "licensePlate", "XX-99-YY"))))
@@ -134,7 +134,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
     // ---------- helpers ----------
 
     private void claim(String rawToken, String auth) throws Exception {
-        mockMvc.perform(post("/api/v1/stickers/{token}/activate", rawToken)
+        mockMvc.perform(post("/api/v1/stickers/activate").header("X-CarLink-Token", rawToken)
                         .header("Authorization", bearer(auth))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
@@ -194,7 +194,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", email,
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "A",
                                 "lastName", "B",
                                 "phone", "+2165570" + seq,
@@ -203,7 +203,7 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", email, "password", "Secret123"))))
+                        .content(json(Map.of("email", email, "password", "Secret1234"))))
                 .andExpect(status().isOk())
                 .andReturn();
         return new String[]{objectMapper.readTree(login.getResponse().getContentAsString())

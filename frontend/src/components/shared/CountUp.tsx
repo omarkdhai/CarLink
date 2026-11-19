@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
-
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+import { useRef, useState } from 'react'
+import { canAnimate, gsap, MQ, ScrollTrigger, useGSAP } from '@/lib/gsap'
 
 /**
- * Counts from 0 to `value` once the number scrolls into view (ease-out, ~0.9s).
- * Renders the final value immediately for reduced-motion users and in
- * environments without IntersectionObserver. `format` styles the number.
+ * Counts from 0 to `value` once the number scrolls into view (GSAP tween,
+ * power3.out, ~0.9s). Reduced-motion users and environments without
+ * matchMedia (tests, ancient browsers) see the final value immediately.
+ * When `value` changes later (e.g. a live refetch) it tweens from the number
+ * currently shown instead of restarting at 0. `format` styles the number.
  */
 export function CountUp({
   value,
@@ -18,48 +18,50 @@ export function CountUp({
   format?: (n: number) => string
 }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const [shown, setShown] = useState(() => (prefersReducedMotion() ? value : 0))
+  const current = useRef({ n: 0 })
   const started = useRef(false)
+  const [shown, setShown] = useState(value)
 
-  useEffect(() => {
-    if (prefersReducedMotion() || typeof IntersectionObserver === 'undefined') {
-      setShown(value)
-      return
-    }
-    const el = ref.current
-    if (!el) return
-    let frame = 0
-    const run = () => {
-      started.current = true
-      const start = performance.now()
-      const tick = (now: number) => {
-        const t = Math.min(1, (now - start) / duration)
-        const eased = 1 - Math.pow(1 - t, 3)
-        setShown(Math.round(value * eased))
-        if (t < 1) frame = requestAnimationFrame(tick)
+  useGSAP(
+    () => {
+      const el = ref.current
+      if (!el || !canAnimate()) {
+        setShown(value)
+        return
       }
-      frame = requestAnimationFrame(tick)
-    }
-    // Value changed after the first run (e.g. live refetch): jump straight to it.
-    if (started.current) {
-      setShown(value)
-      return
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect()
-          run()
+      const mm = gsap.matchMedia()
+      mm.add(MQ.MOTION, () => {
+        const tweenTo = () =>
+          gsap.to(current.current, {
+            n: value,
+            duration: duration / 1000,
+            ease: 'power3.out',
+            overwrite: true,
+            onUpdate: () => setShown(Math.round(current.current.n)),
+          })
+        if (started.current) {
+          tweenTo()
+          return
         }
-      },
-      { threshold: 0.4 },
-    )
-    io.observe(el)
-    return () => {
-      io.disconnect()
-      cancelAnimationFrame(frame)
-    }
-  }, [value, duration])
+        setShown(0)
+        current.current.n = 0
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 90%',
+          once: true,
+          onEnter: () => {
+            started.current = true
+            tweenTo()
+          },
+        })
+      })
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        current.current.n = value
+        setShown(value)
+      })
+    },
+    { dependencies: [value, duration] },
+  )
 
   return (
     <span ref={ref} className="tabular-nums">

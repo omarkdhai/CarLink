@@ -23,10 +23,14 @@ public record CarLinkProperties(
         Telnyx telnyx
 ) {
 
+    /**
+     * @param adminAccessExpirationMinutes access-token lifetime for ADMIN
+     *        accounts, shorter than the owners' (security plan S-10)
+     */
     public record Jwt(
             String secret,
             long accessExpirationMinutes,
-            String refreshSecret,
+            long adminAccessExpirationMinutes,
             long refreshExpirationDays
     ) {}
 

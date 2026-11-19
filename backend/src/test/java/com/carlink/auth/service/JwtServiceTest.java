@@ -63,4 +63,37 @@ class JwtServiceTest {
                 .isEqualTo(user.getId().toString());
         assertThat(jwtService.extractRole(claims)).isEqualTo("USER");
     }
+
+    // ---------- S-18: signing-secret guard ----------
+
+    @Test
+    void refusesMissingSecret() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> JwtService.signingKey("  "))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("not set");
+    }
+
+    @Test
+    void refusesPublicSecret() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> JwtService.signingKey("dev-only-change-me-in-production-please-32chars"))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("publicly known");
+    }
+
+    @Test
+    void refusesShortSecret() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> JwtService.signingKey("abcdef0123456789"))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("32 bytes");
+    }
+
+    @Test
+    void refusesLowEntropySecret() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> JwtService.signingKey("a".repeat(64)))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("variety");
+    }
+
+    @Test
+    void acceptsRandomHexSecret() {
+        org.assertj.core.api.Assertions.assertThat(
+                JwtService.signingKey("9f2c4e7a1b3d5f60718293a4b5c6d7e8f9012a3b4c5d6e7f8091a2b3c4d5e6f7")).isNotNull();
+    }
 }

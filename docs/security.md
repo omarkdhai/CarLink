@@ -34,6 +34,12 @@ still omit it.
 ## Logging rules
 
 - **Never** log phone numbers, raw QR tokens, passwords, or message bodies.
+- Raw QR / sticker tokens never travel in an API path: clients send them in
+  the `X-CarLink-Token` header (`GET /api/v1/public/qr`,
+  `POST /api/v1/public/qr/contact`, `POST /api/v1/stickers/activate`). The
+  only URL carrying a token is the QR's own `/c/{token}` page; nginx's
+  `carlink` log format masks it in the request line *and* in the Referer of
+  the API calls made from that page (security plan S-08).
 - IP addresses are logged only for rate-limit/audit purposes.
 - Error responses never include stack traces or internal identifiers.
 - The order-confirmation email is the one place customer PII (name, phone,
@@ -47,8 +53,20 @@ still omit it.
 ## JWT lifecycle
 
 - Access token TTL: configurable, default **15 minutes**.
+- Admin access tokens live **5 minutes** (`JWT_ADMIN_ACCESS_EXPIRATION_MINUTES`).
+- Every access token carries the account's token version (`tv`). The JWT filter checks it, together with
+  `active` and the role, against the live account (fresh from the database on `/api/v1/admin/**`, cached
+  for 30 s elsewhere and evicted on change). Deactivation, a role change and a password reset bump the
+  version and revoke refresh tokens, so every session ends at once. The role used for authorisation is
+  the database's, not the token's (security plan S-10).
 - Refresh token TTL: configurable, default **7 days**, rotation on use.
-- On refresh, the old refresh token is revoked and a new one issued.
+- On refresh, the old refresh token is revoked and a new one issued. Presenting an already-used token
+  revokes every session of that user (reuse detection).
+- The refresh token is never in a JSON body or in browser storage: it travels only in the
+  `carlink_rt` cookie — `HttpOnly; SameSite=Strict; Path=/api/v1/auth`, plus `Secure` outside the dev
+  profile (`carlink.auth.refresh-cookie-secure`). The SPA keeps the access token in memory only.
+- CSRF: `/auth/refresh` and `/auth/logout` (the only cookie-authenticated endpoints) also require the
+  `X-Requested-With` header, which a cross-site form cannot send (security plan S-09 / S-24).
 
 ## Rate limiting (public endpoint)
 
@@ -63,6 +81,13 @@ with a `Retry-After` header.
 ## Data at rest
 
 - Passwords: BCrypt strength 12.
+- Password policy (security plan S-14, NIST SP 800-63B): at least 10 characters and at most 72 bytes
+  (BCrypt's limit), any characters — passphrases welcome, no composition rule. Refused: common
+  passwords (`security/common-passwords.txt`), one or two repeated characters, keyboard/digit runs,
+  passwords built on the e-mail name, and — in prod — passwords found by the Have I Been Pwned range
+  API (k-anonymity, fails open). Each refusal has its own code (`PASSWORD_TOO_SHORT`, `_TOO_LONG`,
+  `_TOO_COMMON`, `PASSWORD_BREACHED`). Login input is capped, and a > 72-byte login is a plain 401.
+  Existing passwords are not forced to change; the rule applies whenever one is chosen.
 - Qr / refresh / reset / verification tokens: SHA-256 **hashed**.
 - Sticker tokens: stored as SHA-256 hashes only; the raw token is returned **exactly once** on the order creation response.
 - Licence plates are stored but never returned in public payloads.

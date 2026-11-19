@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutGrid,
@@ -16,6 +16,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { useAccountStatus } from '@/features/account/useAccountStatus'
 import { Logo } from '@/components/layout/Logo'
 import { cn } from '@/lib/cn'
+import { canAnimate, gsap, useGSAP } from '@/lib/gsap'
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 import { PageTransition } from '@/components/shared/PageTransition'
 
@@ -62,12 +63,79 @@ function initials(first?: string, last?: string) {
   return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase() || '?'
 }
 
+/** Instant moves for reduced-motion users and tests; eased glide otherwise. */
+const glide = () =>
+  canAnimate() && window.matchMedia('(prefers-reduced-motion: no-preference)').matches ? 0.45 : 0
+
+/**
+ * Slides the sidebar's active hairline to the link marked aria-current="page"
+ * inside the sidebar (NavLink sets it). Hidden when no link is active.
+ */
+function useSideIndicator(
+  containerRef: RefObject<HTMLDivElement | null>,
+  indicatorRef: RefObject<HTMLSpanElement | null>,
+  key: string,
+) {
+  useGSAP(
+    () => {
+      const box = containerRef.current
+      const bar = indicatorRef.current
+      if (!box || !bar) return
+      const active = box.querySelector<HTMLElement>('a[aria-current="page"]')
+      if (!active) {
+        gsap.to(bar, { autoAlpha: 0, duration: glide() * 0.5 })
+        return
+      }
+      const firstPlacement = gsap.getProperty(bar, 'opacity') === 0
+      gsap.to(bar, {
+        y: active.offsetTop + 8,
+        height: active.offsetHeight - 16,
+        autoAlpha: 1,
+        duration: firstPlacement ? 0 : glide(),
+        ease: 'power3.out',
+        overwrite: true,
+      })
+    },
+    { dependencies: [key] },
+  )
+}
+
 export function AppLayout() {
   const { t } = useTranslation()
   const { isAdmin, signOut, user } = useAuth()
   const status = useAccountStatus()
   const navigate = useNavigate()
   const location = useLocation()
+  const sideRef = useRef<HTMLDivElement>(null)
+  const sideBarRef = useRef<HTMLSpanElement>(null)
+  const tabBarRef = useRef<HTMLSpanElement>(null)
+  useSideIndicator(sideRef, sideBarRef, location.pathname)
+
+  const isTabActive = ({ to, match }: (typeof tabNav)[number]) =>
+    match ? match.some((m) => location.pathname.startsWith(m)) : location.pathname === to || location.pathname.startsWith(`${to}/`)
+  const activeTab = tabNav.findIndex(isTabActive)
+
+  // Phone tab bar: the pill above the active tab glides between tabs.
+  useGSAP(
+    () => {
+      const pill = tabBarRef.current
+      if (!pill) return
+      if (activeTab < 0) {
+        gsap.to(pill, { autoAlpha: 0, duration: glide() * 0.5 })
+        return
+      }
+      const rtl = document.documentElement.dir === 'rtl'
+      const firstPlacement = gsap.getProperty(pill, 'opacity') === 0
+      gsap.to(pill, {
+        xPercent: (rtl ? -100 : 100) * activeTab,
+        autoAlpha: 1,
+        duration: firstPlacement ? 0 : glide(),
+        ease: 'power3.out',
+        overwrite: true,
+      })
+    },
+    { dependencies: [activeTab] },
+  )
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -118,7 +186,12 @@ export function AppLayout() {
         <div className="h-16 px-5 flex items-center border-b border-border/60">
           <Logo size="md" />
         </div>
-        <div className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+        <div ref={sideRef} className="relative flex-1 overflow-y-auto px-3 py-5 space-y-6">
+          <span
+            ref={sideBarRef}
+            className="pointer-events-none absolute start-0 top-0 !mt-0 h-0 w-[3px] rounded-e-full bg-primary opacity-0"
+            aria-hidden
+          />
           <nav aria-label={t('nav.main')} className="space-y-1">
             {ownerNav.map((item) => sideLink(item))}
           </nav>
@@ -213,11 +286,17 @@ export function AppLayout() {
         aria-label={t('nav.main')}
         className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)]"
       >
+        <span
+          ref={tabBarRef}
+          className="pointer-events-none absolute start-0 top-0 flex w-1/5 justify-center opacity-0"
+          aria-hidden
+        >
+          <span className="h-[3px] w-8 rounded-b-full bg-primary" />
+        </span>
         <ul className="grid grid-cols-5 h-16">
-          {tabNav.map(({ to, short, icon: Icon, badge, match }) => {
-            const active = match
-              ? match.some((m) => location.pathname.startsWith(m))
-              : location.pathname === to || location.pathname.startsWith(`${to}/`)
+          {tabNav.map((tab) => {
+            const { to, short, icon: Icon, badge } = tab
+            const active = isTabActive(tab)
             const count = badge ? counts[badge] : 0
             return (
               <li key={to}>

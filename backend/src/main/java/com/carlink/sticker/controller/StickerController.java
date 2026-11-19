@@ -1,5 +1,13 @@
 package com.carlink.sticker.controller;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import com.carlink.common.web.TokenHeader;
+
+import com.carlink.security.ratelimit.Throttle;
+import com.carlink.security.ratelimit.ThrottleProperties;
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.carlink.common.dto.MessageResponse;
 import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.security.principal.UserPrincipal;
@@ -34,20 +42,26 @@ import java.util.UUID;
 public class StickerController {
 
     private final StickerService stickerService;
+    private final Throttle throttle;
+    private final ThrottleProperties limits;
 
-    @PostMapping("/{token}/activate")
+    @PostMapping("/activate")
     @Operation(summary = "Claim a virgin sticker and link it to one of your cars")
     public MessageResponse activate(@AuthenticationPrincipal UserPrincipal principal,
-                                    @PathVariable String token,
-                                    @Valid @RequestBody ActivateStickerRequest body) {
-        stickerService.activate(requireId(principal), token, body);
+                                    @RequestHeader(value = TokenHeader.NAME, required = false) String token,
+                                    @Valid @RequestBody ActivateStickerRequest body,
+                                    HttpServletRequest http) {
+        throttleActivation(principal, http);
+        stickerService.activate(requireId(principal), TokenHeader.require(token), body);
         return new MessageResponse("Sticker activated");
     }
 
     @PostMapping("/activate-by-code")
     @Operation(summary = "Claim a sticker by its printed activation code and link it to one of your cars")
     public MessageResponse activateByCode(@AuthenticationPrincipal UserPrincipal principal,
-                                          @Valid @RequestBody ActivateStickerByCodeRequest body) {
+                                          @Valid @RequestBody ActivateStickerByCodeRequest body,
+                                          HttpServletRequest http) {
+        throttleActivation(principal, http);
         stickerService.activateByCode(requireId(principal), body.code(), body.details());
         return new MessageResponse("Sticker activated");
     }
@@ -64,6 +78,13 @@ public class StickerController {
     @Operation(summary = "List your stickers (id, status, bound vehicle)")
     public List<StickerView> listMine(@AuthenticationPrincipal UserPrincipal principal) {
         return stickerService.listMine(requireId(principal));
+    }
+
+    /** S-03: activation codes are ~40 bits; cap guesses per account and per IP. */
+    private void throttleActivation(UserPrincipal principal, HttpServletRequest http) {
+        throttle.require("sticker-activate-user", limits.getStickerActivateUser(),
+                requireId(principal).toString());
+        throttle.require("sticker-activate-ip", limits.getStickerActivateIp(), http.getRemoteAddr());
     }
 
     private UUID requireId(UserPrincipal principal) {

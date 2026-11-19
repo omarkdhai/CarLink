@@ -1,9 +1,10 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import {
   getAccessToken,
-  getRefreshToken,
+  hasSession,
   isAccessTokenExpired,
   refreshSession,
+  CSRF_HEADERS,
 } from '@/services/tokenStore'
 import { errorI18nKey, errorI18nKeyForCode, toApiError } from '@/services/errors'
 import i18n from '@/lib/i18n'
@@ -22,7 +23,9 @@ import i18n from '@/lib/i18n'
  */
 const apiClient = axios.create({
   baseURL: '/api/v1',
-  headers: { 'Content-Type': 'application/json' },
+  // X-Requested-With: the backend's anti-CSRF check on the refresh-cookie
+  // endpoints (security plan S-24); harmless everywhere else.
+  headers: { 'Content-Type': 'application/json', ...CSRF_HEADERS },
 })
 
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
@@ -32,7 +35,7 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
   //   b) the token exists but is about to expire.
   // refreshSession() is a singleton — if AuthContext.restore() already started
   // a refresh, we wait on the same Promise instead of firing a second one.
-  if ((!getAccessToken() || isAccessTokenExpired()) && getRefreshToken()) {
+  if ((!getAccessToken() || isAccessTokenExpired()) && hasSession()) {
     const ok = await refreshSession()
     if (!ok) return config // refresh failed — request will 401 at the server
   }
@@ -53,7 +56,7 @@ apiClient.interceptors.response.use(
     const wasRetried = original?._retried
 
     // Only attempt a single refresh-on-401 for authenticated non-auth requests.
-    if (status === 401 && original && !isAuthEndpoint && !wasRetried && getRefreshToken()) {
+    if (status === 401 && original && !isAuthEndpoint && !wasRetried && hasSession()) {
       original._retried = true
       const ok = await refreshSession()
       if (ok) {

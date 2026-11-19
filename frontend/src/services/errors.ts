@@ -61,6 +61,10 @@ const CODE_I18N_KEYS: Record<string, string> = {
   INVALID_STICKER_CODE: 'errors.invalidStickerCode',
   STICKER_ALREADY_BOUND: 'errors.stickerAlreadyBound',
   INVALID_RESET_LINK: 'errors.invalidResetLink',
+  PASSWORD_TOO_SHORT: 'auth.passwordTooShort',
+  PASSWORD_TOO_LONG: 'errors.passwordTooLong',
+  PASSWORD_TOO_COMMON: 'errors.passwordTooCommon',
+  PASSWORD_BREACHED: 'errors.passwordBreached',
   INVALID_VERIFICATION_LINK: 'errors.invalidVerificationLink',
 }
 

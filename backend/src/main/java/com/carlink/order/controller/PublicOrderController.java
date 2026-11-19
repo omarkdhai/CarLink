@@ -1,5 +1,9 @@
 package com.carlink.order.controller;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import com.carlink.security.captcha.CaptchaGuard;
+
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.exception.TooManyRequestsException;
 import com.carlink.common.security.TokenGenerator;
@@ -37,12 +41,16 @@ public class PublicOrderController {
     private final RateLimiter rateLimiter;
     private final TokenGenerator tokenGenerator;
     private final CarLinkProperties properties;
+    private final CaptchaGuard captchaGuard;
 
     @PostMapping("/orders")
     @Operation(summary = "Place a COD order for virgin stickers — returns raw tokens once")
     public OrderResponse placeOrder(@Valid @RequestBody OrderCreateRequest body,
+                                    @RequestHeader(value = CaptchaGuard.HEADER, required = false) String captcha,
                                     HttpServletRequest request) {
         rateLimit(request);
+        // S-11: guest orders mint stickers and e-mail any address; keep bots out.
+        captchaGuard.require(captcha, request.getRemoteAddr());
         return orderService.create(body);
     }
 

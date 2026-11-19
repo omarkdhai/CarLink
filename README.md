@@ -78,8 +78,11 @@ To start the entire application (Frontend, Backend API, PostgreSQL database, and
 1. **Copy environment template**
 
    ```bash
-   cp .env.example .env
+   node scripts/dev-secrets.mjs   # creates .env with strong random secrets
    ```
+
+   The bootstrap admin logs in with `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` from `.env`.
+   All ports are published on `127.0.0.1` only.
 
 2. **Run the full stack**
 

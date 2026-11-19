@@ -44,10 +44,10 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
         String auth = creds[0], rawToken = creds[1];
 
         // Submit two contacts (WhatsApp is disabled, so both use SMS)
-        mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("channel", "SMS", "message", "Hello!", "reason", "BLOCKING"))));
-        mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(Map.of("channel", "SMS", "message", "Is this car still for sale?", "reason", "BLOCKING"))));
 
@@ -209,7 +209,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
         String rawToken = creds[1];
         submitContact(creds[0], rawToken, "SMS", "Private message text");
 
-        mockMvc.perform(get("/api/v1/public/qr/{token}", rawToken))
+        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.messages").doesNotExist())
                 .andExpect(jsonPath("$.messageContent").doesNotExist());
@@ -247,7 +247,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     /** Submits a contact and returns the new conversationId. */
     private String submitContact(String auth, String rawToken, String channel, String message)
             throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        MvcResult result = mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", channel, "message", message, "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
@@ -266,7 +266,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of(
                                 "email", email,
-                                "password", "Secret123",
+                                "password", "Secret1234",
                                 "firstName", "A",
                                 "lastName", "B",
                                 "phone", "+21655100" + seq,
@@ -275,7 +275,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", email, "password", "Secret123"))))
+                        .content(json(Map.of("email", email, "password", "Secret1234"))))
                 .andExpect(status().isOk())
                 .andReturn();
 

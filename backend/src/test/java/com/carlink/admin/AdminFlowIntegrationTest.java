@@ -85,7 +85,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         Owner owner = newOwner();
 
         // Owner can log in before deactivation
-        login(owner.email, "Secret123").andExpect(status().isOk());
+        login(owner.email, "Secret1234").andExpect(status().isOk());
 
         // Admin deactivates; the account is excluded from active listings
         mockMvc.perform(post("/api/v1/admin/users/{id}/deactivate", owner.userId)
@@ -97,7 +97,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$[?(@.id=='" + owner.userId + "')]").exists());
 
         // Deactivation blocks login
-        login(owner.email, "Secret123").andExpect(status().isUnauthorized());
+        login(owner.email, "Secret1234").andExpect(status().isUnauthorized());
 
         // The deactivation is in the audit trail
         JsonNode audit = getJson(admin.auth, "/api/v1/admin/audit-logs?action=USER_DEACTIVATE");
@@ -107,7 +107,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/users/{id}/activate", owner.userId)
                         .header("Authorization", bearer(admin.auth)))
                 .andExpect(status().isOk());
-        login(owner.email, "Secret123").andExpect(status().isOk());
+        login(owner.email, "Secret1234").andExpect(status().isOk());
     }
 
     @Test
@@ -528,7 +528,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
     private Owner newOwner() throws Exception {
         String email = "ad" + (++seq) + "@example.com";
         JsonNode body = postJson("/api/v1/auth/register",
-                Map.of("email", email, "password", "Secret123",
+                Map.of("email", email, "password", "Secret1234",
                         "firstName", "Own", "lastName", "Er", "phone", "+21655100" + seq,
                         "stickerCode", freshStickerCode()));
         return new Owner(body.get("accessToken").asText(),
@@ -558,7 +558,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         String rawToken = objectMapper.readTree(qr.getResponse().getContentAsString())
                 .get("rawToken").asText();
 
-        MvcResult contact = mockMvc.perform(post("/api/v1/public/qr/{token}/contact", rawToken)
+        MvcResult contact = mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("channel", "SMS", "message", "Buy it now!", "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
@@ -566,7 +566,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         String convId = objectMapper.readTree(contact.getResponse().getContentAsString())
                 .get("conversationId").asText();
 
-        mockMvc.perform(post("/api/v1/public/qr/{token}/report", rawToken)
+        mockMvc.perform(post("/api/v1/public/qr/report")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("conversationId", convId,
                                 "reason", "SPAM", "details", "Repeated spam about the sale"))))

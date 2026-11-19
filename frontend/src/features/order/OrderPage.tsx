@@ -41,8 +41,11 @@ import {
 } from '@/features/order/orderSchemas'
 import stickerImage from '@/assets/CarLink-Sticker.png'
 import { cn } from '@/lib/cn'
+import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
 import { GOVERNORATES } from '@/types'
 import type { Governorate, OrderResponse, StickerPackage } from '@/types'
+import { SuccessMark } from '@/components/shared/SuccessMark'
+import { useCaptcha } from '@/components/shared/useCaptcha'
 
 /** Hard ceiling shared with OrderService (100 stickers per order). */
 const MAX_TOTAL_STICKERS = 100
@@ -96,6 +99,23 @@ export default function OrderPage() {
 
   const initial = loadDraft()
   const [step, setStep] = useState<1 | 2 | 3>(preselect ? 1 : (initial?.step ?? 1))
+  // Step changes slide in from the direction of travel (mirrored in RTL).
+  const stepsRef = useRef<HTMLDivElement>(null)
+  const prevStep = useRef(step)
+  useGSAP(
+    () => {
+      const el = stepsRef.current
+      const from = prevStep.current
+      prevStep.current = step
+      if (!el || from === step || !canAnimate()) return
+      gsap.matchMedia().add(MQ.MOTION, () => {
+        const rtl = document.documentElement.dir === 'rtl'
+        const dir = (step > from ? 1 : -1) * (rtl ? -1 : 1)
+        gsap.fromTo(el, { x: 32 * dir, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.45, ease: 'power3.out', clearProps: 'transform,opacity,visibility' })
+      })
+    },
+    { dependencies: [step] },
+  )
   const [pkg, setPkg] = useState<StickerPackage>(preselect ?? initial?.pkg ?? 'SINGLE')
   const [qty, setQty] = useState(preselect ? 1 : (initial?.qty ?? 1))
   const [details, setDetails] = useState<OrderDetailsValues | null>(initial?.details ?? null)
@@ -135,6 +155,7 @@ export default function OrderPage() {
   const total = subtotal + DELIVERY_FEE
   const minPrice = Math.min(...PACKS.map((p) => p.price))
 
+  const captcha = useCaptcha()
   const placeMutation = useMutation({
     mutationFn: () =>
       orderApi.createOrder({
@@ -145,7 +166,8 @@ export default function OrderPage() {
         governorate: details!.governorate as Governorate,
         deliveryAddress: details!.deliveryAddress,
         deliveryNotes: details?.deliveryNotes?.trim() || undefined,
-      }),
+      }, captcha.headers()),
+    onSettled: () => captcha.reset(),
     onSuccess: (data) => {
       setPlaced(data)
       localStorage.removeItem(DRAFT_KEY)
@@ -185,9 +207,7 @@ export default function OrderPage() {
           <div className="mx-auto w-full max-w-3xl">
             {/* Hero */}
             <div className="text-center">
-              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-success-soft text-success ring-8 ring-success-soft/60">
-                <Check className="h-8 w-8" aria-hidden />
-              </div>
+              <SuccessMark discClassName="ring-8 ring-success-soft/60" />
               <h1 className="mt-5 text-[28px] font-black leading-tight tracking-[-0.03em] text-heading sm:text-4xl">
                 {t('order.success')}
               </h1>
@@ -449,9 +469,10 @@ export default function OrderPage() {
             </div>
           )}
 
+          <div ref={stepsRef}>
           {/* ---------------------- Step 1: package ---------------------- */}
           {step === 1 && (
-            <section className="page-enter">
+            <section>
               <header className="mb-5">
                 <h2 className="text-[27px] font-semibold leading-snug tracking-[-0.03em] text-heading">
                   {t('order.choosePack')}
@@ -600,7 +621,7 @@ export default function OrderPage() {
 
           {/* ---------------------- Step 3: confirm ---------------------- */}
           {step === 3 && details && (
-            <section className="page-enter">
+            <section>
               <header className="mb-5">
                 <h2 className="text-[27px] font-semibold leading-snug tracking-[-0.03em] text-heading">
                   {t('order.summary')}
@@ -667,6 +688,7 @@ export default function OrderPage() {
               </div>
 
               {/* CTA */}
+              {captcha.widget}
               <nav className="mt-5 flex items-center justify-between gap-3">
                 <button
                   type="button"
@@ -678,7 +700,7 @@ export default function OrderPage() {
                 </button>
                 <button
                   type="button"
-                  disabled={placeMutation.isPending}
+                  disabled={placeMutation.isPending || (captcha.required && !captcha.token)}
                   onClick={() => placeMutation.mutate()}
                   className={SUBMIT_BTN}
                 >
@@ -696,6 +718,7 @@ export default function OrderPage() {
               </p>
             </section>
           )}
+          </div>
         </div>
       </div>
     </OrderShell>
@@ -953,7 +976,7 @@ function DetailsForm({
   const governorate = watch('governorate')
 
   return (
-    <section className="page-enter">
+    <section>
       <header className="mb-5">
         <h2 className="text-[27px] font-semibold leading-snug tracking-[-0.03em] text-heading">
           {t('order.details')}

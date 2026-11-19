@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -26,7 +26,69 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { buttonClasses } from '@/components/ui/Button'
+import { useMagnetic } from '@/hooks/useMagnetic'
+import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
 import heroImage from '@/assets/Sticker-Windshield.png'
+
+/**
+ * Hero entrance + scroll depth (GSAP). One timeline choreographs the headline,
+ * copy, CTAs, trust line, visual and floating cards; the cards then idle-float.
+ * On desktop the photo drifts slower than the page (scrubbed parallax).
+ * Reduced-motion users get the static layout: nothing is ever hidden for them.
+ */
+function useHeroMotion(scope: RefObject<HTMLElement | null>) {
+  useGSAP(
+    () => {
+      if (!canAnimate()) return
+      const mm = gsap.matchMedia()
+      mm.add(MQ.MOTION, () => {
+        const tl = gsap.timeline()
+        tl.from('[data-hero="line"]', { yPercent: 40, opacity: 0, filter: 'blur(6px)', duration: 0.8, stagger: 0.12, clearProps: 'filter' })
+          .from('[data-hero="sub"]', { y: 16, opacity: 0 }, '-=0.5')
+          .from('[data-hero="cta"] > *', { y: 14, opacity: 0, scale: 0.96, duration: 0.5, stagger: 0.08 }, '-=0.4')
+          .from('[data-hero="trust"] > *', { y: 10, opacity: 0, duration: 0.45, stagger: 0.07 }, '-=0.3')
+          .from('[data-hero="visual"]', { y: 30, scale: 0.96, opacity: 0, duration: 1, ease: 'expo.out' }, 0.15)
+          .from('[data-hero="card"]', { y: 26, opacity: 0, scale: 0.88, duration: 0.7, stagger: 0.2, ease: 'back.out(1.7)' }, 0.65)
+        // Idle float once the cards have landed (opposite phases for depth).
+        gsap.utils.toArray<HTMLElement>('[data-hero="card"]').forEach((card, i) => {
+          gsap.to(card, { y: i ? 7 : -7, duration: 3.2 + i * 0.7, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: tl.duration() + i * 0.3 })
+        })
+      })
+      mm.add(MQ.DESKTOP_MOTION, () => {
+        gsap.to('[data-hero="img"]', {
+          yPercent: 7,
+          scale: 1.07,
+          ease: 'none',
+          scrollTrigger: { trigger: scope.current, start: 'top top', end: 'bottom top', scrub: 0.6 },
+        })
+      })
+    },
+    { scope },
+  )
+}
+
+/** Closing CTA band: its decorative circles drift as the band crosses the viewport. */
+function useFinalCtaMotion(scope: RefObject<HTMLElement | null>) {
+  useGSAP(
+    () => {
+      if (!canAnimate()) return
+      gsap.matchMedia().add(MQ.MOTION, () => {
+        gsap.utils.toArray<HTMLElement>('[data-drift]').forEach((el) => {
+          gsap.fromTo(
+            el,
+            { yPercent: -Number(el.dataset.drift) },
+            {
+              yPercent: Number(el.dataset.drift),
+              ease: 'none',
+              scrollTrigger: { trigger: scope.current, start: 'top bottom', end: 'bottom top', scrub: 0.8 },
+            },
+          )
+        })
+      })
+    },
+    { scope },
+  )
+}
 
 const problems = [
   { icon: CarFront, title: 'landing.problem1Title', text: 'landing.problem1Text' },
@@ -99,30 +161,55 @@ export default function HomePage() {
     setHowAuto(false)
     setHowStep(i)
   }
+  // Auto-advance timer: a hairline under the active step fills in sync with
+  // the 3.2 s interval, so visitors see the demo is moving on by itself.
+  const howListRef = useRef<HTMLDivElement>(null)
+  useGSAP(
+    () => {
+      if (!canAnimate()) return
+      gsap.matchMedia().add(MQ.MOTION, () => {
+        const bars = gsap.utils.toArray<HTMLElement>('[data-how-timer]')
+        gsap.set(bars, { scaleX: 0 })
+        const active = bars[howStep]
+        if (howAuto && active) gsap.fromTo(active, { scaleX: 0 }, { scaleX: 1, duration: 3.2, ease: 'none' })
+      })
+    },
+    { dependencies: [howStep, howAuto], scope: howListRef, revertOnUpdate: true },
+  )
+
+  const heroRef = useRef<HTMLElement>(null)
+  const finalRef = useRef<HTMLElement>(null)
+  const heroCtaRef = useRef<HTMLAnchorElement>(null)
+  const finalCtaRef = useRef<HTMLAnchorElement>(null)
+  useHeroMotion(heroRef)
+  useFinalCtaMotion(finalRef)
+  useMagnetic(heroCtaRef, 0.22)
+  useMagnetic(finalCtaRef, 0.22)
 
   return (
     <div>
       {/* Hero — mirrors the reference site's layout: icon trust pills, a
           two-line headline (question + answer), a highlighted subtitle, a pill
           CTA with a circular arrow, a demo link, a trust line and a visual. */}
-      <section id="home" className="scroll-mt-20">
+      <section id="home" ref={heroRef} className="scroll-mt-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 lg:pt-16 pb-16 sm:pb-20">
           <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             {/* Left column — content */}
-            <div className="motion-stagger mx-auto flex w-full max-w-[36rem] flex-col items-center gap-6 text-center lg:mx-0 lg:items-start lg:text-start">
+            <div className="mx-auto flex w-full max-w-[36rem] flex-col items-center gap-6 text-center lg:mx-0 lg:items-start lg:text-start">
               {/* Headline — both contact directions in one H1 */}
               <h1 className="w-full text-[2.25rem] font-black leading-[1.08] tracking-[-0.03em] text-heading [text-wrap:balance] sm:text-5xl lg:text-[3.5rem]">
-                <span className="block">{t('landing.heroQ1')}</span>
-                <span className="block mt-2 text-primary-active">{t('landing.heroQ2')}</span>
+                <span data-hero="line" className="block">{t('landing.heroQ1')}</span>
+                <span data-hero="line" className="block mt-2 text-primary-active">{t('landing.heroQ2')}</span>
               </h1>
 
-              <p className="max-w-[34rem] text-lg leading-relaxed text-muted-fg">{t('landing.heroSubtitle')}</p>
+              <p data-hero="sub" className="max-w-[34rem] text-lg leading-relaxed text-muted-fg">{t('landing.heroSubtitle')}</p>
 
               {/* CTAs — order pill + how-it-works pill on one line */}
-              <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:flex-nowrap lg:justify-start">
+              <div data-hero="cta" className="flex w-full flex-wrap items-center justify-center gap-3 sm:flex-nowrap lg:justify-start">
                 <Link
+                  ref={heroCtaRef}
                   to="/order?plan=SINGLE"
-                  className="group inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-primary py-2 pe-2 ps-[1.35rem] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
+                  className="group inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-primary py-2 pe-2 ps-[1.35rem] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-[translate,scale,background-color,box-shadow] hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_14px_36px_rgba(37,99,235,0.34)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
                 >
                   <span className="whitespace-nowrap text-[clamp(1rem,2vw,1.125rem)]">
                     {t('landing.heroCta')}
@@ -134,7 +221,7 @@ export default function HomePage() {
 
                 <a
                   href="#how"
-                  className="inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full border border-primary/25 bg-white/90 px-6 font-semibold text-primary shadow-[0_4px_14px_rgba(37,99,235,0.10)] transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary-soft active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
+                  className="inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full border border-primary/25 bg-white/90 px-6 font-semibold text-primary shadow-[0_4px_14px_rgba(37,99,235,0.10)] transition-[translate,scale,background-color,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary-soft active:translate-y-0 active:scale-[0.98] focus-visible:outline-none"
                 >
                   <span className="whitespace-nowrap text-[clamp(0.9375rem,1.6vw,1rem)]">
                     {t('landing.heroCtaSecondary')}
@@ -144,7 +231,7 @@ export default function HomePage() {
               </div>
 
               {/* Trust line — one line on mobile */}
-              <div className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-border pt-5 text-sm text-muted-fg lg:justify-start">
+              <div data-hero="trust" className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-border pt-5 text-sm text-muted-fg lg:justify-start">
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                   <Lock className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                   {t('landing.trust1')}
@@ -162,8 +249,9 @@ export default function HomePage() {
 
             {/* Right column — hero visual */}
             <div className="relative mx-auto w-full max-w-2xl">
-              <div className="motion-settle relative aspect-[4/4.35] overflow-hidden rounded-[2rem] border-2 border-white bg-gradient-to-b from-primary-soft to-white shadow-[0_30px_80px_rgba(15,23,42,0.20)] sm:aspect-[4/3.65] sm:rounded-se-[7rem] lg:aspect-[4/4.05]">
+              <div data-hero="visual" className="relative aspect-[4/4.35] overflow-hidden rounded-[2rem] border-2 border-white bg-gradient-to-b from-primary-soft to-white shadow-[0_30px_80px_rgba(15,23,42,0.20)] sm:aspect-[4/3.65] sm:rounded-se-[7rem] lg:aspect-[4/4.05]">
                 <img
+                  data-hero="img"
                   src={heroImage}
                   alt={t('landing.heroAlt')}
                   className="absolute inset-0 h-full w-full object-cover"
@@ -176,7 +264,7 @@ export default function HomePage() {
               </div>
 
               {/* Floating card — scan / contact */}
-              <div style={{ ['--float-delay' as string]: '0.4s' }} className="motion-float absolute -top-4 end-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-top-5 sm:end-6 sm:max-w-[14.5rem] sm:p-4">
+              <div data-hero="card" className="absolute -top-4 end-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-top-5 sm:end-6 sm:max-w-[14.5rem] sm:p-4">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
                   <QrCode className="h-5 w-5" aria-hidden />
                 </span>
@@ -191,7 +279,7 @@ export default function HomePage() {
               </div>
 
               {/* Floating card — alert */}
-              <div style={{ ['--float-delay' as string]: '2.2s' }} className="motion-float absolute -bottom-5 start-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-bottom-6 sm:start-7 sm:max-w-[14.5rem] sm:p-4">
+              <div data-hero="card" className="absolute -bottom-5 start-3 z-10 flex max-w-[13.5rem] items-start gap-3 rounded-2xl border border-white/90 bg-white/95 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.16)] backdrop-blur sm:-bottom-6 sm:start-7 sm:max-w-[14.5rem] sm:p-4">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent ring-1 ring-accent/15">
                   <Bell className="h-5 w-5" aria-hidden />
                 </span>
@@ -325,14 +413,14 @@ export default function HomePage() {
                 {t('landing.howSubtitle')}
               </p>
 
-              <div className="reveal-stagger mt-8 flex flex-col gap-1 border-t border-border pt-4">
+              <div ref={howListRef} className="reveal-stagger mt-8 flex flex-col gap-1 border-t border-border pt-4">
                 {howSteps.map((step, i) => (
                   <button
                     key={step.title}
                     type="button"
                     onClick={() => pickHowStep(i)}
                     aria-current={howStep === i ? 'true' : undefined}
-                    className={`flex min-h-[52px] items-center gap-4 rounded-lg px-2.5 py-2.5 text-start transition-colors duration-200 ${
+                    className={`relative flex min-h-[52px] items-center gap-4 overflow-hidden rounded-lg px-2.5 py-2.5 text-start transition-colors duration-200 ${
                       howStep === i
                         ? 'bg-white/70 text-primary-active'
                         : 'text-muted-fg hover:bg-white/50 hover:text-heading'
@@ -347,6 +435,11 @@ export default function HomePage() {
                     >
                       {String(i + 1).padStart(2, '0')}
                     </span>
+                    <span
+                      data-how-timer
+                      className="pointer-events-none absolute inset-x-2.5 bottom-0 h-0.5 origin-left scale-x-0 rounded-full bg-primary/50 rtl:origin-right"
+                      aria-hidden
+                    />
                     <span className="min-w-0">
                       <span className="block text-sm font-bold leading-snug">{t(step.title)}</span>
                       <span className="mt-0.5 block text-[13px] leading-relaxed text-muted-fg">
@@ -736,17 +829,18 @@ export default function HomePage() {
         </div>
       </section>
       {/* Closing call to action */}
-      <section className="pb-16 sm:pb-20">
+      <section ref={finalRef} className="pb-16 sm:pb-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="relative overflow-hidden rounded-[2rem] bg-primary px-6 py-12 text-center text-white sm:px-12 sm:py-14">
-            <div className="pointer-events-none absolute -end-16 -top-16 h-64 w-64 rounded-full bg-white/10" aria-hidden />
-            <div className="pointer-events-none absolute -bottom-20 -start-10 h-56 w-56 rounded-full bg-white/10" aria-hidden />
+            <div data-drift="18" className="pointer-events-none absolute -end-16 -top-16 h-64 w-64 rounded-full bg-white/10" aria-hidden />
+            <div data-drift="-22" className="pointer-events-none absolute -bottom-20 -start-10 h-56 w-56 rounded-full bg-white/10" aria-hidden />
             <h2 className="relative mx-auto max-w-[22ch] text-3xl font-black leading-[1.12] tracking-[-0.03em] [text-wrap:balance] sm:text-4xl">
               {t('landing.finalTitle')}
             </h2>
             <p className="relative mx-auto mt-4 max-w-[46ch] text-base leading-relaxed text-white/85 sm:text-lg">{t('landing.finalText')}</p>
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
+                ref={finalCtaRef}
                 to="/order"
                 className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-primary transition-colors hover:bg-primary-soft"
               >

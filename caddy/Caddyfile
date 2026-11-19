@@ -1,0 +1,29 @@
+# CarLink TLS edge (security plan S-02), used by docker-compose.prod.yml.
+#
+# Caddy obtains and renews the certificate for CARLINK_DOMAIN automatically
+# (Let's Encrypt / ZeroSSL; ports 80 and 443 must reach this host), redirects
+# HTTP to HTTPS, and forwards everything to the nginx container (SPA + /api).
+#
+# Client IP: Caddy ignores any X-Forwarded-For sent by the client (no
+# trusted_proxies configured) and sets it to the real peer address. nginx
+# trusts that header only from Caddy's subnet (set_real_ip_from in
+# frontend/nginx.conf), so per-IP rate limits keep working and stay unspoofable.
+{
+	email {$ACME_EMAIL}
+	servers {
+		protocols h1 h2 h3
+	}
+}
+
+{$CARLINK_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		# One year. Add "; includeSubDomains" only once every subdomain is HTTPS
+		# (it cannot be withdrawn from browsers that have seen it).
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	reverse_proxy frontend:80
+}

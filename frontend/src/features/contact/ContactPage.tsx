@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
-import { ArrowRight, Check, Clock, HelpCircle, Loader2, PackageSearch, Send, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Clock, HelpCircle, Loader2, PackageSearch, Send, ShieldCheck } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Field } from '@/components/ui/Field'
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button'
 import { PageIntro, PublicContainer } from '@/components/shared/PublicPage'
 import apiClient, { http } from '@/services/apiClient'
 import { cn } from '@/lib/cn'
+import { SuccessMark } from '@/components/shared/SuccessMark'
+import { useCaptcha } from '@/components/shared/useCaptcha'
 
 interface ContactForm {
   name: string
@@ -30,6 +32,7 @@ export default function ContactPage() {
   const [form, setForm] = useState<ContactForm>(EMPTY)
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ContactForm, string>>>({})
 
+  const captcha = useCaptcha()
   const submitMutation = useMutation({
     mutationFn: () =>
       apiClient.post('/public/contact', {
@@ -38,7 +41,8 @@ export default function ContactPage() {
         subject: form.subject.trim(),
         phone: form.phone.trim() || undefined,
         message: form.message.trim(),
-      }),
+      }, { headers: captcha.headers() }),
+    onSettled: () => captcha.reset(),
   })
 
   function set<K extends keyof ContactForm>(key: K, value: string) {
@@ -100,9 +104,7 @@ export default function ContactPage() {
         <div>
           {submitMutation.isSuccess ? (
             <div className="rounded-3xl border border-success/25 bg-success-soft/60 p-6 sm:p-10 text-center" role="status">
-              <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface text-success shadow-card">
-                <Check className="h-7 w-7" aria-hidden />
-              </span>
+              <SuccessMark className="h-14 w-14" onSurface />
               <h2 className="mt-5 text-2xl font-bold text-heading">{t('contact.sendSuccess')}</h2>
               <p className="mx-auto mt-2 max-w-[45ch] text-base leading-relaxed text-muted-fg">{t('contact.sendSuccessHint')}</p>
               <Button
@@ -198,11 +200,12 @@ export default function ContactPage() {
                 </Alert>
               )}
 
+              {captcha.widget}
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-fg">{t('contact.requiredNote')}</p>
                 <button
                   type="submit"
-                  disabled={submitMutation.isPending}
+                  disabled={submitMutation.isPending || (captcha.required && !captcha.token)}
                   className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-7 text-base font-semibold text-white transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50 sm:w-auto"
                 >
                   {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}

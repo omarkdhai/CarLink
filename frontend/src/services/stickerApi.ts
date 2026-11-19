@@ -1,4 +1,5 @@
 import apiClient from '@/services/apiClient'
+import { TOKEN_HEADER } from '@/services/publicQrApi'
 import type {
   ActivateStickerRequest,
   StickerResolveResponse,
@@ -10,7 +11,9 @@ const BASE = '/stickers'
 export const stickerApi = {
   /** Activate (claim) a virgin or deactivated sticker by its raw token. */
   activate(token: string, data: ActivateStickerRequest): Promise<{ message: string }> {
-    return apiClient.post<{ message: string }>(`${BASE}/${token}/activate`, data).then((r) => r.data)
+    return apiClient
+      .post<{ message: string }>(`${BASE}/activate`, data, { headers: { [TOKEN_HEADER]: token } })
+      .then((r) => r.data)
   },
 
   /** Claim a sticker by its short printed activation code (authenticated). */

@@ -1,0 +1,14 @@
+# gitleaks configuration (security plan S-19): the default rules, minus places
+# that only ever hold throwaway test values or generated text.
+title = "CarLink gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures and generated files"
+paths = [
+  '''^backend/src/test/''',
+  '''^frontend/src/.*\.test\.tsx?$''',
+  '''^graphify-out/''',
+]

@@ -7,6 +7,7 @@ import com.carlink.auth.email.PasswordResetEmailComposer;
 import com.carlink.auth.dto.RegisterRequest;
 import com.carlink.auth.dto.ResetPasswordRequest;
 import com.carlink.auth.model.EmailVerificationToken;
+import com.carlink.auth.password.PasswordPolicy;
 import com.carlink.auth.model.PasswordResetToken;
 import com.carlink.auth.model.RefreshToken;
 import com.carlink.auth.repository.EmailVerificationTokenRepository;
@@ -14,9 +15,12 @@ import com.carlink.auth.repository.PasswordResetTokenRepository;
 import com.carlink.auth.repository.RefreshTokenRepository;
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.exception.BadRequestException;
+import com.carlink.common.exception.ConflictException;
 import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.notification.email.EmailSender;
+import com.carlink.sticker.model.Sticker;
+import com.carlink.sticker.model.StickerStatus;
 import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
@@ -28,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -49,9 +54,6 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final String PASSWORD_PATTERN_MESSAGE =
-            "Password must be 8-72 characters and contain letters and digits";
-
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
@@ -64,29 +66,39 @@ public class AuthService {
     private final CarLinkProperties properties;
     private final LoginAttemptService loginAttemptService;
     private final StickerRepository stickerRepository;
+    private final SessionInvalidator sessionInvalidator;
+    private final PasswordPolicy passwordPolicy;
 
     // ---------- Register ----------
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         String email = request.email().trim().toLowerCase();
-        if (userRepository.existsByEmailIgnoreCase(email)) {
-            // The 400 status already revealed the email is taken under the old
-            // generic-message approach, so a clear, actionable error adds no
-            // exposure.  A distinct code lets the frontend render a "Sign in"
-            // call-to-action.
-            throw new BadRequestException("EMAIL_ALREADY_REGISTERED",
-                    "This email is already registered. Please sign in instead.");
-        }
 
         // An account exists only to own a sticker: reject registration unless
         // the supplied code maps to a claimable (UNBOUND / DEACTIVATED) sticker.
+        // Checked BEFORE the e-mail (security plan S-13): the "already
+        // registered" answer is then only reachable with a code from a real,
+        // unclaimed sticker in hand, so the form is no e-mail oracle. Both
+        // checks also sit behind the per-IP register throttle (S-03).
         String codeHash = tokenGenerator.sha256(
                 tokenGenerator.normalizeActivationCode(request.stickerCode()));
-        stickerRepository.findByActivationCodeHash(codeHash)
+        Sticker sticker = stickerRepository.findByActivationCodeHash(codeHash)
                 .orElseThrow(() -> new BadRequestException("INVALID_STICKER_CODE",
                         "That sticker code could not be found. Check the code printed "
                                 + "under the QR and try again."));
+        if (sticker.getStatus() == StickerStatus.BOUND) {
+            // Same answer as the activation path; never says who owns it.
+            throw new ConflictException("STICKER_ALREADY_BOUND",
+                    "This sticker is already linked to an account.");
+        }
+
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            // A distinct code lets the frontend render a "Sign in" call-to-action.
+            throw new BadRequestException("EMAIL_ALREADY_REGISTERED",
+                    "This email is already registered. Please sign in instead.");
+        }
+        passwordPolicy.check(request.password(), email);
 
         User user = User.newUser(
                 email,
@@ -147,30 +159,43 @@ public class AuthService {
     // ---------- Login ----------
 
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, String clientIp) {
         String email = request.email().trim().toLowerCase();
 
-        if (loginAttemptService.isBlocked(email)) {
+        if (loginAttemptService.isBlocked(clientIp, email)) {
             throw new UnauthorizedException("TOO_MANY_LOGIN_ATTEMPTS", "Too many failed attempts. Try again later.");
         }
 
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .filter(u -> passwordEncoder.matches(request.password(), u.getPasswordHash()))
+        java.util.Optional<User> candidate = userRepository.findByEmailIgnoreCase(email);
+        // S-04: always pay for one BCrypt comparison. Skipping it for unknown
+        // e-mails made those answers measurably faster, revealing which
+        // addresses have an account.
+        // No stored password exceeds 72 bytes (S-14) and BCrypt refuses longer
+        // input, so such a password cannot match. Still pay one comparison.
+        boolean tooLong = request.password().getBytes(StandardCharsets.UTF_8).length
+                > PasswordPolicy.MAX_BYTES;
+        boolean passwordOk = passwordEncoder.matches(tooLong ? "-" : request.password(),
+                candidate.map(User::getPasswordHash).orElseGet(this::timingDummyHash)) && !tooLong;
+        User user = candidate
+                .filter(u -> passwordOk)
                 .filter(User::isActive)
                 .orElseThrow(() -> {
-                    loginAttemptService.recordFailure(email);
+                    loginAttemptService.recordFailure(clientIp, email);
                     log.warn("Login failure for email hash {}",
                             tokenGenerator.sha256(email));
                     return new UnauthorizedException("INVALID_CREDENTIALS", "Invalid email or password");
                 });
 
-        loginAttemptService.reset(email);
+        loginAttemptService.reset(clientIp, email);
         return issueTokenPair(user);
     }
 
     // ---------- Refresh / logout ----------
 
-    @Transactional
+    // noRollbackFor: presenting a used token revokes the whole session family
+    // and then answers 401. Without this the 401 rolled the revocation back, so
+    // reuse detection never took effect.
+    @Transactional(noRollbackFor = UnauthorizedException.class)
     public AuthResponse refresh(String rawRefreshToken) {
         RefreshToken token = refreshTokenRepository
                 .findByTokenHash(tokenGenerator.sha256(rawRefreshToken))
@@ -245,20 +270,29 @@ public class AuthService {
         }
 
         User user = token.getUser();
+        passwordPolicy.check(request.newPassword(), user.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setEmailVerified(true);
+        // End every existing session: refresh tokens AND live access tokens (S-10).
+        sessionInvalidator.invalidateAll(user);
         userRepository.save(user);
         token.markUsed();
         passwordResetTokenRepository.save(token);
-
-        // Invalidate all existing sessions after a password change.
-        refreshTokenRepository.findAllByUserIdAndRevokedAtIsNull(user.getId()).forEach(it -> {
-            it.revoke();
-            refreshTokenRepository.save(it);
-        });
     }
 
     // ---------- Helpers ----------
+
+    /** BCrypt hash of a random throwaway value, compared against for unknown e-mails. */
+    private volatile String timingDummyHash;
+
+    private String timingDummyHash() {
+        String hash = timingDummyHash;
+        if (hash == null) {
+            hash = passwordEncoder.encode(tokenGenerator.generateUrlSafe(24));
+            timingDummyHash = hash;
+        }
+        return hash;
+    }
 
     private AuthResponse issueTokenPair(User user) {
         String accessToken = jwtService.issueAccessToken(user);
@@ -272,7 +306,7 @@ public class AuthService {
         return new AuthResponse(
                 accessToken,
                 rawRefresh,
-                properties.jwt().accessExpirationMinutes() * 60L,
+                jwtService.accessTtl(user).toSeconds(),
                 UserResponse.from(user));
     }
 

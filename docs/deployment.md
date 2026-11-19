@@ -21,15 +21,16 @@ API proxy), Spring Boot, PostgreSQL and Redis.
 
 ## 2. Secrets
 
-Generate the two JWT secrets independently. They must differ from each other.
+Generate the JWT signing secret (refresh tokens are opaque random values
+hashed in the database, so there is no second secret). The backend refuses to
+start with a missing, short (< 32 bytes), publicly known or low-entropy value.
 
 ```bash
-openssl rand -base64 48   # JWT_SECRET
-openssl rand -base64 48   # JWT_REFRESH_SECRET
+openssl rand -hex 48   # JWT_SECRET
 ```
 
 `docker-compose.prod.yml` refuses to start if `POSTGRES_PASSWORD`,
-`REDIS_PASSWORD`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `MAIL_HOST`,
+`REDIS_PASSWORD`, `JWT_SECRET`, `MAIL_HOST`,
 `MAIL_USERNAME`, `MAIL_PASSWORD`, `APP_BASE_URL` or `APP_PUBLIC_URL` is unset —
 this is deliberate, since each of those silently falls back to a
 development-grade default if omitted.
@@ -52,32 +53,53 @@ development-grade default if omitted.
 | `TELNYX_CONNECTION_ID` | Call Control connection the outbound alert call is placed on. |
 | `TELNYX_VOICE_AUDIO_URL` | Public HTTPS URL of the clip played when the owner answers. Without it the alert call is skipped (a call to silence is worse than none). |
 | `HSTS_ENABLED` | `false` until TLS is confirmed working — see §3. |
+| `PASSWORD_BREACH_CHECK` | Default `true` in prod: new passwords are checked against Have I Been Pwned by k-anonymity (only 5 hex characters of the SHA-1 leave the server). Needs outbound HTTPS to `api.pwnedpasswords.com`; if it is unreachable the check fails open. |
+| `JWT_ADMIN_ACCESS_EXPIRATION_MINUTES` | Admin access-token lifetime, default `5` (S-10). |
 
-**Rotating `JWT_SECRET` or `JWT_REFRESH_SECRET` invalidates every issued token,
-logging all users out.** Rotate deliberately, not as a reflex.
+**Rotating `JWT_SECRET` invalidates every issued access token.** Sessions
+recover transparently through their (database-backed) refresh token; to force
+everyone to sign in again, also revoke the rows in `refresh_tokens`.
 
-## 3. TLS
+## 3. TLS (Caddy edge, security plan S-02)
 
-The app does not terminate TLS. Put Nginx behind a reverse proxy, load balancer
-or tunnel that does (Caddy, nginx, Cloudflare Tunnel, ALB, …), and point it at
-the frontend container's port 80.
+`docker-compose.prod.yml` terminates TLS itself with a **Caddy** container
+(`caddy/Caddyfile`). Caddy is the only service published to the internet; it
+obtains and renews the certificate automatically, redirects HTTP to HTTPS
+(308), sends HSTS (`max-age=31536000`, no `includeSubDomains`), strips the
+`Server` header, and proxies everything to the nginx container.
 
-Two things to get right:
+Required:
 
-- **`HSTS_ENABLED=true` only once TLS is confirmed working.** HSTS is ignored by
-  browsers over plain HTTP, and `includeSubDomains` cannot be withdrawn once a
-  browser has cached it. Turning it on early risks locking yourself out of
-  every subdomain.
-- **`APP_BASE_URL` must be the `https://` URL.** If TLS terminates upstream of
-  the Nginx container, Nginx's `$scheme` is `http`, so a link derived from the
-  request would be downgraded. Building links from `APP_BASE_URL` instead keeps
-  them correct regardless of where TLS ends.
+| Variable | Notes |
+|---|---|
+| `CARLINK_DOMAIN` | Public hostname (e.g. `carlink.tn`). Its DNS A/AAAA record must point at this host **before** first start. |
+| `ACME_EMAIL` | Address for certificate-expiry notices from the CA. |
+| `HTTP_PORT` / `HTTPS_PORT` | Default `80` / `443`. Both must be reachable from the internet (HTTP-01 / TLS-ALPN-01 challenges). |
 
-Only the frontend container's port is published. The backend is bound to
-`127.0.0.1` and is reached over the internal network by service name, so the
-API and `/actuator` are not reachable directly from the internet — they cannot
-bypass the proxy's rules. To reach the API from another host, use
-`docker compose exec` (§10) rather than re-publishing the port.
+Things to get right:
+
+- **Keep the `caddy_data` volume.** It holds the certificates and the ACME
+  account; recreating it on every deploy hits the CA's rate limits.
+- **Leave `HSTS_ENABLED=false`** in the backend: Caddy already sends HSTS for
+  every response, the backend would only duplicate it on `/api`.
+- **`APP_BASE_URL` / `APP_PUBLIC_URL` must be `https://<CARLINK_DOMAIN>`**; links
+  in e-mails and QR codes are built from them.
+- **Client IPs.** nginx trusts `X-Forwarded-For` only from the prod Docker
+  subnet `172.28.0.0/24` (`set_real_ip_from` in `frontend/nginx.conf`), and
+  Caddy discards any client-supplied value, so per-IP rate limits see the real,
+  unspoofable visitor address. If you change the subnet in the compose file,
+  change it in `nginx.conf` too.
+- To use another TLS terminator instead (Cloudflare Tunnel, a load balancer),
+  remove the `caddy` service, publish the frontend, and point
+  `set_real_ip_from` at that proxy's address range.
+
+The backend is bound to `127.0.0.1` and nginx is not published at all, so the
+API and `/actuator` cannot be reached without going through Caddy → nginx. To
+reach the API from the host, use `docker compose exec` (§10).
+
+Verified locally with `CARLINK_DOMAIN=localhost` (Caddy's internal CA): 308
+redirect, HSTS + CSP on HTTPS, API over TLS, metrics 404 at the edge, and nginx
+logging the real client IP even when a spoofed `X-Forwarded-For` is sent.
 
 ## 4. First deploy
 
@@ -237,7 +259,7 @@ Not yet automated, listed so they are not mistaken for oversights:
 
 - **No automated backup schedule.** §7 is a manual command; there is no cron,
   systemd timer or managed-snapshot policy in this repo.
-- **No metrics shipping.** The Prometheus endpoint exists and is authenticated,
+- **No metrics shipping.** The Prometheus endpoint exists, is admin-only and is not proxied by nginx (scrape backend:8080 from inside the network),
   but no scrape config or alert rules are provided.
 - **No log aggregation.** Logs are container-local and lost on host loss.
 - **Redis has no memory cap.** It defaults to `noeviction`; if it fills, writes
@@ -259,3 +281,42 @@ Not yet automated, listed so they are not mistaken for oversights:
   deploy time; the outbound dial API cannot speak the visitor's dynamic message.
   Speaking it would require hosting a Call Control `speak` webhook, which this
   app does not do. With no URL set the call is skipped (the SMS still sends).
+
+## 14. SMS relay abuse limits (security plan S-12)
+
+Every visitor alert can become a paid SMS. The backend caps it in layers, all
+tunable under `carlink.throttle.*` (`max` / `window-seconds`):
+
+| Limit | Default | Purpose |
+|---|---|---|
+| `relay-visitor-cooldown` | 1 per 120 s per (IP, sticker) | one visitor cannot spam one owner |
+| `relay-sticker-day` | 30 per day per sticker | harassment through one sticker |
+| `relay-owner-day` | 60 per day per owner | all of an owner's stickers together |
+| `ratelimit.qr-per-hour` | 20 per hour per token | scans + submissions together |
+
+Links in a visitor's note are replaced by `[link removed]` before the note is
+stored or relayed (no phishing through a trusted sender).
+
+**Also configure, in the Telnyx portal** (cannot be done from this repo): a
+low-balance / spend alert on the account and a daily spend limit on the
+messaging profile, so a bypass of these limits costs a bounded amount.
+
+## 15. Rotating local secrets
+
+The local stack (`docker-compose.yml`) reads every secret from the untracked
+`.env`. `node scripts/dev-secrets.mjs` creates it and replaces any blank,
+placeholder or previously committed value with a random one; it never prints
+values. Rotation of an existing stack:
+
+1. Blank the keys to rotate in `.env` (e.g. `JWT_SECRET=`) and run
+   `node scripts/dev-secrets.mjs`.
+2. **Postgres keeps the password it was initialised with.** Apply the new one
+   inside the database *before* recreating the backend, feeding the SQL on
+   stdin so the value never appears in a command line:
+   `ALTER USER carlink PASSWORD '<new POSTGRES_PASSWORD>';` via
+   `docker exec -i carlink-postgres psql -U carlink -d carlink`.
+3. `docker compose up -d --build` (Redis and the JWT secret take effect on
+   recreate; all access tokens become invalid, users simply sign in again).
+4. The bootstrap admin is only created when absent: changing
+   `ADMIN_BOOTSTRAP_PASSWORD` does not change an existing admin's password —
+   use the password-reset flow for that.

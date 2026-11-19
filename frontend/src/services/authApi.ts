@@ -18,13 +18,14 @@ export const authApi = {
     return apiClient.post<AuthResponse>(`${BASE}/register`, data).then((r) => r.data)
   },
 
-  refresh(refreshToken: string): Promise<AuthResponse> {
-    return apiClient.post<AuthResponse>(`${BASE}/refresh`, { refreshToken }).then((r) => r.data)
+  /** The refresh token is the HttpOnly cookie: nothing to send (security plan S-09). */
+  refresh(): Promise<AuthResponse> {
+    return apiClient.post<AuthResponse>(`${BASE}/refresh`).then((r) => r.data)
   },
 
-  logout(refreshToken?: string): Promise<MessageResponse> {
-    const body = refreshToken ? { refreshToken } : {}
-    return apiClient.post<MessageResponse>(`${BASE}/logout`, body).then((r) => r.data)
+  /** Revokes the session behind the HttpOnly cookie and clears it. */
+  logout(): Promise<MessageResponse> {
+    return apiClient.post<MessageResponse>(`${BASE}/logout`).then((r) => r.data)
   },
 
   requestPasswordReset(email: string): Promise<MessageResponse> {

@@ -1,5 +1,9 @@
 package com.carlink.qr.controller;
 
+import org.springframework.web.bind.annotation.RequestHeader;
+
+import com.carlink.security.captcha.CaptchaGuard;
+
 import com.carlink.admin.service.ReportService;
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.dto.MessageResponse;
@@ -12,7 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,11 +39,14 @@ public class PublicReportController {
     private final RateLimiter rateLimiter;
     private final TokenGenerator tokenGenerator;
     private final CarLinkProperties properties;
+    private final CaptchaGuard captchaGuard;
 
-    @PostMapping("/qr/{token}/report")
+    // The report targets a conversation id; it never needed the QR token
+    // (which used to sit, unused, in the path — security plan S-08).
+    @PostMapping("/qr/report")
     @Operation(summary = "File an anonymous SPAM/ABUSE/OTHER report against a conversation")
-    public MessageResponse file(@PathVariable String token,
-                                @Valid @RequestBody ReportSubmitRequest body,
+    public MessageResponse file(@Valid @RequestBody ReportSubmitRequest body,
+                                @RequestHeader(value = CaptchaGuard.HEADER, required = false) String captcha,
                                 HttpServletRequest request) {
         String ip = request.getRemoteAddr();
         String key = "public-report-ip:" + tokenGenerator.sha256(ip);
@@ -50,6 +56,7 @@ public class PublicReportController {
                     "Too many requests. Try again later.",
                     rateLimiter.retryAfterSeconds(key, max, WINDOW_SECONDS));
         }
+        captchaGuard.require(captcha, ip); // S-11
         reportService.file(body.conversationId(), ip, body.reason(), body.details());
         return MessageResponse.of("Report submitted");
     }

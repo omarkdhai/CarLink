@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -30,18 +31,58 @@ public class JwtService {
 
     public JwtService(CarLinkProperties properties) {
         this.properties = properties;
-        this.signingKey = Keys.hmacShaKeyFor(
-                properties.jwt().secret().getBytes(StandardCharsets.UTF_8));
+        this.signingKey = signingKey(properties.jwt().secret());
+    }
+
+    /** Values that have been public (committed) at some point: never acceptable. */
+    static final Set<String> PUBLIC_SECRETS = Set.of(
+            "dev-only-change-me-in-production-please-32chars",
+            "replace_with_a_strong_random_secret_at_least_32_chars",
+            "change_me", "changeme", "secret");
+
+    /**
+     * Security plan S-18: refuse to start with a missing, short, publicly known
+     * or obviously low-entropy signing secret — anyone who knows it can mint an
+     * ADMIN token. Generate one with {@code openssl rand -hex 48} or
+     * {@code node scripts/dev-secrets.mjs}.
+     */
+    static SecretKey signingKey(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET (carlink.jwt.secret) is not set.");
+        }
+        String value = secret.trim();
+        if (PUBLIC_SECRETS.contains(value)) {
+            throw new IllegalStateException("JWT_SECRET is a publicly known value; generate a random one.");
+        }
+        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 bytes (256 bits).");
+        }
+        if (value.chars().distinct().count() < 10) {
+            throw new IllegalStateException("JWT_SECRET has too little variety to be random.");
+        }
+        return Keys.hmacShaKeyFor(bytes);
+    }
+
+    /** Claim holding {@link User#getTokenVersion()} (security plan S-10). */
+    public static final String TOKEN_VERSION_CLAIM = "tv";
+
+    /** Access-token lifetime: shorter for administrators (security plan S-10). */
+    public Duration accessTtl(User user) {
+        long minutes = user.getRole() == Role.ADMIN
+                ? properties.jwt().adminAccessExpirationMinutes()
+                : properties.jwt().accessExpirationMinutes();
+        return Duration.ofMinutes(minutes);
     }
 
     public String issueAccessToken(User user) {
         Instant now = Instant.now();
-        Instant expiresAt = now.plus(
-                Duration.ofMinutes(properties.jwt().accessExpirationMinutes()));
+        Instant expiresAt = now.plus(accessTtl(user));
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
+                .claim(TOKEN_VERSION_CLAIM, user.getTokenVersion())
                 .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
@@ -70,6 +111,12 @@ public class JwtService {
     public String extractRole(Claims claims) {
         Object role = claims.get("role");
         return role == null ? Role.USER.name() : role.toString();
+    }
+
+    /** The token's version; tokens minted before S-10 carry none and count as 0. */
+    public int extractTokenVersion(Claims claims) {
+        Object tv = claims.get(TOKEN_VERSION_CLAIM);
+        return tv instanceof Number n ? n.intValue() : 0;
     }
 
     public boolean isAccessTokenExpired(Claims claims) {

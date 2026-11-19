@@ -132,6 +132,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**",
                                 "/actuator/info").permitAll()
+                        // Metrics / Prometheus expose internals: admins only
+                        // (security plan S-05; any owner token used to get 200).
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
                         // Public QR page + JSON behind a scan (rate-limited)

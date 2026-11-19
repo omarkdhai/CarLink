@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PublicLayout } from '@/components/layout/PublicLayout'
+import { AuthProvider } from '@/features/auth/AuthContext'
 import '@/lib/i18n'
 
 /**
@@ -65,6 +67,17 @@ class FakeMutationObserver {
   }
 }
 
+/** PublicLayout reads the session (navbar CTA), so it needs the app providers. */
+function Providers({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={new QueryClient()}>
+      <AuthProvider>
+        <MemoryRouter>{children}</MemoryRouter>
+      </AuthProvider>
+    </QueryClientProvider>
+  )
+}
+
 function StepperDemo() {
   const [step, setStep] = useState(1)
   return (
@@ -94,11 +107,11 @@ describe('PublicLayout scroll-reveal', () => {
 
   test('reveals a section mounted after the initial render (internal step swap)', () => {
     render(
-      <MemoryRouter>
+      <Providers>
         <PublicLayout>
           <StepperDemo />
         </PublicLayout>
-      </MemoryRouter>,
+      </Providers>,
     )
 
     // Route-mount sections are revealed.
@@ -122,11 +135,11 @@ describe('PublicLayout scroll-reveal', () => {
 
   test('does not re-trigger the ancient-browser fallback when observers exist', () => {
     render(
-      <MemoryRouter>
+      <Providers>
         <PublicLayout>
           <section id="plain">plain</section>
         </PublicLayout>
-      </MemoryRouter>,
+      </Providers>,
     )
     const observed = FakeIntersectionObserver.instances.flatMap((i) => i.observed)
     expect(observed.map((el) => el.id)).toContain('plain')
