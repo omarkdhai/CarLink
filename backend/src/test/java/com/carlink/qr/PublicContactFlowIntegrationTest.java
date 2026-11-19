@@ -44,31 +44,26 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         String auth = creds[0];
         String rawToken = creds[1];
 
-        // --- The HTML page ---
-        MvcResult page = mockMvc.perform(get("/c/{token}", rawToken))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("SMS")))
-                .andExpect(content().string(org.hamcrest.Matchers.not(
-                        org.hamcrest.Matchers.containsString("WhatsApp"))))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("My Car")))
-                .andReturn();
+        // The backend no longer renders an HTML page for /c/{token} (pentest
+        // PT-2): the React app owns that URL, and nginx serves it.
+        mockMvc.perform(get("/c/{token}", rawToken)).andExpect(status().is4xxClientError());
 
-        String html = page.getResponse().getContentAsString();
-        // No license plate, no phone digits, no owner email on the page.
-        assertThat(html).doesNotContain("AB-123-CD");
-        assertThat(html).doesNotContain("+216");
-        assertThat(html).doesNotContain("owner@example");
-
-        // --- The JSON view ---
-        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
+        // --- The JSON view the React page uses: only safe data ---
+        MvcResult view = mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.vehicle.nickname").value("My Car"))
                 .andExpect(jsonPath("$.vehicle.brand").value("Toyota"))
                 .andExpect(jsonPath("$.channels").isArray())
                 .andExpect(jsonPath("$.channels[0]").value("SMS"))
                 .andExpect(jsonPath("$.licensePlate").doesNotExist())
-                .andExpect(jsonPath("$.phone").doesNotExist());
+                .andExpect(jsonPath("$.phone").doesNotExist())
+                .andReturn();
+        String json = view.getResponse().getContentAsString();
+        // No license plate, no phone digits, no owner e-mail anywhere in it.
+        assertThat(json).doesNotContain("AB-123-CD");
+        assertThat(json).doesNotContain("+216");
+        assertThat(json).doesNotContain("owner@example");
+        assertThat(json).doesNotContain("WhatsApp");
     }
 
     @Test
@@ -110,7 +105,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     void invalidAndInactiveTokensReturn404() throws Exception {
         // Unknown token
-        mockMvc.perform(get("/c/{token}", "totally-unknown-token"))
+        mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", "totally-unknown-token"))
                 .andExpect(status().isNotFound());
 
         // Inactive token: owner generates then deactivates.
