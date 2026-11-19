@@ -29,11 +29,27 @@ updates:
     directories: [/backend, /frontend]
     schedule:
       interval: weekly
+    ignore:
+      # Base-image majors change the runtime itself (Java 17 LTS, Node 22 LTS):
+      # move deliberately, with the pom / engines, never as a bot bump.
+      - dependency-name: eclipse-temurin
+        update-types: [version-update:semver-major]
+      - dependency-name: maven
+        update-types: [version-update:semver-major]
+      - dependency-name: node
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: docker-compose
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Data-store majors need a migration plan (Postgres dump/restore; Redis 8
+      # also changed its licence), not a bot bump.
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]
+      - dependency-name: redis
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
