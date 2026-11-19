@@ -13,7 +13,12 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -121,6 +126,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return ResponseEntity.status(405)
                 .body(ApiError.of(405, "METHOD_NOT_ALLOWED", "Method not allowed"));
+    }
+
+    // Client mistakes that used to fall through to the catch-all 500 (pentest
+    // 2026-11-19): anyone could trigger them, unauthenticated for the media
+    // type, which counted as server errors, logged stack traces and could
+    // fire the 5xx-burst alert. They are plain 4xx now.
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiError> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity.status(415)
+                .body(ApiError.of(415, "UNSUPPORTED_MEDIA_TYPE", "Send the request as application/json"));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<ApiError> handleNotAcceptable(HttpMediaTypeNotAcceptableException ex) {
+        return ResponseEntity.status(406)
+                .body(ApiError.of(406, "NOT_ACCEPTABLE", "Requested response format is not available"));
+    }
+
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class,
+            MissingRequestHeaderException.class})
+    public ResponseEntity<ApiError> handleBadParameter(Exception ex) {
+        // Never echo the parameter value back: it may be a token.
+        return ResponseEntity.status(400)
+                .body(ApiError.of(400, "BAD_REQUEST", "Invalid or missing request parameter"));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
