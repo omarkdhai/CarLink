@@ -12,7 +12,8 @@ interface AuthContextValue {
   /** true while a stored session is being restored via /refresh on boot. */
   isRestoring: boolean
   isAuthenticated: boolean
-  signIn: (email: string, password: string) => Promise<void>
+  /** headers: Turnstile token when the server asks for a challenge (S-11). */
+  signIn: (email: string, password: string, headers?: Record<string, string>) => Promise<void>
   signUp: (data: { email: string; password: string; firstName: string; lastName: string; phone?: string; stickerCode: string }) => Promise<void>
   signOut: () => Promise<void>
   /** Replace the in-memory + stored user (e.g. after a profile update). */
@@ -83,7 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loginMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => login(email, password),
+    mutationFn: ({ email, password, headers }: { email: string; password: string; headers?: Record<string, string> }) =>
+      login(email, password, headers),
     onSuccess: (data) => {
       tokenStore.setSession(data)
       setUserState(data.user)
@@ -104,8 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   const signIn = useCallback(
-    async (email: string, password: string) => {
-      await loginMutation.mutateAsync({ email, password })
+    async (email: string, password: string, headers?: Record<string, string>) => {
+      await loginMutation.mutateAsync({ email, password, headers })
     },
     [loginMutation],
   )

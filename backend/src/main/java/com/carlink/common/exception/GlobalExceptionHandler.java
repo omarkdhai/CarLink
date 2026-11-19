@@ -43,6 +43,7 @@ public class GlobalExceptionHandler {
             case "INVALID_CREDENTIALS" -> securityEvents.record(Type.LOGIN_FAILURE);
             case "TOO_MANY_LOGIN_ATTEMPTS" -> securityEvents.record(Type.LOGIN_BLOCKED);
             case "CAPTCHA_FAILED" -> securityEvents.record(Type.CAPTCHA_FAILED);
+            case "CAPTCHA_REQUIRED" -> securityEvents.record(Type.LOGIN_CHALLENGED);
             default -> { }
         }
         return ResponseEntity.status(ex.getStatus())

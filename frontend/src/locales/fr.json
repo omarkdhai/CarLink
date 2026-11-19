@@ -119,7 +119,8 @@
     "emailAlreadyRegistered": "Cette adresse e-mail est déjà enregistrée.",
     "signInInstead": "Se connecter à la place",
     "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter.",
-    "accountDeleted": "Votre compte a été supprimé. Merci d’avoir utilisé CarLink."
+    "accountDeleted": "Votre compte a été supprimé. Merci d’avoir utilisé CarLink.",
+    "challengeUseLoginPage": "Par sécurité, connectez-vous cette fois depuis la page de connexion."
   },
   "vehicle": {
     "title": "Mes véhicules",
@@ -1212,7 +1213,10 @@
     "passwordTooCommon": "Ce mot de passe est trop facile à deviner. Essayez une petite phrase.",
     "passwordBreached": "Ce mot de passe a fuité lors d’un piratage connu. Choisissez-en un autre.",
     "invalidPassword": "Le mot de passe est incorrect.",
-    "adminAccountDeletion": "Un compte administrateur ne peut être supprimé que par un autre administrateur."
+    "adminAccountDeletion": "Un compte administrateur ne peut être supprimé que par un autre administrateur.",
+    "captchaRequired": "Par sécurité, complétez la vérification ci-dessous puis reconnectez-vous.",
+    "loginSlowedDown": "Trop de tentatives échouées sur ce compte. Patientez 30 secondes puis réessayez.",
+    "orderLimitReached": "Cette adresse e-mail ou ce numéro a atteint la limite de commandes du jour. Contactez-nous s’il vous faut plus d’autocollants."
   },
   "validation": {
     "email": "Adresse e-mail invalide",

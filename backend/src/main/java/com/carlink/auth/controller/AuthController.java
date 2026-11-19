@@ -12,6 +12,9 @@ import com.carlink.auth.dto.RegisterRequest;
 import com.carlink.auth.dto.ResetPasswordRequest;
 import com.carlink.auth.dto.VerifyEmailRequest;
 import com.carlink.auth.service.AuthService;
+import com.carlink.auth.service.LoginAttemptService;
+import com.carlink.security.captcha.CaptchaGuard;
+import org.springframework.web.bind.annotation.RequestHeader;
 import com.carlink.common.dto.MessageResponse;
 import com.carlink.common.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,6 +46,8 @@ public class AuthController {
     private final Throttle throttle;
     private final ThrottleProperties limits;
     private final RefreshCookie refreshCookie;
+    private final LoginAttemptService loginAttemptService;
+    private final CaptchaGuard captchaGuard;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new owner account")
@@ -65,11 +70,34 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Log in: access token in the body, refresh token in an HttpOnly cookie")
     public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http,
+                              @RequestHeader(value = CaptchaGuard.HEADER, required = false) String captcha,
                               HttpServletResponse response) {
         // S-04: one client may try only so many logins, whatever the e-mail
         // (credential stuffing); per-(IP, e-mail) lockout lives in AuthService.
-        throttle.require("login-ip", limits.getLoginIp(), http.getRemoteAddr());
-        return withCookie(authService.login(request, http.getRemoteAddr()), response);
+        String ip = http.getRemoteAddr();
+        throttle.require("login-ip", limits.getLoginIp(), ip);
+
+        // S-11: many failures on ONE account from many IPs (distributed guessing)
+        // step its login up to a captcha. Never a lock, so nobody can shut the
+        // owner out; without Turnstile configured, the account is slowed instead.
+        // Same answer for unknown e-mails: this reveals nothing about accounts.
+        if (loginAttemptService.isAccountChallenged(request.email(), limits.getLoginAccountFailures())) {
+            if (captchaGuard.isEnabled()) {
+                captchaGuard.requireChallenge(captcha, ip);
+            } else {
+                throttle.require("login-account-slow", limits.getLoginAccountSlow(), request.email(),
+                        "LOGIN_SLOWED_DOWN",
+                        "Too many failed sign-ins on this account. Wait a moment and try again.");
+            }
+        }
+        try {
+            return withCookie(authService.login(request, ip), response);
+        } catch (UnauthorizedException e) {
+            if ("INVALID_CREDENTIALS".equals(e.getCode())) {
+                loginAttemptService.recordAccountFailure(request.email(), limits.getLoginAccountFailures());
+            }
+            throw e;
+        }
     }
 
     @PostMapping("/refresh")

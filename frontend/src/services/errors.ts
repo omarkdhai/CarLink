@@ -66,6 +66,9 @@ const CODE_I18N_KEYS: Record<string, string> = {
   PASSWORD_TOO_COMMON: 'errors.passwordTooCommon',
   PASSWORD_BREACHED: 'errors.passwordBreached',
   INVALID_PASSWORD: 'errors.invalidPassword',
+  CAPTCHA_REQUIRED: 'errors.captchaRequired',
+  LOGIN_SLOWED_DOWN: 'errors.loginSlowedDown',
+  ORDER_LIMIT_REACHED: 'errors.orderLimitReached',
   ADMIN_ACCOUNT_DELETION: 'errors.adminAccountDeletion',
   INVALID_VERIFICATION_LINK: 'errors.invalidVerificationLink',
 }

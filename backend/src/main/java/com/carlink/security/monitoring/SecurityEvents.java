@@ -36,6 +36,8 @@ public class SecurityEvents {
         RATE_LIMITED,
         /** Turnstile token missing or rejected. */
         CAPTCHA_FAILED,
+        /** A login was stepped up to a captcha: one account under distributed guessing (S-11). */
+        LOGIN_CHALLENGED,
         /** Successful sign-in to an ADMIN account. */
         ADMIN_LOGIN,
         /** A rotated refresh token was presented again: possible session theft. */

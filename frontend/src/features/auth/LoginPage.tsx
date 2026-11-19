@@ -8,6 +8,8 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { loginSchema, type LoginValues } from '@/features/auth/authSchemas'
 import { AuthFootnote, AuthHeader, AuthShell } from '@/features/auth/AuthShell'
 import { http } from '@/services/apiClient'
+import { toApiError } from '@/services/errors'
+import { useCaptcha } from '@/components/shared/useCaptcha'
 import { takeNextAfterAuth } from '@/services/nextTarget'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
@@ -27,6 +29,8 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const [challenged, setChallenged] = useState(false)
+  const captcha = useCaptcha()
 
   const {
     register,
@@ -40,12 +44,17 @@ export default function LoginPage() {
   async function onSubmit(values: LoginValues) {
     setSubmissionError(null)
     try {
-      await signIn(values.email, values.password)
+      // Only send a token once the server has asked for one (S-11 challenge).
+      await signIn(values.email, values.password, challenged ? captcha.headers() : undefined)
       // A pending sticker activation outranks the generic "from" redirect.
       const target = takeNextAfterAuth()
       const from = (location.state as LocationState | null)?.from?.pathname
       navigate(target ?? from ?? '/dashboard', { replace: true })
     } catch (err) {
+      // S-11: an account under distributed guessing asks for a bot check.
+      // From then on the widget stays on this form; a token is single-use.
+      if (toApiError(err).code === 'CAPTCHA_REQUIRED') setChallenged(true)
+      if (challenged) captcha.reset()
       setSubmissionError(http.humanizeError(err))
     }
   }
@@ -88,7 +97,14 @@ export default function LoginPage() {
             </Link>
           </div>
         </div>
-        <Button type="submit" size="lg" fullWidth loading={isSubmitting}>
+        {challenged && captcha.widget}
+        <Button
+          type="submit"
+          size="lg"
+          fullWidth
+          loading={isSubmitting}
+          disabled={challenged && captcha.required && !captcha.token}
+        >
           {t('auth.login')}
           <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
         </Button>

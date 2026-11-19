@@ -9,9 +9,10 @@ import type {
 const BASE = '/auth'
 
 export const authApi = {
-  login(email: string, password: string): Promise<AuthResponse> {
+  /** `headers` carries the Turnstile token when the server challenged this account (S-11). */
+  login(email: string, password: string, headers?: Record<string, string>): Promise<AuthResponse> {
     const body: LoginRequest = { email, password }
-    return apiClient.post<AuthResponse>(`${BASE}/login`, body).then((r) => r.data)
+    return apiClient.post<AuthResponse>(`${BASE}/login`, body, { headers }).then((r) => r.data)
   },
 
   register(data: RegisterRequest): Promise<AuthResponse> {

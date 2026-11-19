@@ -263,8 +263,11 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
   (`X-Captcha-Token`, fails closed, site key served by `GET /api/v1/public/config`). **Off until
   `CAPTCHA_ENABLED/SITE_KEY/SECRET_KEY` are set** (prod logs a warning while off). Verified live with
   Cloudflare test keys: no token → 400 `CAPTCHA_FAILED`, widget renders under the CSP and unlocks submit.
-  - Follow-ups (not done): per-email/phone daily order cap; challenge on login after repeated
-    failures for one account across IPs (the distributed case left open by S-04).
+  - **Follow-ups done 2026-11-19:** guest orders capped per e-mail and per mobile (3/day each,
+    `ORDER_LIMIT_REACHED`, keyed by hash); one account failing 10 logins in 15 min from any IPs
+    steps its login up to Turnstile (`CAPTCHA_REQUIRED`, widget shown on the sign-in page) — never a
+    lock, so the owner cannot be shut out; without Turnstile the account is slowed to one attempt per
+    30 s (`LOGIN_SLOWED_DOWN`). Same answers for unknown e-mails. Alert: `CarLinkAccountUnderAttack`.
   CAPTCHA/Turnstile on order, contact form, report and scan-contact; per-email/phone order cap.
 - [x] **S-12** — done 2026-11-18 (visitor cooldown, sticker/day, owner/day caps; links neutralised; Telnyx spend alert documented in deployment.md §14, to set in the portal). Per-sticker daily cap, per-(IP,sticker) cooldown, URL neutralisation, Telnyx spend alert.
 - [x] **S-18** — done 2026-11-18 (JwtService refuses weak/public secrets; JWT_REFRESH_SECRET removed). Remove secret defaults from the base profile; startup secret-strength guard; drop
@@ -301,3 +304,4 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 | 2026-11-19 | **Phase 2** — done: S-09, S-10, S-13, S-14, S-17, S-19. S-15 (admin MFA) removed from the plan at the owner's request. |
 | 2026-11-19 | **Phase 3** — done: S-20, S-21, S-22, S-23, S-25. Open: S-07 step 2 (Boot 4.1), S-11 follow-ups, external penetration test. |
 | 2026-11-19 | **S-07 complete**: Spring Boot 4.1.2. Open: S-11 follow-ups, external penetration test. |
+| 2026-11-19 | **S-11 follow-ups complete** (order caps, per-account login challenge). Open: external penetration test. |
