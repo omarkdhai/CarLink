@@ -101,6 +101,7 @@ jobs:
       - name: Trivy image scan (report)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          trivyignores: .trivyignore.yaml
           image-ref: carlink-${{ matrix.service }}:ci
           severity: HIGH,CRITICAL
           ignore-unfixed: true
@@ -110,6 +111,7 @@ jobs:
       - name: Trivy image scan (gate)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          trivyignores: .trivyignore.yaml
           image-ref: carlink-${{ matrix.service }}:ci
           severity: CRITICAL
           ignore-unfixed: true

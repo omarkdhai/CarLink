@@ -12,7 +12,7 @@
 // Postgres volume already exists, a new POSTGRES_PASSWORD must also be applied
 // inside the database (see docs/deployment.md, "Rotating local secrets").
 import { randomBytes } from 'node:crypto'
-import { existsSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs'
+import { constants, readFileSync, writeFileSync, copyFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -48,13 +48,19 @@ const SECRETS = {
 }
 const DEFAULTS = { ADMIN_BOOTSTRAP_EMAIL: 'admin@carlink.local' }
 
-if (!existsSync(envPath)) {
-  copyFileSync(examplePath, envPath)
+// Create .env from the example only if it does not exist, atomically
+// (COPYFILE_EXCL), instead of check-then-copy, which can race (CodeQL
+// js/file-system-race). The file is then read once and written once.
+try {
+  copyFileSync(examplePath, envPath, constants.COPYFILE_EXCL)
   console.log('Created .env from .env.example')
+} catch (e) {
+  if (e.code !== 'EEXIST') throw e
 }
 
-const eol = readFileSync(envPath, 'utf8').includes('\r\n') ? '\r\n' : '\n'
-const lines = readFileSync(envPath, 'utf8').split(/\r?\n/)
+const original = readFileSync(envPath, 'utf8')
+const eol = original.includes('\r\n') ? '\r\n' : '\n'
+const lines = original.split(/\r?\n/)
 const seen = new Set()
 const generated = []
 
