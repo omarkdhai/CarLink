@@ -291,6 +291,9 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 - [x] **S-23** — done 2026-11-19 (unpadded Base64URL: 32 bytes = 43 chars = 256 bits, was 192; old tokens stay valid, only hashes are stored). Base64URL token encoding.
 - [x] **S-25** — done 2026-11-19 (SecurityEvents: carlink_security_events_total + SECURITY_EVENT log lines, no PII; METRICS_SCRAPE_TOKEN for Prometheus; monitoring/prometheus alert rules validated by promtool in CI; incident-response runbook in deployment.md §16). Security alerting (logs → alerts) and a short incident-response runbook in `deployment.md`.
 - [ ] External penetration test before scaling; repeat this audit after Phase 2.
+  - Internal pre-test done 2026-11-19 (`docs/pentest-2026-11-19.md`): 1 medium fixed (malformed
+    requests answered 500), 1 low + 2 info open. The independent external test is still to do, on
+    the production deployment.
 
 ---
 
@@ -305,3 +308,4 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 | 2026-11-19 | **Phase 3** — done: S-20, S-21, S-22, S-23, S-25. Open: S-07 step 2 (Boot 4.1), S-11 follow-ups, external penetration test. |
 | 2026-11-19 | **S-07 complete**: Spring Boot 4.1.2. Open: S-11 follow-ups, external penetration test. |
 | 2026-11-19 | **S-11 follow-ups complete** (order caps, per-account login challenge). Open: external penetration test. |
+| 2026-11-19 | Internal penetration test (docs/pentest-2026-11-19.md): PT-1 fixed; PT-2 (legacy QR page), PT-3 (e-mail in JWT), PT-4 (dev Swagger) open. External test pending. |
