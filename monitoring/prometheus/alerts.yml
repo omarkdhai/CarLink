@@ -1,0 +1,90 @@
+# CarLink alert rules (security plan S-25). Validated in CI with `promtool check rules`.
+#
+# Signals come from the backend's /actuator/prometheus:
+#   carlink_security_events_total{type, detail}  — see SecurityEvents.java
+#   http_server_requests_seconds_count{status, uri} — Spring MVC timings
+# Thresholds are starting points for a small service: tune them once real
+# traffic is known. Runbook: docs/deployment.md §16 "Incident response".
+groups:
+  - name: carlink-availability
+    rules:
+      - alert: CarLinkBackendDown
+        expr: up{job="carlink-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: CarLink backend is not answering metrics scrapes
+          description: Prometheus could not scrape the backend for 2 minutes. Check `docker compose ps` and the backend logs.
+
+      - alert: CarLink5xxBurst
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="carlink-backend", status=~"5.."}[5m]))
+            > 0.2
+          and
+          sum(rate(http_server_requests_seconds_count{job="carlink-backend", status=~"5.."}[5m]))
+            / sum(rate(http_server_requests_seconds_count{job="carlink-backend"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: More than 5% of API requests fail with a server error
+          description: "{{ $value | humanizePercentage }} of requests answered 5xx over 5 minutes. Look for SECURITY_EVENT type=server_error in the backend log."
+
+  - name: carlink-security
+    rules:
+      - alert: CarLinkLoginFailureSpike
+        expr: sum(increase(carlink_security_events_total{type="login_failure"}[10m])) > 50
+        labels:
+          severity: warning
+        annotations:
+          summary: Many failed logins (possible credential stuffing)
+          description: "{{ $value | humanize }} failed logins in 10 minutes."
+
+      - alert: CarLinkLoginLockouts
+        expr: sum(increase(carlink_security_events_total{type="login_blocked"}[15m])) > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: Logins refused by lockout (brute force in progress)
+          description: "{{ $value | humanize }} logins hit an (IP, e-mail) lockout in 15 minutes."
+
+      - alert: CarLinkRateLimitSpike
+        expr: sum by (detail) (increase(carlink_security_events_total{type="rate_limited"}[10m])) > 100
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limit hit hard on {{ $labels.detail }}"
+          description: "{{ $value | humanize }} requests answered 429 on {{ $labels.detail }} in 10 minutes (scan abuse, scraping or a misbehaving client)."
+
+      - alert: CarLinkCaptchaFailures
+        expr: sum(increase(carlink_security_events_total{type="captcha_failed"}[15m])) > 30
+        labels:
+          severity: warning
+        annotations:
+          summary: Many requests failed bot protection
+          description: "{{ $value | humanize }} Turnstile failures in 15 minutes: a bot is probing the public forms."
+
+      - alert: CarLinkRefreshTokenReuse
+        expr: sum(increase(carlink_security_events_total{type="refresh_token_reuse"}[15m])) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: A rotated refresh token was used again (possible session theft)
+          description: The affected sessions were revoked automatically. Investigate per the runbook if it repeats.
+
+      - alert: CarLinkAdminLogin
+        expr: sum(increase(carlink_security_events_total{type="admin_login"}[5m])) > 0
+        labels:
+          severity: info
+        annotations:
+          summary: An administrator signed in
+          description: Every admin sign-in is reported. If nobody on the team expects it, follow the runbook.
+
+      - alert: CarLinkMassSessionRevocation
+        expr: sum(increase(carlink_security_events_total{type="sessions_revoked"}[1h])) > 20
+        labels:
+          severity: warning
+        annotations:
+          summary: Unusually many accounts had their sessions revoked
+          description: "{{ $value | humanize }} accounts were deactivated, re-roled or password-reset in an hour."

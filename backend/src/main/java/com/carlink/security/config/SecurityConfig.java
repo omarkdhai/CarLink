@@ -4,6 +4,7 @@ import com.carlink.auth.service.CustomUserDetailsService;
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.dto.ApiError;
 import com.carlink.security.filter.JwtAuthenticationFilter;
+import com.carlink.security.monitoring.MetricsScrapeTokenFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +59,9 @@ public class SecurityConfig {
      */
     @Value("${carlink.security.hsts-enabled:false}")
     private boolean hstsEnabled;
+
+    @org.springframework.beans.factory.annotation.Value("${carlink.monitoring.scrape-token:}")
+    private String metricsScrapeToken;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
@@ -134,6 +138,9 @@ public class SecurityConfig {
                                 "/actuator/info").permitAll()
                         // Metrics / Prometheus expose internals: admins only
                         // (security plan S-05; any owner token used to get 200).
+                        // S-25: Prometheus scrapes with METRICS_SCRAPE_TOKEN (ROLE_METRICS).
+                        .requestMatchers(MetricsScrapeTokenFilter.PATH)
+                                .hasAnyRole("ADMIN", MetricsScrapeTokenFilter.ROLE)
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
@@ -159,7 +166,9 @@ public class SecurityConfig {
                         })
                 )
                 .addFilterBefore(jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new MetricsScrapeTokenFilter(metricsScrapeToken),
+                        JwtAuthenticationFilter.class);
 
         return http.build();
     }

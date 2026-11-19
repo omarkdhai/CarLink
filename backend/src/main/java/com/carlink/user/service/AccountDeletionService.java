@@ -3,6 +3,7 @@ package com.carlink.user.service;
 import com.carlink.admin.service.AuditLogService;
 import com.carlink.common.exception.BadRequestException;
 import com.carlink.common.exception.NotFoundException;
+import com.carlink.security.monitoring.SecurityEvents;
 import com.carlink.security.session.SessionStateCache;
 import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
@@ -41,6 +42,7 @@ public class AccountDeletionService {
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
     private final SessionStateCache sessionStateCache;
+    private final SecurityEvents securityEvents;
 
     @Transactional
     public void deleteOwnAccount(UUID userId, String password, String ipAddress, String userAgent) {
@@ -60,5 +62,6 @@ public class AccountDeletionService {
         auditLogService.record("ACCOUNT_DELETED", "USER", userId, null, ipAddress, userAgent, Map.of());
         userRepository.hardDelete(userId);
         sessionStateCache.evictAfterCommit(userId);
+        securityEvents.record(SecurityEvents.Type.ACCOUNT_DELETED);
     }
 }

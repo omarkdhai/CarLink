@@ -1,0 +1,25 @@
+# Example Prometheus configuration for CarLink (security plan S-25).
+# Run Prometheus on the CarLink Docker network (it reaches backend:8080
+# directly; the actuator is never exposed through nginx). Put
+# METRICS_SCRAPE_TOKEN in the file referenced by credentials_file.
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - alerts.yml
+
+scrape_configs:
+  - job_name: carlink-backend
+    metrics_path: /actuator/prometheus
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/scrape-token
+    static_configs:
+      - targets: ["backend:8080"]
+
+# Route alerts to people with Alertmanager (e-mail, Telegram, Slack…):
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ["alertmanager:9093"]

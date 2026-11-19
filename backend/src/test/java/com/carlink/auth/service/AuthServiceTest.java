@@ -54,6 +54,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
+    private static final com.carlink.security.monitoring.SecurityEvents EVENTS =
+            new com.carlink.security.monitoring.SecurityEvents(new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
+
     @Mock private UserRepository userRepository;
     @Mock private RefreshTokenRepository refreshTokenRepository;
     @Mock private EmailVerificationTokenRepository emailVerificationTokenRepository;
@@ -77,8 +80,8 @@ class AuthServiceTest {
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, passwordEncoder, jwtService,
                 tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
-                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)),
-                new PasswordPolicy(new BreachedPasswordChecker(false, "http://127.0.0.1:9/")));
+                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository), EVENTS),
+                new PasswordPolicy(new BreachedPasswordChecker(false, "http://127.0.0.1:9/")), EVENTS);
     }
 
     /** Stub a claimable sticker so register() can validate the supplied code. */
@@ -258,8 +261,8 @@ class AuthServiceTest {
                 userRepository, refreshTokenRepository, emailVerificationTokenRepository,
                 passwordResetTokenRepository, spyEncoder, new JwtService(properties),
                 tokenGenerator, emailSender, new PasswordResetEmailComposer(), properties, loginAttemptService,
-                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository)),
-                new PasswordPolicy(new BreachedPasswordChecker(false, "http://127.0.0.1:9/")));
+                stickerRepository, new SessionInvalidator(refreshTokenRepository, new SessionStateCache(userRepository), EVENTS),
+                new PasswordPolicy(new BreachedPasswordChecker(false, "http://127.0.0.1:9/")), EVENTS);
         when(userRepository.findByEmailIgnoreCase("ghost@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.login(new LoginRequest("ghost@example.com", "Secret1234"), IP))

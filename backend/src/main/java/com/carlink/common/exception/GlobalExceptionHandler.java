@@ -1,6 +1,10 @@
 package com.carlink.common.exception;
 
 import com.carlink.common.dto.ApiError;
+import com.carlink.security.monitoring.SecurityEvents;
+import com.carlink.security.monitoring.SecurityEvents.Type;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.servlet.HandlerMapping;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +30,21 @@ import java.util.Set;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /** Security plan S-25: errors that matter for alerting are counted and logged here, centrally. */
+    private final SecurityEvents securityEvents;
+
+    public GlobalExceptionHandler(SecurityEvents securityEvents) {
+        this.securityEvents = securityEvents;
+    }
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handleApiException(ApiException ex) {
+        switch (ex.getCode()) {
+            case "INVALID_CREDENTIALS" -> securityEvents.record(Type.LOGIN_FAILURE);
+            case "TOO_MANY_LOGIN_ATTEMPTS" -> securityEvents.record(Type.LOGIN_BLOCKED);
+            case "CAPTCHA_FAILED" -> securityEvents.record(Type.CAPTCHA_FAILED);
+            default -> { }
+        }
         return ResponseEntity.status(ex.getStatus())
                 .body(ApiError.of(ex.getStatus(), ex.getCode(), ex.getMessage()));
     }
@@ -37,7 +54,11 @@ public class GlobalExceptionHandler {
      * window. Never leaks rate-limit subjects back to the client.
      */
     @ExceptionHandler(TooManyRequestsException.class)
-    public ResponseEntity<ApiError> handleTooManyRequests(TooManyRequestsException ex) {
+    public ResponseEntity<ApiError> handleTooManyRequests(TooManyRequestsException ex,
+                                                          HttpServletRequest request) {
+        // The route pattern (e.g. /api/v1/auth/login), never the raw path: bounded, no tokens.
+        Object pattern = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+        securityEvents.record(Type.RATE_LIMITED, pattern == null ? "unknown" : pattern.toString());
         return ResponseEntity.status(429)
                 .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
                 .body(ApiError.of(429, ex.getCode(), ex.getMessage()));
@@ -111,6 +132,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleUnexpected(Exception ex) {
         // Log the stack trace server-side only; never return it to the client.
         log.error("Unexpected error", ex);
+        securityEvents.record(Type.SERVER_ERROR, ex.getClass().getSimpleName());
         return ResponseEntity.status(500)
                 .body(ApiError.of(500, "INTERNAL_ERROR",
                         "An unexpected error occurred"));

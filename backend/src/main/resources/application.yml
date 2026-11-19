@@ -130,6 +130,11 @@ carlink:
   crypto:
     phone-key: ${PHONE_ENCRYPTION_KEY:}
 
+  # Prometheus scrape credential (security plan S-25): 32+ chars, grants only
+  # /actuator/prometheus. Blank = only an ADMIN token can read metrics.
+  monitoring:
+    scrape-token: ${METRICS_SCRAPE_TOKEN:}
+
   # Data retention (security plan S-17), run daily by RetentionService.
   retention:
     enabled: ${RETENTION_ENABLED:true}
