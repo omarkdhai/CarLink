@@ -281,7 +281,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 - [x] **S-14** — done 2026-11-19 (PasswordPolicy: 10 chars min / 72 bytes max, no composition rule, common/pattern/e-mail-name refusals, HIBP k-anonymity in prod failing open; login capped, >72-byte login = 401 instead of a BCrypt 500; SPA checklist + messages in fr/en/ar). Password policy (min length, passphrases, optional HIBP); `@Size(max=72)` on login.
 - [ ] **S-15** TOTP MFA for admins; forced password change for the bootstrap admin.
 - [ ] **S-17** Purge jobs, IP anonymisation, phone column encryption, account deletion endpoint + UI.
-- [ ] **S-19** CI: Dependabot (maven, npm, docker, actions), dependency-check, CodeQL/Semgrep, gitleaks,
+- [x] **S-19** — done 2026-11-19 (ci.yml: contents:read, SHA-pinned actions, frontend lint/test/build/npm audit job, both images built and Trivy-scanned; security.yml: gitleaks, CodeQL java+ts (security-extended), Trivy fs dependency scan to the Security tab, weekly schedule; dependabot.yml for maven/npm/docker/compose/actions. OWASP dependency-check replaced by Trivy fs: no NVD key needed. Gates fail on fixable CRITICAL; HIGH reported). CI: Dependabot (maven, npm, docker, actions), dependency-check, CodeQL/Semgrep, gitleaks,
   Trivy on both images, frontend build/test/audit job, `permissions: contents: read`, SHA-pinned actions.
 
 ### Phase 3 — Ongoing / hygiene (Low)
