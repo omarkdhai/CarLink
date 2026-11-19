@@ -44,8 +44,16 @@ class PublicOrderControllerTest {
 
     @BeforeEach
     void setUp() {
+        // The per-e-mail / per-mobile caps (S-11) have their own integration test;
+        // here they always allow, so only the per-IP limiter is under test.
+        com.carlink.security.ratelimit.RateLimiter allowAll = new com.carlink.security.ratelimit.RateLimiter() {
+            @Override public boolean tryAcquire(String key, int max, int windowSeconds) { return true; }
+            @Override public long retryAfterSeconds(String key, int max, int windowSeconds) { return 0; }
+        };
         controller = new PublicOrderController(orderService, rateLimiter, tokenGenerator, properties,
-                new com.carlink.security.captcha.CaptchaGuard(new com.carlink.security.captcha.CaptchaVerifier(new com.carlink.security.captcha.CaptchaProperties(), org.springframework.web.client.RestClient.builder())));
+                new com.carlink.security.captcha.CaptchaGuard(new com.carlink.security.captcha.CaptchaVerifier(new com.carlink.security.captcha.CaptchaProperties(), org.springframework.web.client.RestClient.builder())),
+                new com.carlink.security.ratelimit.Throttle(allowAll, tokenGenerator),
+                new com.carlink.security.ratelimit.ThrottleProperties());
     }
 
     private OrderCreateRequest validBody() {

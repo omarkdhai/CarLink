@@ -119,7 +119,8 @@
     "emailAlreadyRegistered": "This email is already registered.",
     "signInInstead": "Sign in instead",
     "sessionExpired": "Your session has expired. Please sign in again.",
-    "accountDeleted": "Your account has been deleted. Thank you for using CarLink."
+    "accountDeleted": "Your account has been deleted. Thank you for using CarLink.",
+    "challengeUseLoginPage": "For your security, please sign in from the sign-in page this time."
   },
   "vehicle": {
     "title": "My vehicles",
@@ -1192,7 +1193,10 @@
     "passwordTooCommon": "This password is too easy to guess. Try a short phrase.",
     "passwordBreached": "This password appeared in a known data breach. Please choose another one.",
     "invalidPassword": "The password is not correct.",
-    "adminAccountDeletion": "An administrator account can only be removed by another administrator."
+    "adminAccountDeletion": "An administrator account can only be removed by another administrator.",
+    "captchaRequired": "For your security, complete the check below, then sign in again.",
+    "loginSlowedDown": "Too many failed sign-ins on this account. Wait 30 seconds and try again.",
+    "orderLimitReached": "This e-mail address or mobile number has reached today's order limit. Contact us if you need more stickers."
   },
   "validation": {
     "email": "Invalid email address",

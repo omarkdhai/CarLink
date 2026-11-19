@@ -3,6 +3,8 @@ package com.carlink.order.controller;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.carlink.security.captcha.CaptchaGuard;
+import com.carlink.security.ratelimit.Throttle;
+import com.carlink.security.ratelimit.ThrottleProperties;
 
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.exception.TooManyRequestsException;
@@ -42,6 +44,12 @@ public class PublicOrderController {
     private final TokenGenerator tokenGenerator;
     private final CarLinkProperties properties;
     private final CaptchaGuard captchaGuard;
+    private final Throttle throttle;
+    private final ThrottleProperties limits;
+
+    static final String ORDER_LIMIT_CODE = "ORDER_LIMIT_REACHED";
+    static final String ORDER_LIMIT_MESSAGE =
+            "This e-mail address or mobile number has reached today's order limit.";
 
     @PostMapping("/orders")
     @Operation(summary = "Place a COD order for virgin stickers — returns raw tokens once")
@@ -51,6 +59,14 @@ public class PublicOrderController {
         rateLimit(request);
         // S-11: guest orders mint stickers and e-mail any address; keep bots out.
         captchaGuard.require(captcha, request.getRemoteAddr());
+        // S-11: a few orders per e-mail and per mobile per day, whatever the IP
+        // (fake COD orders, confirmation mails sent to strangers). Counted after
+        // the captcha, keyed by hash only.
+        String digits = body.mobile() == null ? "" : body.mobile().replaceAll("[^0-9]", "");
+        throttle.require("order-email-day", limits.getOrderEmailDay(), body.email(),
+                ORDER_LIMIT_CODE, ORDER_LIMIT_MESSAGE);
+        throttle.require("order-mobile-day", limits.getOrderMobileDay(), digits,
+                ORDER_LIMIT_CODE, ORDER_LIMIT_MESSAGE);
         return orderService.create(body);
     }
 

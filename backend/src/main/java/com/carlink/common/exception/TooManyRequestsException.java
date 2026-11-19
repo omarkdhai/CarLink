@@ -14,6 +14,12 @@ public class TooManyRequestsException extends ApiException {
         this.retryAfterSeconds = retryAfterSeconds;
     }
 
+    /** A 429 with its own error code, so the client can explain which limit applies. */
+    public TooManyRequestsException(String code, String message, long retryAfterSeconds) {
+        super(code, 429, message);
+        this.retryAfterSeconds = retryAfterSeconds;
+    }
+
     public long getRetryAfterSeconds() {
         return retryAfterSeconds;
     }

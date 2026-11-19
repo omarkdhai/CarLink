@@ -2,6 +2,7 @@ package com.carlink.auth.service;
 
 import com.carlink.common.config.CarLinkProperties;
 import lombok.RequiredArgsConstructor;
+import com.carlink.security.ratelimit.ThrottleProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,25 @@ public class LoginAttemptService {
         return Integer.parseInt(count) >= properties.ratelimit().maxLoginFailures();
     }
 
+    /**
+     * Security plan S-11: has this account seen at least {@code limit.max} failed
+     * logins within {@code limit.windowSeconds}, from any IPs? Then its login is
+     * challenged (captcha), never locked: a lock would let anyone shut the owner out.
+     */
+    public boolean isAccountChallenged(String rawEmail, ThrottleProperties.Limit limit) {
+        String count = redisTemplate.opsForValue().get(accountKey(rawEmail));
+        return count != null && Integer.parseInt(count) >= limit.getMax();
+    }
+
+    /** Counts a failure for the account as a whole (S-11), next to the (IP, e-mail) lockout. */
+    public void recordAccountFailure(String rawEmail, ThrottleProperties.Limit limit) {
+        String key = accountKey(rawEmail);
+        Long value = redisTemplate.opsForValue().increment(key);
+        if (value != null && value == 1L) {
+            redisTemplate.expire(key, Duration.ofSeconds(limit.getWindowSeconds()));
+        }
+    }
+
     public void recordFailure(String clientIp, String rawEmail) {
         String key = key(clientIp, rawEmail);
         Long value = redisTemplate.opsForValue().increment(key);
@@ -44,6 +64,12 @@ public class LoginAttemptService {
 
     public void reset(String clientIp, String rawEmail) {
         redisTemplate.delete(key(clientIp, rawEmail));
+        // The owner got in: the account-wide challenge ends with it.
+        redisTemplate.delete(accountKey(rawEmail));
+    }
+
+    private String accountKey(String rawEmail) {
+        return "login:acct:" + tokenGenerator.sha256(rawEmail.trim().toLowerCase());
     }
 
     /**

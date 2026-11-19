@@ -65,6 +65,17 @@ groups:
           summary: Many requests failed bot protection
           description: "{{ $value | humanize }} Turnstile failures in 15 minutes: a bot is probing the public forms."
 
+      - alert: CarLinkAccountUnderAttack
+        expr: |
+          sum(increase(carlink_security_events_total{type="login_challenged"}[15m])) > 0
+          or
+          sum(increase(carlink_security_events_total{type="rate_limited", detail="/api/v1/auth/login"}[15m])) > 20
+        labels:
+          severity: warning
+        annotations:
+          summary: An account is being guessed from many addresses
+          description: Logins on at least one account were stepped up to a captcha (or slowed down). The owner is never locked out; check the runbook if it persists.
+
       - alert: CarLinkRefreshTokenReuse
         expr: sum(increase(carlink_security_events_total{type="refresh_token_reuse"}[15m])) > 0
         labels:

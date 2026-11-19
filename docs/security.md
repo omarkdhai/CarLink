@@ -81,6 +81,10 @@ with a `Retry-After` header.
 ## Data at rest
 
 - Passwords: BCrypt strength 12.
+- Distributed guessing (S-11): failed logins are also counted per account across all IPs; at 10 in
+  15 minutes that account's login requires a Turnstile token (`CAPTCHA_REQUIRED`), or, with Turnstile
+  off, one attempt per 30 s (`LOGIN_SLOWED_DOWN`). It is never a lock, so nobody can shut an owner out,
+  and a successful sign-in clears it. Guest orders are capped at 3 per e-mail and 3 per mobile per day.
 - Owner phone numbers are encrypted at rest (AES-256-GCM, `PHONE_ENCRYPTION_KEY`, `v1:` prefix,
   fresh IV per value); the entity holds the plain number for the relay only (security plan S-17).
 - Retention (S-17, `RetentionService`, daily): conversations and their messages are deleted after

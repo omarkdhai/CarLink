@@ -43,6 +43,17 @@ public class ThrottleProperties {
     private Limit relayOwnerDay = new Limit(60, 86400);
     /** S-17: account-deletion attempts (password re-check) per user. */
     private Limit accountDeleteUser = new Limit(5, 3600);
+    /** S-11: guest orders per e-mail address per day (fake orders, confirmation-mail spam). */
+    private Limit orderEmailDay = new Limit(3, 86400);
+    /** S-11: guest orders per mobile number per day. */
+    private Limit orderMobileDay = new Limit(3, 86400);
+    /**
+     * S-11: failed logins on ONE account, from any number of IPs, after which
+     * that account's login needs a captcha (distributed guessing). Never a lock.
+     */
+    private Limit loginAccountFailures = new Limit(10, 900);
+    /** S-11: when captcha is off, a challenged account accepts this many attempts per window instead. */
+    private Limit loginAccountSlow = new Limit(1, 30);
 
     @Getter
     @Setter

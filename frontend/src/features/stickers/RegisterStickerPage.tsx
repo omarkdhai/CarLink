@@ -543,6 +543,8 @@ function errCode(err: unknown): string {
   if (normalized.code === 'STICKER_ALREADY_BOUND') return 'bound'
   if (normalized.code === 'INVALID_STICKER_CODE') return 'invalidCode'
   if (normalized.code === 'EMAIL_ALREADY_REGISTERED') return 'emailTaken'
+  // S-11: this compact form has no bot-check widget; the sign-in page does.
+  if (normalized.code === 'CAPTCHA_REQUIRED') return 'i18n:auth.challengeUseLoginPage'
   return `i18n:${errorI18nKeyForCode(normalized.code) ?? errorI18nKey(normalized.status)}`
 }
 

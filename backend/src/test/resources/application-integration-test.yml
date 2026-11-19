@@ -82,6 +82,15 @@ carlink:
     relay-owner-day:
       max: 100000
       window-seconds: 60
+    order-email-day:
+      max: 100000
+      window-seconds: 60
+    order-mobile-day:
+      max: 100000
+      window-seconds: 60
+    login-account-failures:
+      max: 100000
+      window-seconds: 60
   contact:
     provider: mock
     enabled-channels: SMS
