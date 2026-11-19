@@ -286,10 +286,10 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 
 ### Phase 3 — Ongoing / hygiene (Low)
 
-- [ ] **S-20** Container hardening and digest-pinned images.
-- [ ] **S-21** Invalidate older reset tokens on a new request.
-- [ ] **S-22** Neutral default sender; remove personal address from config.
-- [ ] **S-23** Base64URL token encoding.
+- [x] **S-20** — done 2026-11-19 (every image pinned by digest, Dependabot-managed; all containers no-new-privileges + cap_drop ALL, postgres/redis add back only CHOWN/DAC_OVERRIDE/(FOWNER)/SETGID/SETUID, Caddy NET_BIND_SERVICE; backend, frontend and Caddy read-only with tmpfs /tmp; nginx runs as non-root on 8080). Container hardening and digest-pinned images.
+- [x] **S-21** — done 2026-11-19 (a new reset request, and a completed reset, mark every other unused reset token used). Invalidate older reset tokens on a new request.
+- [x] **S-22** — done 2026-11-19 (defaults no-reply@carlink.invalid; .env.example blank; prod refuses a missing/placeholder MAIL_FROM). Neutral default sender; remove personal address from config.
+- [x] **S-23** — done 2026-11-19 (unpadded Base64URL: 32 bytes = 43 chars = 256 bits, was 192; old tokens stay valid, only hashes are stored). Base64URL token encoding.
 - [ ] **S-25** Security alerting (logs → alerts) and a short incident-response runbook in `deployment.md`.
 - [ ] External penetration test before scaling; repeat this audit after Phase 2.
 

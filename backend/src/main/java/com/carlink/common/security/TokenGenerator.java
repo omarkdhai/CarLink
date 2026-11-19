@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HexFormat;
 
 /**
@@ -18,9 +19,7 @@ import java.util.HexFormat;
 @Component
 public class TokenGenerator {
 
-    private static final char[] URL_SAFE_ALPHABET =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~"
-                    .toCharArray();
+    private static final Base64.Encoder URL_SAFE = Base64.getUrlEncoder().withoutPadding();
 
     /**
      * Ambiguity-free alphabet for short activation codes: no {@code O/0},
@@ -32,20 +31,19 @@ public class TokenGenerator {
     private final SecureRandom secureRandom = new SecureRandom();
 
     /**
-     * Generates a URL-safe random token of {@code byteLength} random bytes.
-     * Resulting string length is roughly {@code byteLength * 4 / 3}.
+     * Generates a URL-safe random token carrying all {@code byteLength * 8}
+     * random bits: unpadded Base64URL ({@code A-Z a-z 0-9 - _}), so 32 bytes
+     * give a 43-character, 256-bit token.
+     *
+     * <p>Security plan S-23: the previous encoder emitted one character per
+     * byte from its low 6 bits, so 32 bytes carried only 192 bits. Tokens
+     * issued before the change stay valid: only {@code sha256(token)} is
+     * stored, whatever the format.
      */
     public String generateUrlSafe(int byteLength) {
         byte[] bytes = new byte[byteLength];
         secureRandom.nextBytes(bytes);
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            // Use positional index mod alphabet length to avoid bias concerns
-            // (alphabet length 66 is not a power of two, so mask to 64 below).
-            int index = (b & 0x3F) % URL_SAFE_ALPHABET.length;
-            sb.append(URL_SAFE_ALPHABET[index]);
-        }
-        return sb.toString();
+        return URL_SAFE.encodeToString(bytes);
     }
 
     /**

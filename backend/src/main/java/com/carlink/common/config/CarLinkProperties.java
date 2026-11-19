@@ -76,8 +76,7 @@ public record CarLinkProperties(
      * @param provider          {@code mock} (logs, dev) or {@code smtp}.
      * @param tokenExpiryMinutes lifetime of verification / reset tokens.
      * @param from              sender address (must be allowed by the SMTP
-     *                          account; until a branded mailbox exists this is
-     *                          the founder's personal address).
+     *                          account); no personal default (S-22).
      * @param replyTo           Reply-To address; customers replying to an order
      *                          confirmation reach a human.
      */

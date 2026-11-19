@@ -4,7 +4,7 @@
 # ============================================
 
 # ---- Build stage ----
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9-eclipse-temurin-17@sha256:1a352420f7aba21f5ad08df31bab55f74c013fb491f1ae8ab1dd7ff9ed698584 AS build
 WORKDIR /build
 
 # Optional mirror for Maven Central, e.g.
@@ -75,7 +75,7 @@ RUN --mount=type=cache,target=/root/.m2,sharing=locked \
     && mv "$(ls -1 target/*.jar | head -n 1)" /build/app.jar
 
 # ---- Runtime stage ----
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
 WORKDIR /app
 
 # Non-root user for production safety; curl for the compose healthcheck

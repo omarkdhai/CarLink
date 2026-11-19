@@ -234,6 +234,39 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void aNewResetLinkVoidsTheOlderOnes() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "relink@example.com", "password", "Secret1234",
+                                "firstName", "R", "lastName", "L", "phone", "",
+                                "stickerCode", freshStickerCode()))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/auth/password-reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "relink@example.com"))))
+                .andExpect(status().isOk());
+        String first = extractToken(capturedEmailBody);
+        mockMvc.perform(post("/api/v1/auth/password-reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "relink@example.com"))))
+                .andExpect(status().isOk());
+        String second = extractToken(capturedEmailBody);
+        assertThat(second).isNotEqualTo(first);
+
+        // S-21: the first link died when the second was sent.
+        mockMvc.perform(post("/api/v1/auth/password-reset/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("token", first, "newPassword", "Another-Pass-1"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_RESET_LINK"));
+        mockMvc.perform(post("/api/v1/auth/password-reset/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("token", second, "newPassword", "Another-Pass-1"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void passwordResetFlowUpdatesPassword() throws Exception {
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

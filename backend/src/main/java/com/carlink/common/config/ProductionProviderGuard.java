@@ -35,6 +35,12 @@ public class ProductionProviderGuard {
                             + "password-reset emails would never be delivered. Set EMAIL_PROVIDER=smtp "
                             + "and the MAIL_* variables.");
         }
+        String from = properties.email().from();
+        if (from == null || from.isBlank() || from.trim().endsWith(".invalid")) {
+            // S-22: no committed default sender any more; prod must name one.
+            throw new IllegalStateException("MAIL_FROM is not set: production needs a real sender "
+                    + "address the SMTP account may send as.");
+        }
         if (!captcha.isEnabled()) {
             log.warn("CAPTCHA_ENABLED=false in production: public forms (orders, alerts, contact, "
                     + "reports) are protected by rate limits only. Configure Turnstile (security plan S-11).");
