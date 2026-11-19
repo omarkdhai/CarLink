@@ -19,6 +19,11 @@ spring:
     port: 1025
 
 carlink:
+  monitoring:
+    scrape-token: integration-test-scrape-token-0123456789abcdef
+  crypto:
+    # Test-only key (S-17).
+    phone-key: 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
   jwt:
     secret: integration-test-secret-key-at-least-32-characters-long!!
     access-expiration-minutes: 15

@@ -42,6 +42,9 @@ const SECRETS = {
   JWT_SECRET: () => hex(48),
   POSTGRES_PASSWORD: () => hex(24),
   REDIS_PASSWORD: () => hex(24),
+  // AES-256 key for owners' phone numbers at rest (security plan S-17).
+  // Changing it makes stored numbers unreadable: generated once, never rotated here.
+  PHONE_ENCRYPTION_KEY: () => hex(32),
   // Meets the password rule (letters + digits); used only to create the first
   // admin when none exists.
   ADMIN_BOOTSTRAP_PASSWORD: () => `Adm${hex(16)}9`,

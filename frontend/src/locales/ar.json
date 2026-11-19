@@ -123,7 +123,8 @@
     "invalidCredentials": "الإيميل ولا كلمة السرّ موش صحاح",
     "emailAlreadyRegistered": "الإيميل هذا عندو حساب ديجا",
     "signInInstead": "ادخل من هنا",
-    "sessionExpired": "وفاتت المدّة متاعك. عاود ادخل"
+    "sessionExpired": "وفاتت المدّة متاعك. عاود ادخل",
+    "accountDeleted": "حسابك تفسخ. يعيشك على استعمال CarLink."
   },
   "vehicle": {
     "title": "الكراهب",
@@ -469,7 +470,6 @@
     "phoneOptional": "نومرو التليفون (موش لازم)",
     "phoneNumberPlaceholder": "22 222 222",
     "save": "سجّل التبديلات",
-    "deleteNotAvailable": "فسخ الحساب موش متاح توّا. كلّمنا و نعاونوك",
     "memberSinceDate": "معانا من {{date}}",
     "personalInfo": "المعلومات الشخصية",
     "personalInfoHint": "اسمك و النومرو اللي توصلك عليه التنبيهات.",
@@ -496,7 +496,11 @@
     "resetSentHint": "ثبّت في {{email}} باش تختار كلمة سرّ جديدة.",
     "alertsHint": "كيفاش CarLink يقلّك اللي فمّا شكون يستحقك.",
     "alertsPhone": "تنبيهات بالـ SMS",
-    "alertsPhoneHint": "التنبيهات توصلك بالـ SMS على النومرو اللي في حسابك."
+    "alertsPhoneHint": "التنبيهات توصلك بالـ SMS على النومرو اللي في حسابك.",
+    "deleteAccountDetails": "كي تفسخ حسابك، الملصقات متاعك يولّيو فارغين (ينجّم حد آخر يفعّلهم)، و الكراهب و التنبيهات و الرسائل متاعك يتفسخو نهائياً. الطلبيات اللي عملتهم يقعدو للمحاسبة.",
+    "deleteAccountConfirmTitle": "تحب تفسخ حسابك؟",
+    "deleteAccountConfirmBody": "ما تنجّمش ترجع فيها. اكتب كلمة السرّ متاعك باش تأكّد.",
+    "deleteAccountConfirm": "إفسخ نهائياً"
   },
   "dashboard": {
     "title": "الحساب متاعي",
@@ -1119,7 +1123,9 @@
     "validation": "فمّا خانات موش صحاح",
     "passwordTooLong": "كلمة السرّ طويلة برشا",
     "passwordTooCommon": "كلمة السرّ هذي ساهلة برشا باش يتخمّنوها. جرّب جملة صغيرة.",
-    "passwordBreached": "كلمة السرّ هذي طلعت في اختراق معروف. اختار وحدة أخرى."
+    "passwordBreached": "كلمة السرّ هذي طلعت في اختراق معروف. اختار وحدة أخرى.",
+    "invalidPassword": "كلمة السرّ موش صحيحة.",
+    "adminAccountDeletion": "حساب المسؤول ما يتفسخش كان من عند مسؤول آخر."
   },
   "validation": {
     "email": "الإيميل موش صحيح",

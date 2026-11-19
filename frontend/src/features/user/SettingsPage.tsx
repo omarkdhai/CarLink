@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { Field } from '@/components/ui/Field'
+import { PasswordInput } from '@/components/ui/PasswordInput'
+import { clearSession } from '@/services/tokenStore'
+import { userApi } from '@/services/userApi'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
 import { Bell, Check, ChevronRight, Info, KeyRound, Languages, Trash2 } from 'lucide-react'
@@ -34,6 +39,27 @@ export default function SettingsPage() {
       /* storage unavailable: the choice still applies for this session */
     }
   }
+
+  // Account deletion (security plan S-17): password-confirmed, then the local
+  // session is dropped and the owner lands on the sign-in page with a notice.
+  const navigate = useNavigate()
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const openDelete = () => {
+    setDeletePassword('')
+    setDeleteError(null)
+    setDeleteOpen(true)
+  }
+  const deleteAccount = useMutation({
+    mutationFn: (password: string) => userApi.deleteAccount(password),
+    onSuccess: () => {
+      setDeleteOpen(false)
+      clearSession()
+      navigate('/login', { replace: true, state: { accountDeleted: true } })
+    },
+    onError: (err) => setDeleteError(http.humanizeError(err)),
+  })
 
   const reset = useMutation({
     mutationFn: () => authApi.requestPasswordReset(user?.email ?? ''),
@@ -110,13 +136,44 @@ export default function SettingsPage() {
       <SettingsSection icon={Trash2} tone="bg-destructive-soft text-destructive" title={t('settings.dangerZone')} description={t('settings.deleteAccountHint')} danger>
         <div className="flex items-start gap-3 rounded-xl bg-muted/60 p-4 mb-4">
           <Info className="h-4 w-4 text-muted-fg shrink-0 mt-0.5" aria-hidden />
-          <p className="text-sm text-muted-fg leading-relaxed">{t('profile.deleteNotAvailable')}</p>
+          <p className="text-sm text-muted-fg leading-relaxed">{t('settings.deleteAccountDetails')}</p>
         </div>
-        <Button variant="danger" disabled>
+        <Button variant="danger" onClick={openDelete}>
           <Trash2 className="h-4 w-4" aria-hidden />
           {t('settings.deleteAccount')}
         </Button>
       </SettingsSection>
+      <ConfirmDialog
+        open={deleteOpen}
+        title={t('settings.deleteAccountConfirmTitle')}
+        confirmLabel={t('settings.deleteAccountConfirm')}
+        loading={deleteAccount.isPending}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={() => {
+          if (!deletePassword) {
+            setDeleteError(t('validation.passwordRequired'))
+            return
+          }
+          deleteAccount.mutate(deletePassword)
+        }}
+        description={
+          <span className="block">
+            <span className="block">{t('settings.deleteAccountConfirmBody')}</span>
+            <span className="mt-4 block">
+              <Field label={t('auth.password')} error={deleteError ?? undefined}>
+                <PasswordInput
+                  autoComplete="current-password"
+                  value={deletePassword}
+                  onChange={(e) => {
+                    setDeletePassword(e.target.value)
+                    setDeleteError(null)
+                  }}
+                />
+              </Field>
+            </span>
+          </span>
+        }
+      />
       {toast.node}
     </div>
   )

@@ -71,6 +71,22 @@ jobs:
       - name: npm audit (production dependencies)
         run: npm audit --omit=dev --audit-level=high
 
+  alert-rules:
+    name: Prometheus alert rules (promtool)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Security plan S-25: a broken rule file would silently disable alerting.
+      - name: promtool check rules + config
+        run: |
+          img=prom/prometheus:v3.16.0@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06
+          docker run --rm --entrypoint promtool -v "$PWD/monitoring/prometheus:/cfg:ro" "$img" \
+            check rules /cfg/alerts.yml
+          docker run --rm --entrypoint promtool -v "$PWD/monitoring/prometheus:/cfg:ro" "$img" \
+            check config --syntax-only /cfg/prometheus.yml
+
   docker:
     name: Docker image ${{ matrix.service }} + Trivy
     runs-on: ubuntu-latest

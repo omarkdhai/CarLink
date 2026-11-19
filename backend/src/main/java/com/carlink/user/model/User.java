@@ -1,7 +1,9 @@
 package com.carlink.user.model;
 
 import com.carlink.common.entity.BaseEntity;
+import com.carlink.privacy.EncryptedPhoneConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -41,8 +43,12 @@ public class User extends BaseEntity {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    /** Private owner phone. NEVER returned to clients or embedded in QR/web content. */
-    @Column(length = 20)
+    /**
+     * Private owner phone. NEVER returned to clients or embedded in QR/web content.
+     * Encrypted at rest with AES-256-GCM (security plan S-17); plain in the entity.
+     */
+    @Convert(converter = EncryptedPhoneConverter.class)
+    @Column(length = 255)
     private String phone;
 
     @Column(name = "first_name", length = 100)

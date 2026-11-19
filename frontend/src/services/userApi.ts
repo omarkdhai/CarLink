@@ -13,6 +13,14 @@ export const userApi = {
   updateProfile(data: UpdateProfileRequest): Promise<UserResponse> {
     return apiClient.patch<UserResponse>(`${BASE}/me`, data).then((r) => r.data)
   },
+
+  /**
+   * Delete own account (security plan S-17), confirmed with the password.
+   * Releases the stickers and erases vehicles, alerts and messages.
+   */
+  deleteAccount(password: string): Promise<void> {
+    return apiClient.delete(`${BASE}/me`, { data: { password } }).then(() => undefined)
+  },
 }
 
 export const userQueryKeys = {

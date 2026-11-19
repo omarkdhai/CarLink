@@ -41,4 +41,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> search(@Param("q") String q,
                       @Param("active") Boolean active,
                       @Param("role") Role role);
+
+    /**
+     * Hard delete (security plan S-17). The database cascades the rest:
+     * vehicles, QR codes, conversations, messages and tokens go with the
+     * user; audit-log and sticker references are set to NULL.
+     */
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from User u where u.id = :id")
+    int hardDelete(@Param("id") UUID id);
 }

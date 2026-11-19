@@ -8,6 +8,7 @@ import com.carlink.auth.dto.RegisterRequest;
 import com.carlink.auth.dto.ResetPasswordRequest;
 import com.carlink.auth.model.EmailVerificationToken;
 import com.carlink.auth.password.PasswordPolicy;
+import com.carlink.security.monitoring.SecurityEvents;
 import com.carlink.auth.model.PasswordResetToken;
 import com.carlink.auth.model.RefreshToken;
 import com.carlink.auth.repository.EmailVerificationTokenRepository;
@@ -68,6 +69,7 @@ public class AuthService {
     private final StickerRepository stickerRepository;
     private final SessionInvalidator sessionInvalidator;
     private final PasswordPolicy passwordPolicy;
+    private final SecurityEvents securityEvents;
 
     // ---------- Register ----------
 
@@ -187,6 +189,9 @@ public class AuthService {
                 });
 
         loginAttemptService.reset(clientIp, email);
+        if (user.getRole() == Role.ADMIN) {
+            securityEvents.record(SecurityEvents.Type.ADMIN_LOGIN); // S-25: every admin sign-in is visible
+        }
         return issueTokenPair(user);
     }
 
@@ -202,6 +207,10 @@ public class AuthService {
                 .orElseThrow(() -> new UnauthorizedException("Invalid or expired session"));
 
         if (token.isRevoked() || token.isExpired()) {
+            if (token.isRevoked()) {
+                // A rotated token came back: someone else may hold this session (S-25).
+                securityEvents.record(SecurityEvents.Type.REFRESH_TOKEN_REUSE);
+            }
             revokeFamily(token.getUser().getId());
             throw new UnauthorizedException("Invalid or expired session");
         }

@@ -53,6 +53,9 @@ development-grade default if omitted.
 | `TELNYX_CONNECTION_ID` | Call Control connection the outbound alert call is placed on. |
 | `TELNYX_VOICE_AUDIO_URL` | Public HTTPS URL of the clip played when the owner answers. Without it the alert call is skipped (a call to silence is worse than none). |
 | `HSTS_ENABLED` | `false` until TLS is confirmed working — see §3. |
+| `PHONE_ENCRYPTION_KEY` | **Required.** AES-256 key for owners' phone numbers at rest: 64 hex characters (`openssl rand -hex 32`). Never change it on a live database — the stored numbers become unreadable — and keep its backup apart from database dumps (S-17). |
+| `METRICS_SCRAPE_TOKEN` | Optional. Prometheus credential for `/actuator/prometheus` only (32+ chars, `openssl rand -hex 32`); see §11. |
+| `RETENTION_*` | Data-retention periods, run daily at 03:30 (`RETENTION_CRON`): `RETENTION_CONVERSATION_DAYS` (90), `RETENTION_TOKEN_GRACE_DAYS` (7), `RETENTION_IP_DAYS` (90), `RETENTION_CONTACT_MESSAGE_DAYS` (365); `RETENTION_ENABLED=false` pauses it (e.g. during a restore). |
 | `PASSWORD_BREACH_CHECK` | Default `true` in prod: new passwords are checked against Have I Been Pwned by k-anonymity (only 5 hex characters of the SHA-1 leave the server). Needs outbound HTTPS to `api.pwnedpasswords.com`; if it is unreachable the check fails open. |
 | `JWT_ADMIN_ACCESS_EXPIRATION_MINUTES` | Admin access-token lifetime, default `5` (S-10). |
 
@@ -231,13 +234,40 @@ The backend runs as the unprivileged `carlink` user (`uid=999`), not root.
 
 ## 11. Monitoring
 
-`/actuator/prometheus` and `/actuator/metrics` are **authenticated** — they fall
-through to the authenticated rule in `SecurityConfig`, so a scraper needs
-credentials. Only `/actuator/health`, `/actuator/health/*` and
-`/actuator/info` are public, and they must stay public for probes to work.
+Metrics live at `/actuator/prometheus` on the backend (`backend:8080` inside the
+Docker network). They are never reachable through nginx (security plan S-05),
+and reading them needs either an ADMIN token or, for Prometheus,
+`METRICS_SCRAPE_TOKEN` (32+ characters), which opens that one path and nothing
+else (S-25).
 
-Worth alerting on: readiness flapping, 5xx rate, `429` rate on `/c/{token}`
-(possible scan abuse), and Postgres disk growth.
+**Security signals (S-25).** Every security-relevant event increments
+`carlink_security_events_total{type, detail}` and writes one line on the
+`carlink.security` logger — `SECURITY_EVENT type=… detail=…` — with no
+personal data (`detail` is a route pattern or a fixed name):
+
+| type | Meaning |
+|---|---|
+| `login_failure` | Wrong e-mail or password |
+| `login_blocked` | Login refused by an (IP, e-mail) lockout |
+| `rate_limited` | Any 429; `detail` is the route pattern |
+| `captcha_failed` | Turnstile token missing or rejected |
+| `admin_login` | An administrator signed in |
+| `refresh_token_reuse` | A rotated refresh token was replayed (sessions revoked automatically) |
+| `sessions_revoked` | An account's sessions were ended (deactivation, role change, reset) |
+| `account_deleted` | An owner deleted their account |
+| `server_error` | Unhandled exception (500); `detail` is the exception class |
+
+**Alert rules.** `monitoring/prometheus/alerts.yml` (validated in CI by
+`promtool`) covers: backend down, 5xx bursts, failed-login spikes, lockouts,
+429 spikes per route, captcha failures, refresh-token reuse, every admin
+sign-in, and mass session revocation. `monitoring/prometheus/prometheus.yml`
+is a ready scrape config: run Prometheus on the CarLink network, put the scrape
+token in `/etc/prometheus/scrape-token`, and point it at an Alertmanager that
+reaches a person (e-mail or Telegram).
+
+**Without Prometheus**, alert on the log lines instead: `SECURITY_EVENT
+type=refresh_token_reuse`, `type=server_error` (both WARN) and bursts of the
+others. Also watch Postgres disk growth and readiness flapping.
 
 ## 12. Troubleshooting
 
@@ -320,3 +350,37 @@ values. Rotation of an existing stack:
 4. The bootstrap admin is only created when absent: changing
    `ADMIN_BOOTSTRAP_PASSWORD` does not change an existing admin's password —
    use the password-reset flow for that.
+
+
+## 16. Incident response (security plan S-25)
+
+Keep it short and in this order. Write down times and actions as you go.
+
+**1. Confirm.** Which alert fired, since when, how many events? Read the
+`SECURITY_EVENT` lines and the audit log (`/admin` → Audit). Is it one
+account, one route, one IP range, or everything?
+
+**2. Contain** — pick what fits, smallest first:
+
+| Situation | Action |
+|---|---|
+| One account taken over | Admin → Users → **Deactivate**: ends all its sessions at once (S-10). Then the owner resets their password. |
+| Credential stuffing / login flood | Lower `carlink.throttle.login-ip`, and turn on Turnstile (`CAPTCHA_ENABLED=true`) if it is off. |
+| Public forms or relay abused | Turn on Turnstile; lower the `relay-*` throttles; set a hard daily cap in the Telnyx portal (§14). |
+| Refresh-token reuse repeats for one user | Deactivate the account; check their devices with them. |
+| Admin account suspicious | Deactivate it from another admin account; rotate `ADMIN_BOOTSTRAP_PASSWORD` only if that account is the bootstrap admin. |
+| `JWT_SECRET` exposed | Replace it (§15) and restart: every access token dies, everybody signs in again. |
+| Database or Redis password exposed | Rotate per §15; check `pg_stat_activity` for unknown clients. |
+| `PHONE_ENCRYPTION_KEY` exposed together with a DB dump | Treat owners' phone numbers as disclosed (step 4). Re-keying needs a re-encryption job — do not just swap the key, or every number becomes unreadable. |
+| Server compromised | Take it off the network, keep the disk for analysis, rebuild from Git on a clean host, restore the last good backup (§8), rotate **every** secret. |
+
+**3. Eradicate and recover.** Fix the cause (patch, config, revoked key), deploy,
+and watch the same alert stay quiet for a day.
+
+**4. Notify.** If personal data (e-mails, phone numbers, messages) may have been
+read by someone else: the INPDP (Tunisian data-protection authority, Organic
+Law 2004-63) and, for EU visitors, GDPR's 72-hour rule. Tell affected owners
+plainly what happened and what to do.
+
+**5. Learn.** A short note in `docs/progress.md`: timeline, cause, what changed,
+and any new alert or test that would have caught it earlier.

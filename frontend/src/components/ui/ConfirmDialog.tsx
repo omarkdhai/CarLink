@@ -67,7 +67,8 @@ export function ConfirmDialog({
             <h2 id="confirm-dialog-title" className="text-base font-bold text-heading">
               {title}
             </h2>
-            {description && <p className="text-sm text-muted-fg mt-1">{description}</p>}
+            {/* div, not p: a description may hold a form field (e.g. password re-check). */}
+            {description && <div className="text-sm text-muted-fg mt-1">{description}</div>}
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">

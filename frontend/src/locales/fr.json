@@ -118,7 +118,8 @@
     "invalidCredentials": "E-mail ou mot de passe invalide",
     "emailAlreadyRegistered": "Cette adresse e-mail est déjà enregistrée.",
     "signInInstead": "Se connecter à la place",
-    "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter."
+    "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter.",
+    "accountDeleted": "Votre compte a été supprimé. Merci d’avoir utilisé CarLink."
   },
   "vehicle": {
     "title": "Mes véhicules",
@@ -459,7 +460,6 @@
     "phoneOptional": "Téléphone (facultatif)",
     "phoneNumberPlaceholder": "22 222 222",
     "save": "Enregistrer les modifications",
-    "deleteNotAvailable": "La suppression de compte en libre-service n'est pas encore disponible. Contactez le support pour toute demande.",
     "memberSinceDate": "Membre depuis le {{date}}",
     "personalInfo": "Informations personnelles",
     "personalInfoHint": "Votre nom et le numéro qui reçoit les alertes.",
@@ -486,7 +486,11 @@
     "resetSentHint": "Consultez {{email}} pour choisir un nouveau mot de passe.",
     "alertsHint": "Comment CarLink vous prévient quand on a besoin de vous.",
     "alertsPhone": "Alertes par SMS",
-    "alertsPhoneHint": "Les alertes de contact sont envoyées par SMS au numéro de votre profil."
+    "alertsPhoneHint": "Les alertes de contact sont envoyées par SMS au numéro de votre profil.",
+    "deleteAccountDetails": "Supprimer votre compte libère vos autocollants (ils pourront être réactivés) et efface définitivement vos véhicules, alertes et messages. Les commandes passées sont conservées pour la comptabilité.",
+    "deleteAccountConfirmTitle": "Supprimer votre compte ?",
+    "deleteAccountConfirmBody": "Cette action est définitive. Saisissez votre mot de passe pour confirmer.",
+    "deleteAccountConfirm": "Supprimer définitivement"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -1206,7 +1210,9 @@
     "validation": "Certains champs sont invalides.",
     "passwordTooLong": "Le mot de passe est trop long",
     "passwordTooCommon": "Ce mot de passe est trop facile à deviner. Essayez une petite phrase.",
-    "passwordBreached": "Ce mot de passe a fuité lors d’un piratage connu. Choisissez-en un autre."
+    "passwordBreached": "Ce mot de passe a fuité lors d’un piratage connu. Choisissez-en un autre.",
+    "invalidPassword": "Le mot de passe est incorrect.",
+    "adminAccountDeletion": "Un compte administrateur ne peut être supprimé que par un autre administrateur."
   },
   "validation": {
     "email": "Adresse e-mail invalide",

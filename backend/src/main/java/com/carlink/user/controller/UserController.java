@@ -1,6 +1,15 @@
 package com.carlink.user.controller;
 
+import com.carlink.auth.controller.RefreshCookie;
 import com.carlink.common.exception.UnauthorizedException;
+import com.carlink.security.ratelimit.Throttle;
+import com.carlink.security.ratelimit.ThrottleProperties;
+import com.carlink.user.dto.DeleteAccountRequest;
+import com.carlink.user.service.AccountDeletionService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import com.carlink.security.principal.UserPrincipal;
 import com.carlink.user.dto.UpdateProfileRequest;
 import com.carlink.user.model.UserResponse;
@@ -28,6 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final AccountDeletionService accountDeletionService;
+    private final Throttle throttle;
+    private final ThrottleProperties limits;
+    private final RefreshCookie refreshCookie;
 
     @GetMapping("/me")
     @Operation(summary = "Current user's profile (own private phone included)")
@@ -40,6 +53,22 @@ public class UserController {
     public UserResponse updateProfile(@AuthenticationPrincipal UserPrincipal principal,
                                       @Valid @RequestBody UpdateProfileRequest request) {
         return userService.updateProfile(requireId(principal), request);
+    }
+
+    @DeleteMapping("/me")
+    @Operation(summary = "Delete own account and its data (password confirmation)",
+            description = "Releases the owner's stickers, deletes the account with its vehicles, "
+                    + "conversations and messages, ends every session and clears the refresh cookie "
+                    + "(security plan S-17).")
+    public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal UserPrincipal principal,
+                                              @Valid @RequestBody DeleteAccountRequest request,
+                                              HttpServletRequest http, HttpServletResponse response) {
+        java.util.UUID userId = requireId(principal);
+        throttle.require("account-delete-user", limits.getAccountDeleteUser(), userId.toString());
+        accountDeletionService.deleteOwnAccount(userId, request.password(),
+                http.getRemoteAddr(), http.getHeader("User-Agent"));
+        refreshCookie.clear(response);
+        return ResponseEntity.noContent().build();
     }
 
     private java.util.UUID requireId(UserPrincipal principal) {

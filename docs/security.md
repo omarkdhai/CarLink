@@ -81,6 +81,17 @@ with a `Retry-After` header.
 ## Data at rest
 
 - Passwords: BCrypt strength 12.
+- Owner phone numbers are encrypted at rest (AES-256-GCM, `PHONE_ENCRYPTION_KEY`, `v1:` prefix,
+  fresh IV per value); the entity holds the plain number for the relay only (security plan S-17).
+- Retention (S-17, `RetentionService`, daily): conversations and their messages are deleted after
+  90 days (kept while an abuse report on them is OPEN); expired/revoked/used tokens after 7 days;
+  IP addresses and user agents in audit logs and reports are erased after 90 days; public contact
+  messages are deleted after 365 days. Guest orders (name, mobile, address) are kept as business
+  records; they are not linked to accounts.
+- Account deletion (S-17): `DELETE /api/v1/users/me` with the current password releases the
+  owner's stickers (claimable again, owner cleared) and hard-deletes the account; the database
+  cascades vehicles, QR codes, conversations, messages and tokens. Live sessions end at once.
+  Only an `ACCOUNT_DELETED` audit entry with the id remains. Admins cannot self-delete.
 - Password policy (security plan S-14, NIST SP 800-63B): at least 10 characters and at most 72 bytes
   (BCrypt's limit), any characters — passphrases welcome, no composition rule. Refused: common
   passwords (`security/common-passwords.txt`), one or two repeated characters, keyboard/digit runs,

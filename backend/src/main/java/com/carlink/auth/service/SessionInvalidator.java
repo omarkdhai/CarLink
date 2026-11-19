@@ -1,6 +1,7 @@
 package com.carlink.auth.service;
 
 import com.carlink.auth.repository.RefreshTokenRepository;
+import com.carlink.security.monitoring.SecurityEvents;
 import com.carlink.security.session.SessionStateCache;
 import com.carlink.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class SessionInvalidator {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final SessionStateCache sessionStateCache;
+    private final SecurityEvents securityEvents;
 
     public void invalidateAll(User user) {
         user.setTokenVersion(user.getTokenVersion() + 1);
@@ -26,5 +28,6 @@ public class SessionInvalidator {
             refreshTokenRepository.save(token);
         });
         sessionStateCache.evictAfterCommit(user.getId());
+        securityEvents.record(SecurityEvents.Type.SESSIONS_REVOKED);
     }
 }

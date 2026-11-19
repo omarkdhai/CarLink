@@ -3,7 +3,7 @@
 # Usage:  docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 #
 # Required env (see .env.example): POSTGRES_PASSWORD, REDIS_PASSWORD,
-# JWT_SECRET, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD,
+# JWT_SECRET, PHONE_ENCRYPTION_KEY, MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD,
 # APP_BASE_URL, APP_PUBLIC_URL, CARLINK_DOMAIN, ACME_EMAIL.
 # ============================================
 
@@ -92,6 +92,9 @@ services:
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      PHONE_ENCRYPTION_KEY: ${PHONE_ENCRYPTION_KEY:?PHONE_ENCRYPTION_KEY is required (64 hex chars)}
+      # Prometheus scrape credential for /actuator/prometheus (S-25); optional.
+      METRICS_SCRAPE_TOKEN: ${METRICS_SCRAPE_TOKEN:-}
       MAIL_HOST: ${MAIL_HOST:?MAIL_HOST is required}
       MAIL_PORT: ${MAIL_PORT:-465}
       MAIL_USERNAME: ${MAIL_USERNAME:?MAIL_USERNAME is required}

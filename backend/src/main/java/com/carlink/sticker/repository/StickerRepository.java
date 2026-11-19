@@ -78,4 +78,16 @@ public interface StickerRepository extends JpaRepository<Sticker, UUID> {
               and s.status = com.carlink.sticker.model.StickerStatus.BOUND
             group by s.vehicle.id""")
     List<Object[]> countBoundByVehicleIds(@Param("vehicleIds") Collection<UUID> vehicleIds);
+
+    /**
+     * Account deletion (security plan S-17): every sticker of the owner becomes
+     * claimable again, with no trace of who held it.
+     */
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true)
+    @Query("""
+            update Sticker s
+               set s.status = com.carlink.sticker.model.StickerStatus.DEACTIVATED,
+                   s.vehicle = null, s.owner = null, s.deactivatedAt = :now
+             where s.owner.id = :ownerId""")
+    int releaseAllOwnedBy(@Param("ownerId") UUID ownerId, @Param("now") java.time.Instant now);
 }
