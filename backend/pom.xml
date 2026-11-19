@@ -22,7 +22,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <jjwt.version>0.13.0</jjwt.version>
-        <zxing.version>3.5.3</zxing.version>
+        <zxing.version>3.5.4</zxing.version>
         <springdoc.version>3.2.0</springdoc.version>
         <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
@@ -157,12 +157,12 @@
         <dependency>
             <groupId>com.telnyx.sdk</groupId>
             <artifactId>telnyx</artifactId>
-            <version>6.89.0</version>
+            <version>6.98.0</version>
         </dependency>
         <dependency>
             <groupId>com.telnyx.sdk</groupId>
             <artifactId>telnyx-client-okhttp</artifactId>
-            <version>6.89.0</version>
+            <version>6.98.0</version>
         </dependency>
 
         <!-- Lombok -->
