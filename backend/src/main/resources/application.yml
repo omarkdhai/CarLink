@@ -125,6 +125,20 @@ carlink:
     # Refresh token (long-lived)
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
 
+  # Owners' phone numbers are encrypted at rest with this AES-256 key
+  # (security plan S-17): 64 hex characters, required, never rotate casually.
+  crypto:
+    phone-key: ${PHONE_ENCRYPTION_KEY:}
+
+  # Data retention (security plan S-17), run daily by RetentionService.
+  retention:
+    enabled: ${RETENTION_ENABLED:true}
+    cron: ${RETENTION_CRON:0 30 3 * * *}
+    conversation-days: ${RETENTION_CONVERSATION_DAYS:90}
+    token-grace-days: ${RETENTION_TOKEN_GRACE_DAYS:7}
+    ip-days: ${RETENTION_IP_DAYS:90}
+    contact-message-days: ${RETENTION_CONTACT_MESSAGE_DAYS:365}
+
   password:
     # Breached-password check (security plan S-14); on in the prod profile.
     breach-check: ${PASSWORD_BREACH_CHECK:false}

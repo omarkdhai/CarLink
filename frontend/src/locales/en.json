@@ -118,7 +118,8 @@
     "invalidCredentials": "Invalid email or password",
     "emailAlreadyRegistered": "This email is already registered.",
     "signInInstead": "Sign in instead",
-    "sessionExpired": "Your session has expired. Please sign in again."
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "accountDeleted": "Your account has been deleted. Thank you for using CarLink."
   },
   "vehicle": {
     "title": "My vehicles",
@@ -459,7 +460,6 @@
     "phoneOptional": "Phone (optional)",
     "phoneNumberPlaceholder": "22 222 222",
     "save": "Save changes",
-    "deleteNotAvailable": "Self-service account deletion is not available yet. Contact support for any request.",
     "memberSinceDate": "Member since {{date}}",
     "personalInfo": "Personal information",
     "personalInfoHint": "Your name and the phone number alerts are sent to.",
@@ -486,7 +486,11 @@
     "resetSentHint": "Check {{email}} for a link to choose a new password.",
     "alertsHint": "How CarLink tells you someone needs you.",
     "alertsPhone": "SMS alerts",
-    "alertsPhoneHint": "Contact alerts are sent by SMS to the phone number on your profile."
+    "alertsPhoneHint": "Contact alerts are sent by SMS to the phone number on your profile.",
+    "deleteAccountDetails": "Deleting your account releases your stickers (they can be activated again) and permanently erases your vehicles, alerts and messages. Orders you placed are kept for accounting.",
+    "deleteAccountConfirmTitle": "Delete your account?",
+    "deleteAccountConfirmBody": "This cannot be undone. Enter your password to confirm.",
+    "deleteAccountConfirm": "Delete for good"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1186,7 +1190,9 @@
     "validation": "Some fields are invalid.",
     "passwordTooLong": "Password is too long",
     "passwordTooCommon": "This password is too easy to guess. Try a short phrase.",
-    "passwordBreached": "This password appeared in a known data breach. Please choose another one."
+    "passwordBreached": "This password appeared in a known data breach. Please choose another one.",
+    "invalidPassword": "The password is not correct.",
+    "adminAccountDeletion": "An administrator account can only be removed by another administrator."
   },
   "validation": {
     "email": "Invalid email address",

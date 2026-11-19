@@ -41,6 +41,8 @@ public class ThrottleProperties {
     private Limit relayStickerDay = new Limit(30, 86400);
     /** S-12: relayed alerts per owner per day, across all their stickers. */
     private Limit relayOwnerDay = new Limit(60, 86400);
+    /** S-17: account-deletion attempts (password re-check) per user. */
+    private Limit accountDeleteUser = new Limit(5, 3600);
 
     @Getter
     @Setter

@@ -65,6 +65,8 @@ const CODE_I18N_KEYS: Record<string, string> = {
   PASSWORD_TOO_LONG: 'errors.passwordTooLong',
   PASSWORD_TOO_COMMON: 'errors.passwordTooCommon',
   PASSWORD_BREACHED: 'errors.passwordBreached',
+  INVALID_PASSWORD: 'errors.invalidPassword',
+  ADMIN_ACCOUNT_DELETION: 'errors.adminAccountDeletion',
   INVALID_VERIFICATION_LINK: 'errors.invalidVerificationLink',
 }
 

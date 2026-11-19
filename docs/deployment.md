@@ -53,6 +53,8 @@ development-grade default if omitted.
 | `TELNYX_CONNECTION_ID` | Call Control connection the outbound alert call is placed on. |
 | `TELNYX_VOICE_AUDIO_URL` | Public HTTPS URL of the clip played when the owner answers. Without it the alert call is skipped (a call to silence is worse than none). |
 | `HSTS_ENABLED` | `false` until TLS is confirmed working — see §3. |
+| `PHONE_ENCRYPTION_KEY` | **Required.** AES-256 key for owners' phone numbers at rest: 64 hex characters (`openssl rand -hex 32`). Never change it on a live database — the stored numbers become unreadable — and keep its backup apart from database dumps (S-17). |
+| `RETENTION_*` | Data-retention periods, run daily at 03:30 (`RETENTION_CRON`): `RETENTION_CONVERSATION_DAYS` (90), `RETENTION_TOKEN_GRACE_DAYS` (7), `RETENTION_IP_DAYS` (90), `RETENTION_CONTACT_MESSAGE_DAYS` (365); `RETENTION_ENABLED=false` pauses it (e.g. during a restore). |
 | `PASSWORD_BREACH_CHECK` | Default `true` in prod: new passwords are checked against Have I Been Pwned by k-anonymity (only 5 hex characters of the SHA-1 leave the server). Needs outbound HTTPS to `api.pwnedpasswords.com`; if it is unreachable the check fails open. |
 | `JWT_ADMIN_ACCESS_EXPIRATION_MINUTES` | Admin access-token lifetime, default `5` (S-10). |
 

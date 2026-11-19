@@ -17,6 +17,8 @@ import { PasswordInput } from '@/components/ui/PasswordInput'
 
 interface LocationState {
   from?: { pathname?: string }
+  /** Set by Settings after a successful account deletion (S-17). */
+  accountDeleted?: boolean
 }
 
 export default function LoginPage() {
@@ -53,6 +55,9 @@ export default function LoginPage() {
       <AuthHeader title={t('auth.loginTitle')} subtitle={t('auth.loginSubtitle')} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        {(location.state as LocationState | null)?.accountDeleted && !submissionError && (
+          <Alert tone="success">{t('auth.accountDeleted')}</Alert>
+        )}
         {submissionError && (
           <div role="alert">
             <Alert tone="error">{submissionError}</Alert>
