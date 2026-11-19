@@ -14,12 +14,19 @@ import org.springframework.stereotype.Component;
 /**
  * Creates the initial ADMIN user on startup when {@code carlink.admin.bootstrap-email}
  * is configured and no user with that email exists. Disabled by default (empty
- * credentials); enabled in the dev profile only. Idempotent — never overwrites.
+ * credentials). Idempotent — never overwrites.
+ *
+ * <p>Production uses it once for the first deploy: set the two variables, sign in,
+ * change the password, then remove {@code ADMIN_BOOTSTRAP_PASSWORD}. An e-mail
+ * without a usable password stops startup rather than creating an admin whose
+ * password is empty.</p>
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AdminBootstrapRunner implements ApplicationRunner {
+
+    static final int MIN_PASSWORD_LENGTH = 12;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -34,9 +41,15 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
             return;
         }
+        String password = properties.admin().bootstrapPassword() == null
+                ? "" : properties.admin().bootstrapPassword().trim();
+        if (password.length() < MIN_PASSWORD_LENGTH) {
+            throw new IllegalStateException("ADMIN_BOOTSTRAP_EMAIL is set but ADMIN_BOOTSTRAP_PASSWORD "
+                    + "is missing or shorter than " + MIN_PASSWORD_LENGTH + " characters");
+        }
         User admin = User.newUser(
                 email.trim().toLowerCase(),
-                passwordEncoder.encode(properties.admin().bootstrapPassword().trim()),
+                passwordEncoder.encode(password),
                 "Admin", "Admin", Role.ADMIN);
         admin.setActive(true);
         admin.setEmailVerified(true);
