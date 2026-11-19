@@ -59,7 +59,6 @@ Severity: **Critical** = exploitable now with high impact · **High** = must be 
 | S-12 | Medium | Abuse | SMS relay: harassment/cost abuse (20 SMS/h per sticker), free text relayed |
 | S-13 | Medium | Auth | Registration leaks account existence + sticker-code validity; does not check the sticker is claimable |
 | S-14 | Medium | Auth | Weak password policy; `LoginRequest` has no size bound |
-| S-15 | Medium | Admin | No MFA for administrators; bootstrap password in config |
 | S-16 | Medium | Privacy | **Mock senders log message content / reset links — and prod defaults to the mock relay** |
 | S-17 | Medium | Privacy | No retention/purge; phone stored in plaintext; no account deletion |
 | S-18 | Medium | Config | Public JWT default secret in the *base* profile; unused `JWT_REFRESH_SECRET` |
@@ -169,11 +168,6 @@ Severity: **Critical** = exploitable now with high impact · **High** = must be 
   (BCrypt silently truncates at 72 bytes).
 - **Fix:** min 10–12 chars, allow passphrases, optional HIBP k-anonymity check, `@Size(max=72)` on login.
 
-#### S-15 — Admin hardening
-- Admins log in like owners, no second factor; bootstrap credentials come from config.
-- **Fix:** TOTP MFA required for `ADMIN`; bootstrap password only from env and forced change on first
-  login; shorter admin sessions; alert on admin login.
-
 #### S-16 — Sensitive data logged by mock senders (and prod default)
 - `LogContactChannelSender` logs the **visitor's message**; `LogEmailSender` logs full e-mail bodies
   including **verification/reset links**. `docker-compose.prod.yml` defaults `CONTACT_PROVIDER=mock`, so
@@ -279,7 +273,6 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 - [x] **S-10** — done 2026-11-19 (tokenVersion "tv" claim + V9 column; JWT filter checks active/role/version against live state — DB on /api/v1/admin/**, 30 s cache elsewhere, evicted on commit; deactivation, role change and password reset end all sessions; admin access TTL 5 min). Admin routes re-check `active`/`role`; admin access TTL 5 min; `tokenVersion` claim.
 - [x] **S-13** — done 2026-11-19 (BOUND stickers refused with STICKER_ALREADY_BOUND; sticker checked before the e-mail, so EMAIL_ALREADY_REGISTERED needs a real unclaimed code; both behind the S-03 register throttle). Registration checks sticker is claimable; responses reviewed with S-03 in place.
 - [x] **S-14** — done 2026-11-19 (PasswordPolicy: 10 chars min / 72 bytes max, no composition rule, common/pattern/e-mail-name refusals, HIBP k-anonymity in prod failing open; login capped, >72-byte login = 401 instead of a BCrypt 500; SPA checklist + messages in fr/en/ar). Password policy (min length, passphrases, optional HIBP); `@Size(max=72)` on login.
-- [ ] **S-15** TOTP MFA for admins; forced password change for the bootstrap admin.
 - [x] **S-17** — done 2026-11-19 (daily RetentionService: conversations+messages after 90 d unless under an OPEN report, dead tokens after 7 d, IPs/user agents erased after 90 d, contact messages after 365 d; users.phone AES-256-GCM via PHONE_ENCRYPTION_KEY with startup backfill; DELETE /api/v1/users/me with password re-check releases stickers and hard-deletes the account, Settings UI in fr/en/ar). Purge jobs, IP anonymisation, phone column encryption, account deletion endpoint + UI.
 - [x] **S-19** — done 2026-11-19 (ci.yml: contents:read, SHA-pinned actions, frontend lint/test/build/npm audit job, both images built and Trivy-scanned; security.yml: gitleaks, CodeQL java+ts (security-extended), Trivy fs dependency scan to the Security tab, weekly schedule; dependabot.yml for maven/npm/docker/compose/actions. OWASP dependency-check replaced by Trivy fs: no NVD key needed. Gates fail on fixable CRITICAL; HIGH reported). CI: Dependabot (maven, npm, docker, actions), dependency-check, CodeQL/Semgrep, gitleaks,
   Trivy on both images, frontend build/test/audit job, `permissions: contents: read`, SHA-pinned actions.
@@ -290,7 +283,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 - [x] **S-21** — done 2026-11-19 (a new reset request, and a completed reset, mark every other unused reset token used). Invalidate older reset tokens on a new request.
 - [x] **S-22** — done 2026-11-19 (defaults no-reply@carlink.invalid; .env.example blank; prod refuses a missing/placeholder MAIL_FROM). Neutral default sender; remove personal address from config.
 - [x] **S-23** — done 2026-11-19 (unpadded Base64URL: 32 bytes = 43 chars = 256 bits, was 192; old tokens stay valid, only hashes are stored). Base64URL token encoding.
-- [ ] **S-25** Security alerting (logs → alerts) and a short incident-response runbook in `deployment.md`.
+- [x] **S-25** — done 2026-11-19 (SecurityEvents: carlink_security_events_total + SECURITY_EVENT log lines, no PII; METRICS_SCRAPE_TOKEN for Prometheus; monitoring/prometheus alert rules validated by promtool in CI; incident-response runbook in deployment.md §16). Security alerting (logs → alerts) and a short incident-response runbook in `deployment.md`.
 - [ ] External penetration test before scaling; repeat this audit after Phase 2.
 
 ---
@@ -302,3 +295,5 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 | 2026-11-18 | Initial audit: 25 findings (1 critical-local, 6 high, 12 medium, 6 low/info), 4-phase plan. |
 | 2026-11-18 | **Phase 0 complete**: S-01, S-05, S-16, S-07 (npm + Node 22). Remaining S-07 work (Spring Boot upgrade) is in Phase 1. |
 | 2026-11-18 | **Phase 1** — done: S-02, S-03, S-04, S-06, S-08, S-11, S-12, S-18, S-07 step 1 (Boot 3.5.16). Open: S-07 step 2 (Boot 4.1 migration); S-11 follow-ups (order cap per e-mail/phone, login challenge); operator actions: Turnstile keys, Telnyx spend alert, CARLINK_DOMAIN/ACME_EMAIL + DNS. |
+| 2026-11-19 | **Phase 2** — done: S-09, S-10, S-13, S-14, S-17, S-19. S-15 (admin MFA) removed from the plan at the owner's request. |
+| 2026-11-19 | **Phase 3** — done: S-20, S-21, S-22, S-23, S-25. Open: S-07 step 2 (Boot 4.1), S-11 follow-ups, external penetration test. |
