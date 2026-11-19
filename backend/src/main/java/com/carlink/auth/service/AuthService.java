@@ -14,9 +14,12 @@ import com.carlink.auth.repository.PasswordResetTokenRepository;
 import com.carlink.auth.repository.RefreshTokenRepository;
 import com.carlink.common.config.CarLinkProperties;
 import com.carlink.common.exception.BadRequestException;
+import com.carlink.common.exception.ConflictException;
 import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.notification.email.EmailSender;
+import com.carlink.sticker.model.Sticker;
+import com.carlink.sticker.model.StickerStatus;
 import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
@@ -71,23 +74,30 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         String email = request.email().trim().toLowerCase();
-        if (userRepository.existsByEmailIgnoreCase(email)) {
-            // The 400 status already revealed the email is taken under the old
-            // generic-message approach, so a clear, actionable error adds no
-            // exposure.  A distinct code lets the frontend render a "Sign in"
-            // call-to-action.
-            throw new BadRequestException("EMAIL_ALREADY_REGISTERED",
-                    "This email is already registered. Please sign in instead.");
-        }
 
         // An account exists only to own a sticker: reject registration unless
         // the supplied code maps to a claimable (UNBOUND / DEACTIVATED) sticker.
+        // Checked BEFORE the e-mail (security plan S-13): the "already
+        // registered" answer is then only reachable with a code from a real,
+        // unclaimed sticker in hand, so the form is no e-mail oracle. Both
+        // checks also sit behind the per-IP register throttle (S-03).
         String codeHash = tokenGenerator.sha256(
                 tokenGenerator.normalizeActivationCode(request.stickerCode()));
-        stickerRepository.findByActivationCodeHash(codeHash)
+        Sticker sticker = stickerRepository.findByActivationCodeHash(codeHash)
                 .orElseThrow(() -> new BadRequestException("INVALID_STICKER_CODE",
                         "That sticker code could not be found. Check the code printed "
                                 + "under the QR and try again."));
+        if (sticker.getStatus() == StickerStatus.BOUND) {
+            // Same answer as the activation path; never says who owns it.
+            throw new ConflictException("STICKER_ALREADY_BOUND",
+                    "This sticker is already linked to an account.");
+        }
+
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            // A distinct code lets the frontend render a "Sign in" call-to-action.
+            throw new BadRequestException("EMAIL_ALREADY_REGISTERED",
+                    "This email is already registered. Please sign in instead.");
+        }
 
         User user = User.newUser(
                 email,

@@ -170,6 +170,42 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void registrationNeedsAClaimableStickerBeforeAnythingElse() throws Exception {
+        // First owner registers with a code and binds that sticker to a car.
+        String code = freshStickerCode();
+        MvcResult first = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "first@example.com", "password", "Secret123",
+                                "firstName", "F", "lastName", "O", "phone", "", "stickerCode", code))))
+                .andExpect(status().isOk()).andReturn();
+        String bearer = "Bearer " + objectMapper.readTree(first.getResponse().getContentAsString())
+                .get("accessToken").asText();
+        mockMvc.perform(post("/api/v1/stickers/activate-by-code")
+                        .header("Authorization", bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("code", code, "details", Map.of(
+                                "birthDate", "1990-01-01", "licensePlate", "131 TU 1313")))))
+                .andExpect(status().isOk());
+
+        // S-13: a BOUND sticker no longer opens registration.
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "second@example.com", "password", "Secret123",
+                                "firstName", "S", "lastName", "O", "phone", "", "stickerCode", code))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("STICKER_ALREADY_BOUND"));
+
+        // S-13: without a valid code, a registered e-mail is not revealed.
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", "first@example.com", "password", "Secret123",
+                                "firstName", "F", "lastName", "O", "phone", "",
+                                "stickerCode", "ZZZZ-ZZZZ"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_STICKER_CODE"));
+    }
+
+    @Test
     void unauthenticatedRequestGets401() throws Exception {
         mockMvc.perform(get("/api/v1/users/me"))
                 .andExpect(status().isUnauthorized())

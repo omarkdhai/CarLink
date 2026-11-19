@@ -277,7 +277,7 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 
 - [x] **S-09** — done 2026-11-18 (carlink_rt HttpOnly/SameSite=Strict cookie on /api/v1/auth, X-Requested-With required on refresh/logout, Web Locks serialise refresh across tabs; also fixed: refresh-token reuse detection was rolled back by the 401 and never took effect). Refresh token → `HttpOnly; Secure; SameSite=Strict` cookie + CSRF on cookie endpoints (S-24).
 - [x] **S-10** — done 2026-11-19 (tokenVersion "tv" claim + V9 column; JWT filter checks active/role/version against live state — DB on /api/v1/admin/**, 30 s cache elsewhere, evicted on commit; deactivation, role change and password reset end all sessions; admin access TTL 5 min). Admin routes re-check `active`/`role`; admin access TTL 5 min; `tokenVersion` claim.
-- [ ] **S-13** Registration checks sticker is claimable; responses reviewed with S-03 in place.
+- [x] **S-13** — done 2026-11-19 (BOUND stickers refused with STICKER_ALREADY_BOUND; sticker checked before the e-mail, so EMAIL_ALREADY_REGISTERED needs a real unclaimed code; both behind the S-03 register throttle). Registration checks sticker is claimable; responses reviewed with S-03 in place.
 - [ ] **S-14** Password policy (min length, passphrases, optional HIBP); `@Size(max=72)` on login.
 - [ ] **S-15** TOTP MFA for admins; forced password change for the bootstrap admin.
 - [ ] **S-17** Purge jobs, IP anonymisation, phone column encryption, account deletion endpoint + UI.

@@ -20,6 +20,8 @@ import com.carlink.common.exception.UnauthorizedException;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.notification.email.EmailSender;
 import com.carlink.sticker.model.Sticker;
+import com.carlink.sticker.model.StickerStatus;
+import com.carlink.common.exception.ConflictException;
 import com.carlink.sticker.repository.StickerRepository;
 import com.carlink.user.model.Role;
 import com.carlink.user.model.User;
@@ -77,12 +79,13 @@ class AuthServiceTest {
     }
 
     /** Stub a claimable sticker so register() can validate the supplied code. */
-    private void stubClaimableSticker() {
+    private Sticker stubClaimableSticker() {
         String hash = tokenGenerator.sha256(tokenGenerator.normalizeActivationCode("CL4F7K2M9Q"));
         Sticker sticker = Sticker.newSticker(null, "tokhash", hash);
         org.mockito.Mockito.lenient()
                 .when(stickerRepository.findByActivationCodeHash(hash))
                 .thenReturn(Optional.of(sticker));
+        return sticker;
     }
 
     private User savedUser() {
@@ -122,6 +125,7 @@ class AuthServiceTest {
 
     @Test
     void registerRejectsDuplicateEmail() {
+        stubClaimableSticker();
         when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(
@@ -151,7 +155,6 @@ class AuthServiceTest {
 
     @Test
     void registerRejectsUnknownStickerCode() {
-        when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
         // No sticker stub → findByActivationCodeHash returns empty.
 
         assertThatThrownBy(() -> authService.register(
@@ -160,6 +163,31 @@ class AuthServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("sticker code");
         verify(userRepository, never()).save(any(User.class));
+        // S-13: without a valid code the e-mail is never even looked up.
+        verify(userRepository, never()).existsByEmailIgnoreCase(anyString());
+    }
+
+    @Test
+    void registerRejectsAStickerThatIsAlreadyBound() {
+        stubClaimableSticker().setStatus(StickerStatus.BOUND);
+
+        assertThatThrownBy(() -> authService.register(
+                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q")))
+                .isInstanceOf(ConflictException.class)
+                .extracting("code").isEqualTo("STICKER_ALREADY_BOUND");
+        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).existsByEmailIgnoreCase(anyString());
+    }
+
+    @Test
+    void registerAcceptsAReleasedSticker() {
+        savedUser();
+        stubClaimableSticker().setStatus(StickerStatus.DEACTIVATED);
+        when(userRepository.existsByEmailIgnoreCase("owner@example.com")).thenReturn(false);
+
+        assertThat(authService.register(
+                new RegisterRequest("owner@example.com", "Secret123", "Ali", "Ben", "", "CL-4F7K-2M9Q"))
+                .accessToken()).isNotBlank();
     }
 
     // ---------- Login ----------
