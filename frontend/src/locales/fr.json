@@ -392,7 +392,25 @@
     "requiredNote": "Tous les champs sont obligatoires, sauf le téléphone.",
     "scanTitle": "Contacter le propriétaire",
     "scanSubtitle": "Choisissez un motif. Le propriétaire est prévenu immédiatement — aucun de vous ne voit le numéro de l'autre.",
-    "deliveredBy": "Le propriétaire est prévenu par {{method}}."
+    "deliveredBy": "Le propriétaire est prévenu par {{method}}.",
+    "smsLimit": {
+      "left_one": "{{count}} caractère restant dans le SMS",
+      "left_other": "{{count}} caractères restants dans le SMS",
+      "over": "Trop long pour un seul SMS : le propriétaire reçoit le début par SMS et lit votre message complet dans CarLink.",
+      "hint": "Le propriétaire reçoit un SMS en derja tunisienne avec le motif choisi, suivi de votre message tel que vous l’écrivez, dans n’importe quelle langue. Un SMS contient environ 70 caractères au total et un emoji compte pour 2 : un message plus long est raccourci dans le SMS, mais le propriétaire le lit toujours en entier dans CarLink.",
+      "pickReason": "Choisissez un motif pour voir combien de caractères de votre message tiennent dans le SMS."
+    },
+    "delivery": {
+      "checkingTitle": "Envoi de votre alerte…",
+      "checkingHint": "Nous attendons que l’opérateur confirme que le SMS est bien arrivé au propriétaire.",
+      "deliveredTitle": "Alerte reçue !",
+      "deliveredHint": "Le propriétaire a reçu votre alerte par {{method}}.",
+      "unconfirmedTitle": "Alerte envoyée",
+      "unconfirmedHint": "L’opérateur n’a pas encore confirmé la réception : le téléphone du propriétaire est peut-être éteint ou hors réseau. Le SMS arrivera dès que possible, et le propriétaire verra aussi votre alerte dans CarLink.",
+      "failedTitle": "Votre alerte n’a pas pu être livrée",
+      "failedHint": "Le SMS n’a pas pu atteindre le téléphone du propriétaire. Votre alerte est enregistrée et il la verra en ouvrant CarLink. Si c’est urgent, réessayez dans quelques minutes ou cherchez le propriétaire à proximité.",
+      "tryAgain": "Réessayer"
+    }
   },
   "message": {
     "title": "Messages",
@@ -423,7 +441,8 @@
       "today": "Aujourd'hui",
       "yesterday": "Hier",
       "earlier": "Plus tôt"
-    }
+    },
+    "delivered": "Livré"
   },
   "notifications": {
     "title": "Notifications",

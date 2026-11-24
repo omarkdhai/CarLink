@@ -1,4 +1,4 @@
-package com.carlink.notification.tunisiesms;
+package com.carlink.notification.sms;
 
 import org.junit.jupiter.api.Test;
 
@@ -7,9 +7,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SmsTextTest {
 
     @Test
-    void frenchAccentsOfTheGsmAlphabetKeep160() {
-        assertThat(SmsText.isGsm("Votre véhicule gêne la sortie, merci !")).isFalse(); // ê is not GSM
-        assertThat(SmsText.isGsm("Votre vehicule bloque la sortie, merci ! é è à ù")).isTrue();
+    void frenchAccentsMissingFromTheSmsAlphabetAreReplacedSoTheSmsKeeps160() {
+        String note = "Garé devant la boîte, ça gêne l’entrée – désolé…";
+        String fitted = SmsText.fit(note);
+        assertThat(fitted).isEqualTo("Garé devant la boite, ca gene l'entrée - désolé...");
+        assertThat(SmsText.isGsm(fitted)).isTrue();
+    }
+
+    @Test
+    void aUnicodeSmsKeepsEveryCharacterAsTyped() {
+        // Arabic already makes it Unicode: replacing ê/ç would gain nothing and alter the note.
+        String text = "💡 ضو كرهبتك شاعل\n💬 ça gêne – désolé…";
+        assertThat(SmsText.fit(text)).isEqualTo(text);
+    }
+
+    @Test
+    void gsmAccentsAreKeptAndCountOnce() {
         String text = "é".repeat(160);
         assertThat(SmsText.fit(text)).isEqualTo(text);
     }

@@ -36,7 +36,12 @@ still omit it.
 - **Never** log phone numbers, raw QR tokens, passwords, or message bodies.
 - Raw QR / sticker tokens never travel in an API path: clients send them in
   the `X-CarLink-Token` header (`GET /api/v1/public/qr`,
-  `POST /api/v1/public/qr/contact`, `POST /api/v1/stickers/activate`). The
+  `POST /api/v1/public/qr/contact`,
+  `GET /api/v1/public/qr/contact/{conversationId}/status`,
+  `POST /api/v1/stickers/activate`). The status endpoint answers only for an
+  alert of the vehicle behind that token (else 404), returns one of
+  DELIVERED / SENT / FAILED — never the failure reason, which could reveal
+  something about the owner's number — and is rate-limited per hashed IP. The
   only URL carrying a token is the QR's own `/c/{token}` page; nginx's
   `carlink` log format masks it in the request line *and* in the Referer of
   the API calls made from that page (security plan S-08).

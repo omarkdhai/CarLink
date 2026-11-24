@@ -158,7 +158,7 @@ export function ConversationRow({
       </span>
       <span className="shrink-0 flex flex-col items-end gap-1.5">
         <span className="text-xs text-muted-fg whitespace-nowrap">{formatRelative(conv.createdAt)}</span>
-        {conv.status !== 'SENT' ? (
+        {conv.status !== 'DELIVERED' && conv.status !== 'SENT' ? (
           <ConversationStatusBadge status={conv.status} />
         ) : (
           <ChevronRight className="h-4 w-4 text-muted-fg rtl:rotate-180" aria-hidden />

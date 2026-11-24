@@ -37,7 +37,7 @@ public class TelnyxContactChannelSender implements ContactChannelSender {
     private final TokenGenerator tokenGenerator;
 
     @Override
-    public boolean send(ContactDelivery delivery) {
+    public SendResult send(ContactDelivery delivery) {
         if (delivery.channel() != Channel.SMS) {
             throw new IllegalArgumentException(
                     "TelnyxContactChannelSender only delivers SMS, got " + delivery.channel());
@@ -66,11 +66,12 @@ public class TelnyxContactChannelSender implements ContactChannelSender {
             // Accepted by the SDK but with no id means we cannot correlate it;
             // treat as unconfirmed rather than claiming success.
             log.warn("[TELNYX] SMS accepted with no message id (owner hash={})", ownerHash);
-            return false;
+            return SendResult.failed("NO_MESSAGE_ID");
         }
 
         log.info("[TELNYX] SMS sent id={} (owner hash={})", messageId, ownerHash);
-        return true;
+        // No delivery-report client for Telnyx: the alert stays SENT.
+        return SendResult.accepted(messageId);
     }
 
     /**

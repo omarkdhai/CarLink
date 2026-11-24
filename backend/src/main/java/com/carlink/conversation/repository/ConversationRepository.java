@@ -3,6 +3,7 @@ package com.carlink.conversation.repository;
 import com.carlink.conversation.model.Conversation;
 import com.carlink.conversation.model.ConversationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,6 +25,21 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     List<Conversation> findAllByVehicle_IdOrderByCreatedAtDesc(UUID vehicleId);
 
     /** Finds stale conversations whose expiry has passed and are still in a transitional state. */
+    /** Accepted SMS still waiting for their delivery report, oldest first. */
+    List<Conversation> findTop100ByStatusAndProviderMessageIdIsNotNullAndCreatedAtAfterOrderByCreatedAtAsc(
+            ConversationStatus status, Instant createdAfter);
+
+    /**
+     * Applies a delivery report, only if the alert is still SENT (a report never
+     * overrides EXPIRED, and two pollers cannot apply it twice).
+     */
+    @Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("update Conversation c set c.status = :status, c.deliveryError = :error "
+            + "where c.id = :id and c.status = com.carlink.conversation.model.ConversationStatus.SENT")
+    int applyDeliveryReport(@Param("id") UUID id, @Param("status") ConversationStatus status,
+                            @Param("error") String error);
+
     List<Conversation> findByExpiresAtBeforeAndStatusIn(
             Instant expiresAtBefore, List<ConversationStatus> statuses);
 

@@ -67,7 +67,8 @@ class AdminStatsServiceTest {
         when(qrCodeRepository.countByActive(true)).thenReturn(5L);
         when(conversationRepository.count()).thenReturn(12L);
         when(conversationRepository.countByStatus(ConversationStatus.PENDING)).thenReturn(1L);
-        when(conversationRepository.countByStatus(ConversationStatus.SENT)).thenReturn(8L);
+        when(conversationRepository.countByStatus(ConversationStatus.SENT)).thenReturn(5L);
+        when(conversationRepository.countByStatus(ConversationStatus.DELIVERED)).thenReturn(3L);
         when(conversationRepository.countByStatus(ConversationStatus.FAILED)).thenReturn(1L);
         when(conversationRepository.countByStatus(ConversationStatus.EXPIRED)).thenReturn(2L);
         when(messageRepository.count()).thenReturn(30L);
@@ -87,6 +88,7 @@ class AdminStatsServiceTest {
         assertThat(overview.qrActive()).isEqualTo(5);
         assertThat(overview.conversationsTotal()).isEqualTo(12);
         assertThat(overview.conversationsPending()).isEqualTo(1);
+        // Sent = accepted (5) + confirmed delivered (3).
         assertThat(overview.conversationsSent()).isEqualTo(8);
         assertThat(overview.conversationsFailed()).isEqualTo(1);
         assertThat(overview.conversationsExpired()).isEqualTo(2);

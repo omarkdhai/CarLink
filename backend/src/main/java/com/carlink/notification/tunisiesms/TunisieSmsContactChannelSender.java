@@ -4,7 +4,9 @@ import com.carlink.common.security.TokenGenerator;
 import com.carlink.conversation.model.Channel;
 import com.carlink.notification.contact.ContactChannelSender;
 import com.carlink.notification.contact.ContactDelivery;
-import com.carlink.qr.model.ContactReason;
+import com.carlink.notification.contact.DeliveryReportClient;
+import com.carlink.notification.contact.SendResult;
+import com.carlink.notification.sms.AlertSms;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,6 +18,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Relays a visitor's alert to the vehicle owner by SMS through TunisieSMS (L2T).
@@ -37,7 +42,7 @@ import tools.jackson.databind.ObjectMapper;
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "carlink.contact.provider", havingValue = "tunisiesms")
-public class TunisieSmsContactChannelSender implements ContactChannelSender {
+public class TunisieSmsContactChannelSender implements ContactChannelSender, DeliveryReportClient {
 
     private final RestClient client;
     private final TunisieSmsProperties properties;
@@ -75,7 +80,7 @@ public class TunisieSmsContactChannelSender implements ContactChannelSender {
     }
 
     @Override
-    public boolean send(ContactDelivery delivery) {
+    public SendResult send(ContactDelivery delivery) {
         if (delivery.channel() != Channel.SMS) {
             throw new IllegalArgumentException(
                     "TunisieSmsContactChannelSender only delivers SMS, got " + delivery.channel());
@@ -100,14 +105,14 @@ public class TunisieSmsContactChannelSender implements ContactChannelSender {
         Result result = parse(reply);
         if (result.code() == 200 && result.messageId() != null) {
             log.info("[TUNISIESMS] SMS accepted id={} (owner hash={})", result.messageId(), ownerHash);
-            return true;
+            return SendResult.accepted(result.messageId());
         }
         if (result.code() == 200) {
             log.warn("[TUNISIESMS] SMS accepted with no message id (owner hash={})", ownerHash);
-            return false;
+            return SendResult.failed("NO_MESSAGE_ID");
         }
         logFailure(result.code(), ownerHash);
-        return false;
+        return SendResult.failed("API_" + result.code());
     }
 
     /** E.164 "+21612345678" → "21612345678": the API wants digits only. */
@@ -120,22 +125,48 @@ public class TunisieSmsContactChannelSender implements ContactChannelSender {
         return digits;
     }
 
-    /** "CarLink: <reason>. Note: <note>", cut to one SMS. */
+    /** The alert in Derja plus the visitor's note as typed, fitted to one SMS ({@link AlertSms}). */
     static String buildBody(ContactDelivery delivery) {
-        String label = reasonLabel(delivery.reason());
-        String note = delivery.message() == null ? "" : delivery.message().strip();
-        String text = note.isEmpty() ? "CarLink: " + label : "CarLink: " + label + ". Note: " + note;
-        return SmsText.fit(text);
+        return AlertSms.compose(delivery.reason(), delivery.message());
     }
 
-    private static String reasonLabel(String reason) {
-        if (reason == null) {
-            return "Alert";
-        }
+    /**
+     * Delivery report (fct=dlr). Verified against the live API: an empty list
+     * until the operator reports, then
+     * {@code [{"acknowledgement": "DELIVRD"|"REJECTED"|..., ...}]}. REJECTED
+     * comes back within about a second; DELIVRD can take minutes. The reply
+     * echoes the number, so it is never logged.
+     */
+    @Override
+    public Optional<DeliveryReport> report(String providerMessageId) {
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("fct", "dlr");
+        form.add("key", properties.getApiKey().trim());
+        form.add("msg_id", providerMessageId);
+        form.add("content-type", "application/json");
         try {
-            return ContactReason.from(reason).label();
-        } catch (IllegalArgumentException e) {
-            return "Alert";
+            Reply reply = client.post()
+                    .uri(properties.getUrl())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form)
+                    .exchange((request, response) ->
+                            new Reply(response.getStatusCode().value(), response.bodyTo(String.class)));
+            JsonNode root = reply.body() == null ? null : objectMapper.readTree(reply.body());
+            if (root == null || !root.isArray() || root.isEmpty()) {
+                return Optional.empty();                    // not reported yet
+            }
+            String ack = root.get(0).path("acknowledgement").asString("").trim().toUpperCase(Locale.ROOT);
+            if (ack.isEmpty()) {
+                return Optional.empty();
+            }
+            // Keep a short, safe code (letters/underscore only) for the dashboard.
+            String code = ack.replaceAll("[^A-Z_]", "");
+            code = code.length() > 32 ? code.substring(0, 32) : code;
+            return Optional.of(new DeliveryReport("DELIVRD".equals(ack), code));
+        } catch (RuntimeException e) {
+            log.warn("[TUNISIESMS] delivery report unavailable for id={}: {}",
+                    providerMessageId, e.getClass().getSimpleName());
+            return Optional.empty();
         }
     }
 

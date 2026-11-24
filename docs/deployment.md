@@ -341,8 +341,10 @@ Not yet automated, listed so they are not mistaken for oversights:
 - **Contact relay defaults to the logging mock.** With `CONTACT_PROVIDER=mock`,
   submissions are recorded but never reach the owner. Production uses
   `CONTACT_PROVIDER=tunisiesms` with `TUNISIESMS_API_KEY` (SMS only, one SMS per
-  alert, cut to 160 characters, or 70 when the note contains Arabic or emoji;
-  the full note is in the dashboard). There is no alert call with TunisieSMS.
+  alert, always in Tunisian Derja: an emoji + the reason, then the visitor's note
+  exactly as typed. Arabic makes it a Unicode SMS of 70 characters, so a long
+  note is shortened; the full note is in the dashboard and the public page shows
+  the visitor how many characters fit). There is no alert call with TunisieSMS.
   Watch the balance in the TunisieSMS client area: at zero every alert fails
   (log line `[TUNISIESMS] insufficient balance (402)`). Telnyx (`telnyx` and the
   `TELNYX_*` variables) remains available for SMS + alert calls.

@@ -46,10 +46,10 @@ class TelnyxContactChannelSenderTest {
         when(response.data()).thenReturn(Optional.of(payload));
         when(payload.id()).thenReturn(Optional.of("msg-1"));
 
-        boolean delivered = sender().send(
+        SendResult delivered = sender().send(
                 new ContactDelivery(Channel.SMS, ownerPhone, "Is the car available?", "BLOCKING"));
 
-        assertThat(delivered).isTrue();
+        assertThat(delivered).isEqualTo(SendResult.accepted("msg-1"));
 
         ArgumentCaptor<MessageSendParams> captor = ArgumentCaptor.forClass(MessageSendParams.class);
         verify(messageService).send(captor.capture());
@@ -70,7 +70,7 @@ class TelnyxContactChannelSenderTest {
         when(payload.id()).thenReturn(Optional.empty());
 
         assertThat(sender().send(new ContactDelivery(Channel.SMS, ownerPhone, "hi", "BLOCKING")))
-                .isFalse();
+                .isEqualTo(SendResult.failed("NO_MESSAGE_ID"));
     }
 
     @Test

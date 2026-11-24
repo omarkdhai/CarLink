@@ -44,9 +44,9 @@ class LogContactChannelSenderTest {
 
     @Test
     void sendReturnsTrueAndLogsMetadataButNeverTheMessage() {
-        boolean delivered = sender.send(new ContactDelivery(Channel.WHATSAPP, ownerPhone, message, reason));
+        SendResult delivered = sender.send(new ContactDelivery(Channel.WHATSAPP, ownerPhone, message, reason));
 
-        assertThat(delivered).isTrue();
+        assertThat(delivered.outcome()).isEqualTo(SendResult.Outcome.DELIVERED);
         String log = appender.list.get(0).getFormattedMessage();
         assertThat(log).contains("WHATSAPP");
         assertThat(log).contains(reason);

@@ -1,6 +1,7 @@
 package com.carlink.qr.dto;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * What the public page may reveal about a QR token. Deliberately minimal:
@@ -15,11 +16,16 @@ import java.util.List;
  * </ul>
  *
  * <p>Legacy {@code qr_codes} rows always resolve as {@code BOUND}.</p>
+ *
+ * <p>{@code smsNoteLimits} (BOUND only): per reason, how many characters of the
+ * visitor's note fit in the SMS (the same for every owner), so the page can
+ * count them down.</p>
  */
 public record QrPublicView(
         String state,
         VehicleSafe vehicle,
-        List<String> channels
+        List<String> channels,
+        Map<String, Integer> smsNoteLimits
 ) {
 
     /** Owner-safe vehicle fields settable at registration time. */

@@ -3,6 +3,9 @@ package com.carlink.notification.tunisiesms;
 import com.carlink.common.security.TokenGenerator;
 import com.carlink.conversation.model.Channel;
 import com.carlink.notification.contact.ContactDelivery;
+import com.carlink.notification.contact.DeliveryReportClient;
+import com.carlink.notification.contact.SendResult;
+import com.carlink.notification.sms.SmsText;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -60,12 +63,12 @@ class TunisieSmsContactChannelSenderTest {
                         "key", "test-key",
                         "mobile", "21612345678",
                         "sender", "CarLink",
-                        "sms", "CarLink: Your lights are on. Note: Parked at the cafe",
+                        "sms", "💡 ضو كرهبتك شاعل\n💬 Garé au café",
                         "content-type", "application/json")))
                 .andRespond(withSuccess("[{\"message_id\":\"12345\",\"status_mobile\":\"21612345678\","
                         + "\"status_msg\":\"OK\",\"status_code\":\"200\"}]", MediaType.APPLICATION_JSON));
 
-        assertThat(sender.send(sms("Parked at the cafe"))).isTrue();
+        assertThat(sender.send(sms("Garé au café"))).isEqualTo(SendResult.accepted("12345"));
         server.verify();
     }
 
@@ -76,7 +79,7 @@ class TunisieSmsContactChannelSenderTest {
                 .andRespond(withStatus(HttpStatus.valueOf(402)).contentType(MediaType.APPLICATION_JSON)
                         .body("[{\"status_code\":402,\"status_msg\":\"Solde insuffisant\"}]"));
 
-        assertThat(sender.send(sms(null))).isFalse();
+        assertThat(sender.send(sms(null)).outcome()).isEqualTo(SendResult.Outcome.FAILED);
     }
 
     @Test
@@ -85,7 +88,7 @@ class TunisieSmsContactChannelSenderTest {
                 .andRespond(withSuccess("[{\"status_code\":\"442\",\"status_msg\":\"Expediteur non autorise\"}]",
                         MediaType.APPLICATION_JSON));
 
-        assertThat(sender.send(sms(null))).isFalse();
+        assertThat(sender.send(sms(null)).outcome()).isEqualTo(SendResult.Outcome.FAILED);
     }
 
     @Test
@@ -93,7 +96,7 @@ class TunisieSmsContactChannelSenderTest {
         server.expect(requestTo(URL))
                 .andRespond(withSuccess("[{\"status_code\":\"200\"}]", MediaType.APPLICATION_JSON));
 
-        assertThat(sender.send(sms(null))).isFalse();
+        assertThat(sender.send(sms(null)).outcome()).isEqualTo(SendResult.Outcome.FAILED);
     }
 
     @Test
@@ -101,7 +104,7 @@ class TunisieSmsContactChannelSenderTest {
         server.expect(requestTo(URL))
                 .andRespond(withSuccess("<response>not json</response>", MediaType.APPLICATION_XML));
 
-        assertThat(sender.send(sms(null))).isFalse();
+        assertThat(sender.send(sms(null)).outcome()).isEqualTo(SendResult.Outcome.FAILED);
     }
 
     @Test
@@ -129,16 +132,58 @@ class TunisieSmsContactChannelSenderTest {
     }
 
     @Test
-    void bodyWithoutNoteIsTheReasonOnly() {
-        assertThat(TunisieSmsContactChannelSender.buildBody(sms("  ")))
-                .isEqualTo("CarLink: Your lights are on");
-        assertThat(TunisieSmsContactChannelSender.buildBody(
-                new ContactDelivery(Channel.SMS, OWNER, null, "UNKNOWN"))).isEqualTo("CarLink: Alert");
+    void bodyIsTheDerjaReasonThenTheNoteAsTyped() {
+        assertThat(TunisieSmsContactChannelSender.buildBody(sms("  "))).isEqualTo("💡 ضو كرهبتك شاعل");
+        assertThat(TunisieSmsContactChannelSender.buildBody(sms("ok 👍"))).isEqualTo("💡 ضو كرهبتك شاعل\n💬 ok 👍");
     }
 
     @Test
     void longNoteIsCutToOneSms() {
         String body = TunisieSmsContactChannelSender.buildBody(sms("x".repeat(500)));
-        assertThat(body).hasSize(SmsText.GSM_LIMIT).endsWith("...");
+        assertThat(body).hasSize(SmsText.UNICODE_LIMIT).endsWith("...");
+    }
+
+    @Test
+    void refusalCarriesTheApiCode() {
+        server.expect(requestTo(URL))
+                .andRespond(withStatus(HttpStatus.valueOf(402)).contentType(MediaType.APPLICATION_JSON)
+                        .body("[{\"status_code\":402,\"status_msg\":\"Solde insuffisant\"}]"));
+
+        assertThat(sender.send(sms(null))).isEqualTo(SendResult.failed("API_402"));
+    }
+
+    // --- delivery reports (fct=dlr), formats verified against the live API ---
+
+    private void dlrReplies(String body) {
+        server.expect(requestTo(URL))
+                .andExpect(content().formDataContains(Map.of("fct", "dlr", "msg_id", "261124", "key", "test-key")))
+                .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void noReportYetIsEmpty() {
+        dlrReplies("[]");
+        assertThat(sender.report("261124")).isEmpty();
+    }
+
+    @Test
+    void delivrdIsDelivered() {
+        dlrReplies("[{\"mobile\":\"21612345678\",\"message_id\":\"261124\",\"acknowledgement\":\"DELIVRD\","
+                + "\"acknowledgement_date\":\"2026-11-24T16:41:52.817691\"}]");
+        assertThat(sender.report("261124")).contains(new DeliveryReportClient.DeliveryReport(true, "DELIVRD"));
+    }
+
+    @Test
+    void rejectedOrAnyOtherStatusIsNotDelivered() {
+        dlrReplies("[{\"mobile\":\"21612345678\",\"message_id\":\"261124\",\"acknowledgement\":\"REJECTED\"}]");
+        assertThat(sender.report("261124")).contains(new DeliveryReportClient.DeliveryReport(false, "REJECTED"));
+    }
+
+    @Test
+    void unreachableReportServiceIsTreatedAsNotYetKnown() {
+        server.expect(requestTo(URL)).andRespond(request -> {
+            throw new java.io.IOException("timeout");
+        });
+        assertThat(sender.report("261124")).isEmpty();
     }
 }
