@@ -3,7 +3,8 @@ import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import type { ContactChannel, ConversationStatus } from '@/types'
 
 const STATUS_TONE: Record<ConversationStatus, BadgeTone> = {
-  SENT: 'success',
+  DELIVERED: 'success',
+  SENT: 'primary',
   PENDING: 'warning',
   FAILED: 'danger',
   EXPIRED: 'neutral',

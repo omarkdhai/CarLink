@@ -45,6 +45,8 @@ class PublicQrServiceTest {
     @Mock private ConversationService conversationService;
     @Mock private ContactDeliveryService contactDeliveryService;
     @Mock private RateLimiter rateLimiter;
+    @Mock private com.carlink.conversation.repository.ConversationRepository conversationRepository;
+    @Mock private com.carlink.notification.contact.DeliveryStatusService deliveryStatusService;
 
     private final TokenGenerator tokenGenerator = new TokenGenerator();
     private final CarLinkProperties properties = TestProperties.minimal();
@@ -71,7 +73,7 @@ class PublicQrServiceTest {
                 conversationService, contactDeliveryService,
                 new com.carlink.security.ratelimit.Throttle(rateLimiter, tokenGenerator),
                 new com.carlink.security.ratelimit.ThrottleProperties(), tokenGenerator,
-                rateLimiter, properties);
+                rateLimiter, properties, conversationRepository, deliveryStatusService);
     }
 
     private QrCode activeCode() {
@@ -96,6 +98,8 @@ class PublicQrServiceTest {
         assertThat(view.vehicle().nickname()).isEqualTo("My Car");
         assertThat(view.vehicle().brand()).isEqualTo("Toyota");
         assertThat(view.channels()).containsExactly("SMS");
+        // "💡 ضو كرهبتك شاعل" + new line + "💬 " = 21 UTF-16 units: 45 left of the 66 TunisieSMS delivers.
+        assertThat(view.smsNoteLimits()).hasSize(6).containsEntry("LIGHTS", 45);
     }
 
     @Test
@@ -387,5 +391,69 @@ class PublicQrServiceTest {
                 org.mockito.ArgumentMatchers.eq("Hi! Is this car for sale?"),
                 org.mockito.ArgumentMatchers.eq("BLOCKING"));
         verify(qrCodeRepository, never()).findByTokenHash(anyString());
+    }
+
+    // ---------- delivery status (visitor waits for the SMS confirmation) ----------
+
+    private com.carlink.conversation.model.Conversation conversationOf(Vehicle v) {
+        return com.carlink.conversation.model.Conversation.builder().id(UUID.randomUUID()).vehicle(v)
+                .status(com.carlink.conversation.model.ConversationStatus.SENT).build();
+    }
+
+    @Test
+    void submitTellsTheVisitorWhenTheSmsCouldNotBeSent() {
+        allowAllRequests();
+        when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken))).thenReturn(Optional.of(activeCode()));
+        when(conversationService.open(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any())).thenReturn(UUID.randomUUID());
+        when(contactDeliveryService.deliver(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                anyString(), org.mockito.ArgumentMatchers.any(), anyString()))
+                .thenReturn(com.carlink.conversation.model.ConversationStatus.FAILED);
+
+        ContactSubmitResponse response = service.submit(rawToken, clientIp,
+                new ContactSubmitRequest("SMS", "hi", "BLOCKING"));
+
+        assertThat(response.status()).isEqualTo("FAILED");
+    }
+
+    @Test
+    void deliveryStatusOfAnAlertFromThisStickerIsCoarseAndRefreshed() {
+        allowAllRequests();
+        when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken))).thenReturn(Optional.of(activeCode()));
+        var conversation = conversationOf(vehicle);
+        when(conversationRepository.findById(conversation.getId())).thenReturn(Optional.of(conversation));
+        when(deliveryStatusService.refresh(conversation))
+                .thenReturn(com.carlink.conversation.model.ConversationStatus.DELIVERED);
+
+        assertThat(service.deliveryStatus(rawToken, conversation.getId(), clientIp).status()).isEqualTo("DELIVERED");
+    }
+
+    @Test
+    void deliveryStatusOfAnotherVehiclesAlertIsNotFound() {
+        allowAllRequests();
+        when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken))).thenReturn(Optional.of(activeCode()));
+        Vehicle other = Vehicle.builder().id(UUID.randomUUID()).owner(owner).build();
+        var conversation = conversationOf(other);
+        when(conversationRepository.findById(conversation.getId())).thenReturn(Optional.of(conversation));
+
+        assertThatThrownBy(() -> service.deliveryStatus(rawToken, conversation.getId(), clientIp))
+                .isInstanceOf(NotFoundException.class);
+        verify(deliveryStatusService, never()).refresh(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void deliveryStatusIsRateLimited() {
+        when(rateLimiter.tryAcquire(anyString(), org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.anyInt())).thenReturn(false);
+
+        assertThatThrownBy(() -> service.deliveryStatus(rawToken, UUID.randomUUID(), clientIp))
+                .isInstanceOf(TooManyRequestsException.class);
+    }
+
+    @Test
+    void visitorNeverSeesFailureDetailsOnlyThreeStates() {
+        assertThat(PublicQrService.visitorStatus(com.carlink.conversation.model.ConversationStatus.PENDING)).isEqualTo("SENT");
+        assertThat(PublicQrService.visitorStatus(com.carlink.conversation.model.ConversationStatus.EXPIRED)).isEqualTo("SENT");
+        assertThat(PublicQrService.visitorStatus(com.carlink.conversation.model.ConversationStatus.FAILED)).isEqualTo("FAILED");
     }
 }

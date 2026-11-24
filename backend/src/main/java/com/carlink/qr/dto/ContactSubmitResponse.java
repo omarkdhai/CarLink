@@ -8,5 +8,7 @@ import java.util.UUID;
  */
 public record ContactSubmitResponse(
         UUID conversationId,
+        /** DELIVERED, SENT (accepted, confirmation pending) or FAILED. */
+        String status,
         String message
 ) {}

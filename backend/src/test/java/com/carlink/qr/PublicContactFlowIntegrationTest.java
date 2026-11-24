@@ -89,8 +89,11 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
                 .orElseThrow();
         assertThat(conv.getChannel().name()).isEqualTo("SMS");
         assertThat(conv.getExpiresAt()).isAfter(conv.getCreatedAt());
-        // The mock relay accepts the delivery, so the conversation is SENT.
-        assertThat(conv.getStatus().name()).isEqualTo("SENT");
+        // The mock relay confirms delivery at once, so the conversation is DELIVERED
+        // and the visitor was told so.
+        assertThat(conv.getStatus().name()).isEqualTo("DELIVERED");
+        assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("status").asString())
+                .isEqualTo("DELIVERED");
 
         // Scoped to this conversation (the DB also holds messages from other
         // test classes sharing the container).

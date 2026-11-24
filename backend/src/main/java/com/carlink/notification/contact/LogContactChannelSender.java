@@ -26,13 +26,14 @@ public class LogContactChannelSender implements ContactChannelSender {
     private final TokenGenerator tokenGenerator;
 
     @Override
-    public boolean send(ContactDelivery delivery) {
+    public SendResult send(ContactDelivery delivery) {
         String note = delivery.message();
         log.info("[CONTACT-DEV] channel={} | owner={} | reason={} | message={} chars (not logged)",
                 delivery.channel(),
                 tokenGenerator.sha256(delivery.ownerPhone()),
                 delivery.reason(),
                 note == null ? 0 : note.length());
-        return true;
+        // Nothing leaves the machine, so there is no report to wait for.
+        return SendResult.delivered();
     }
 }

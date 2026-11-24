@@ -60,14 +60,15 @@ Caddy (HTTPS) → nginx (website) → Spring Boot (API) → PostgreSQL + Redis.
 | # | Task | Why |
 |---|---|---|
 | ☑ 1 | Release images: a `vX.Y.Z` tag runs all tests and publishes the images to GHCR | The server only downloads, never builds (done, PR #40) |
-| ☐ 2 | `.env.prod.example` (Brevo, Turnstile and SMS settings pre-filled) + `scripts/prod-secrets.sh` (fills the passwords and keys with `openssl`, never prints them; no extra software on the server) | One file to fill on the server |
-| ☐ 3 | Sizing for a 4 GB server: memory limits per container, smaller Java heap, 2 GB swap note | So the database and the API never starve each other |
-| ☐ 4 | First admin in production: pass `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` in `docker-compose.prod.yml` | Today the production stack has no way to create the admin |
-| ☐ 5 | `scripts/backup.sh`: nightly database dump, keep 14 on the server, copy to Backblaze B2 | Off-site copy in case the server is lost |
-| ☐ 6 | SMS adapter for your provider (**only when you give the go-ahead** and the API docs); Telnyx code stays | Real SMS to owners |
+| ☑ 2 | `.env.prod.example` (Brevo, Turnstile and SMS settings pre-filled) + `scripts/prod-secrets.sh` (fills the passwords and keys with `openssl`, never prints them; no extra software on the server) | One file to fill on the server |
+| ☑ 3 | Sizing for a 4 GB server: memory limits per container, smaller Java heap, 2 GB swap note | So the database and the API never starve each other |
+| ☑ 4 | First admin in production: pass `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` in `docker-compose.prod.yml` | Today the production stack has no way to create the admin |
+| ☑ 5 | `scripts/backup.sh`: nightly database dump, keep 14 on the server, copy to Backblaze B2 | Off-site copy in case the server is lost |
+| ☑ 6 | TunisieSMS adapter (`CONTACT_PROVIDER=tunisiesms`); Telnyx code stays | Real SMS to owners |
 
-Until task 6 is done the site works with `CONTACT_PROVIDER=mock` (messages are saved and shown in the
-owner dashboard, but no SMS is sent).
+Production sends real SMS with `CONTACT_PROVIDER=tunisiesms` and your `TUNISIESMS_API_KEY`. Keep the
+TunisieSMS balance topped up: when it reaches zero, alerts are still saved in the owner dashboard
+but no SMS leaves.
 
 ## 5. Going live, step by step
 
@@ -94,7 +95,7 @@ git clone https://github.com/omarkdhai/CarLink.git /opt/carlink
 ```bash
 cd /opt/carlink
 cp .env.prod.example .env.prod && sh scripts/prod-secrets.sh .env.prod   # (code task 2)
-nano .env.prod     # domain, e-mail, Brevo SMTP, Turnstile keys, CARLINK_VERSION, first admin
+nano .env.prod     # domain, e-mail, Brevo SMTP, Turnstile keys, TunisieSMS key, CARLINK_VERSION, first admin
 chmod 600 .env.prod
 ```
 **Copy `PHONE_ENCRYPTION_KEY` into your password manager now.** Without it the saved phone numbers
@@ -150,6 +151,6 @@ Add things only when one of these happens:
 
 | When | What |
 |---|---|
-| Week 1 | You: domain, Hetzner, Brevo, Turnstile, lawyer question · Me: code tasks 2–5 |
-| Week 2 | Server up (§5), test everything with friends using `CONTACT_PROVIDER=mock` |
-| When the SMS contract is signed | Code task 6, switch to real SMS, **public launch** |
+| Week 1 | You: domain, Hetzner, Brevo, Turnstile, lawyer question · Code: all done |
+| Week 2 | Server up (§5), test everything with friends (real SMS through TunisieSMS) |
+| Week 3 | **Public launch** |

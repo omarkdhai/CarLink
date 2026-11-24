@@ -2,9 +2,9 @@ package com.carlink.notification.contact;
 
 /**
  * Abstraction over delivering a visitor's contact message to a vehicle owner
- * over a messaging channel (WhatsApp / SMS). Decouples the submission flow
- * from the transport so a mock, an HTTP gateway, or a provider can be swapped
- * through {@code carlink.contact.provider} — the same shape as
+ * over a messaging channel (SMS). Decouples the submission flow from the
+ * transport so a mock or a provider can be swapped through
+ * {@code carlink.contact.provider} — the same shape as
  * {@code notification/email/EmailSender}.
  *
  * <p>Implementations receive the owner phone inside {@link ContactDelivery}
@@ -13,12 +13,12 @@ package com.carlink.notification.contact;
 public interface ContactChannelSender {
 
     /**
-     * Sends a message on its channel.
+     * Hands the message to the channel.
      *
-     * @return {@code true} when the provider accepted/delivered the message,
-     *         {@code false} when delivery could not be confirmed.
-     * @throws RuntimeException on transport failure; the caller records a
-     *         {@code FAILED} conversation and swallows the exception.
+     * @return whether it was delivered, accepted (delivery still to be
+     *         confirmed) or refused.
+     * @throws RuntimeException on transport failure (provider unreachable,
+     *         timeout, invalid number); the caller records a FAILED alert.
      */
-    boolean send(ContactDelivery delivery);
+    SendResult send(ContactDelivery delivery);
 }

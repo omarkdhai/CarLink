@@ -64,6 +64,17 @@ public class ConversationService {
         conversation.setStatus(status);
     }
 
+    /** Outcome of the SMS relay: status plus the provider id / failure code (never the phone). */
+    public void recordDelivery(UUID conversationId, ConversationStatus status,
+                               String providerMessageId, String deliveryError) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Conversation not found: " + conversationId));
+        conversation.setStatus(status);
+        conversation.setProviderMessageId(providerMessageId);
+        conversation.setDeliveryError(deliveryError);
+    }
+
     // ---- owner dashboard (Phase 7) ----
 
     /** Returns all conversations for the owner, newest first, with a last-message preview. */
@@ -136,7 +147,7 @@ public class ConversationService {
     public void sweepExpiredConversations() {
         var now = Instant.now();
         var stale = conversationRepository.findByExpiresAtBeforeAndStatusIn(
-                now, List.of(ConversationStatus.PENDING, ConversationStatus.SENT));
+                now, List.of(ConversationStatus.PENDING, ConversationStatus.SENT, ConversationStatus.DELIVERED));
         stale.forEach(c -> c.setStatus(ConversationStatus.EXPIRED));
     }
 }

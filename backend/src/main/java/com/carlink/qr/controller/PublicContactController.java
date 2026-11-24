@@ -8,6 +8,7 @@ import com.carlink.common.web.TokenHeader;
 
 import com.carlink.qr.dto.ContactSubmitRequest;
 import com.carlink.qr.dto.ContactSubmitResponse;
+import com.carlink.qr.dto.DeliveryStatusResponse;
 import com.carlink.qr.dto.QrPublicView;
 import com.carlink.qr.service.PublicQrService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,5 +55,13 @@ public class PublicContactController {
         // S-11: every accepted alert can become a paid SMS.
         captchaGuard.require(captcha, request.getRemoteAddr());
         return publicQrService.submit(TokenHeader.require(token), request.getRemoteAddr(), body);
+    }
+
+    @GetMapping("/qr/contact/{conversationId}/status")
+    @Operation(summary = "Delivery status of an alert just sent from this sticker (DELIVERED / SENT / FAILED)")
+    public DeliveryStatusResponse status(@RequestHeader(value = TokenHeader.NAME, required = false) String token,
+                                         @PathVariable java.util.UUID conversationId,
+                                         HttpServletRequest request) {
+        return publicQrService.deliveryStatus(TokenHeader.require(token), conversationId, request.getRemoteAddr());
     }
 }

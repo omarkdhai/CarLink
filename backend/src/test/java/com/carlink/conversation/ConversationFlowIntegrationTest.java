@@ -188,7 +188,8 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
         String convId = submitContact(auth, rawToken, "SMS", "Will expire");
 
         var conv = conversationRepository.findById(UUID.fromString(convId)).orElseThrow();
-        assertThat(conv.getStatus().name()).isEqualTo("SENT");
+        // The dev mock relay confirms delivery at once.
+        assertThat(conv.getStatus().name()).isEqualTo("DELIVERED");
 
         // Simulate expiry: push expiresAt into the past
         conv.setExpiresAt(Instant.now().minus(1, ChronoUnit.HOURS));

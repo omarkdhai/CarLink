@@ -267,6 +267,8 @@ export interface QrPublicView {
   } | null
   /** Server-advertised channels, e.g. ['SMS']; empty when not BOUND. */
   channels: ContactChannel[]
+  /** Per reason: characters of the note that fit in the SMS (BOUND only). */
+  smsNoteLimits?: Record<string, number>
 }
 
 export type ContactReason = 'BLOCKING' | 'LIGHTS' | 'LEFT_OPEN' | 'HIT_CAR' | 'WINDOWS_OPEN' | 'EV_CHARGE'
@@ -279,6 +281,7 @@ export interface ContactSubmitRequest {
 
 export interface ContactSubmitResponse {
   conversationId: UUID
+  status: AlertDeliveryStatus
   message: string
 }
 
@@ -292,7 +295,11 @@ export interface ReportSubmitRequest {
 
 // ---------- Conversations ----------
 
-export type ConversationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'EXPIRED'
+/** SENT = accepted by the SMS provider, delivery not confirmed yet; DELIVERED = confirmed. */
+export type ConversationStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'EXPIRED'
+
+/** What the visitor may know about the alert they just sent. */
+export type AlertDeliveryStatus = 'DELIVERED' | 'SENT' | 'FAILED'
 
 export interface ConversationSummaryResponse {
   id: UUID

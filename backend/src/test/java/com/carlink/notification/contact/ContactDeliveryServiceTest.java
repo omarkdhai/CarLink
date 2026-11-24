@@ -9,12 +9,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,70 +39,78 @@ class ContactDeliveryServiceTest {
         service = new ContactDeliveryService(sender, anonymousCallSender, conversationService);
     }
 
-    @Test
-    void deliveredMessageMarksConversationSent() {
-        when(sender.send(new ContactDelivery(Channel.SMS, ownerPhone, message, reason)))
-                .thenReturn(true);
+    private ConversationStatus deliver(String phone) {
+        return service.deliver(conversationId, Channel.SMS, phone, message, reason);
+    }
 
-        service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason);
+    @Test
+    void acceptedByTheProviderIsSentWithItsIdUntilTheReportConfirms() {
+        when(sender.send(any())).thenReturn(SendResult.accepted("msg-1"));
+
+        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.SENT);
 
         ArgumentCaptor<ContactDelivery> captor = ArgumentCaptor.forClass(ContactDelivery.class);
         verify(sender).send(captor.capture());
-        assertThat(captor.getValue().channel()).isEqualTo(Channel.SMS);
-        assertThat(captor.getValue().ownerPhone()).isEqualTo(ownerPhone);
-        assertThat(captor.getValue().message()).isEqualTo(message);
-        assertThat(captor.getValue().reason()).isEqualTo(reason);
-        // An anonymous masked call is also placed alongside the message relay.
+        assertThat(captor.getValue()).isEqualTo(new ContactDelivery(Channel.SMS, ownerPhone, message, reason));
+        verify(conversationService).recordDelivery(conversationId, ConversationStatus.SENT, "msg-1", null);
         verify(anonymousCallSender).initiateCall(ownerPhone, reason, message, conversationId.toString());
-        verify(conversationService).updateStatus(conversationId, ConversationStatus.SENT);
     }
 
     @Test
-    void rejectedByProviderMarksConversationFailed() {
-        when(sender.send(any())).thenReturn(false);
+    void certainDeliveryIsDelivered() {
+        when(sender.send(any())).thenReturn(SendResult.delivered());
 
-        service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason);
-
-        verify(conversationService).updateStatus(conversationId, ConversationStatus.FAILED);
+        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.DELIVERED);
+        verify(conversationService).recordDelivery(conversationId, ConversationStatus.DELIVERED, null, null);
     }
 
     @Test
-    void throwingProviderMarksConversationFailedAndDoesNotPropagate() {
-        when(sender.send(any())).thenThrow(new RuntimeException("provider down"));
+    void refusedByTheProviderIsFailedWithItsCodeAndNoCall() {
+        when(sender.send(any())).thenReturn(SendResult.failed("API_402"));
 
-        assertThatCode(() -> service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason))
-                .doesNotThrowAnyException();
-
-        verify(conversationService).updateStatus(conversationId, ConversationStatus.FAILED);
-        verify(anonymousCallSender, never()).initiateCall(any(), any(), any(), any());
+        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
+        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "API_402");
+        verify(anonymousCallSender, never()).initiateCall(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
-    void failedCallDoesNotDowngradeDeliveredMessage() {
-        when(sender.send(any())).thenReturn(true);
-        when(anonymousCallSender.initiateCall(any(), any(), any(), any()))
-                .thenThrow(new RuntimeException("voice down"));
+    void unreachableProviderIsFailedNotThrown() {
+        when(sender.send(any())).thenThrow(new ResourceAccessException("timeout"));
 
-        assertThatCode(() -> service.deliver(conversationId, Channel.SMS, ownerPhone, message, reason))
-                .doesNotThrowAnyException();
-
-        verify(conversationService).updateStatus(conversationId, ConversationStatus.SENT);
+        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
+        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "UNREACHABLE");
     }
 
     @Test
-    void missingOwnerPhoneFailsWithoutSending() {
-        service.deliver(conversationId, Channel.SMS, "  ", message, reason);
+    void invalidNumberIsFailed() {
+        when(sender.send(any())).thenThrow(new IllegalArgumentException("bad number"));
 
+        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
+        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "INVALID_NUMBER");
+    }
+
+    @Test
+    void anyOtherErrorIsFailed() {
+        when(sender.send(any())).thenThrow(new IllegalStateException("misconfigured"));
+
+        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
+        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "ERROR");
+    }
+
+    @Test
+    void ownerWithoutPhoneIsFailedWithoutCallingTheProvider() {
+        assertThat(deliver("  ")).isEqualTo(ConversationStatus.FAILED);
+        assertThat(deliver(null)).isEqualTo(ConversationStatus.FAILED);
         verify(sender, never()).send(any());
-        verify(anonymousCallSender, never()).initiateCall(any(), any(), any(), any());
-        verify(conversationService).updateStatus(conversationId, ConversationStatus.FAILED);
     }
 
     @Test
-    void nullOwnerPhoneFailsWithoutSending() {
-        service.deliver(conversationId, Channel.SMS, null, message, reason);
+    void aFailingAlertCallDoesNotDowngradeTheMessage() {
+        when(sender.send(any())).thenReturn(SendResult.accepted("msg-2"));
+        doThrow(new RuntimeException("call failed"))
+                .when(anonymousCallSender).initiateCall(anyString(), anyString(), anyString(), anyString());
 
-        verify(sender, never()).send(any());
-        verify(conversationService).updateStatus(conversationId, ConversationStatus.FAILED);
+        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.SENT);
+        verify(conversationService).recordDelivery(conversationId, ConversationStatus.SENT, "msg-2", null);
     }
 }

@@ -11,7 +11,12 @@ import com.carlink.conversation.service.ConversationService;
 import com.carlink.notification.contact.ContactDeliveryService;
 import com.carlink.qr.dto.ContactSubmitRequest;
 import com.carlink.qr.dto.ContactSubmitResponse;
+import com.carlink.notification.sms.AlertSms;
+import com.carlink.qr.dto.DeliveryStatusResponse;
 import com.carlink.qr.dto.QrPublicView;
+import com.carlink.conversation.model.Conversation;
+import com.carlink.conversation.repository.ConversationRepository;
+import com.carlink.notification.contact.DeliveryStatusService;
 import com.carlink.qr.model.ContactReason;
 import com.carlink.qr.model.QrCode;
 import com.carlink.qr.repository.QrCodeRepository;
@@ -27,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,6 +71,11 @@ public class PublicQrService {
     private final TokenGenerator tokenGenerator;
     private final RateLimiter rateLimiter;
     private final CarLinkProperties properties;
+    private final ConversationRepository conversationRepository;
+    private final DeliveryStatusService deliveryStatusService;
+
+    /** Status checks while the visitor waits: every ~2 s for ~20 s, per hashed IP. */
+    static final int STATUS_CHECKS_PER_MINUTE = 40;
 
     /** Safe, ready-to-render view for the page / API. */
     @Transactional(readOnly = true)
@@ -138,10 +149,57 @@ public class PublicQrService {
         conversationService.appendMessage(conversationId, content, request.reason());
 
         // Owner phone stays server-side: passed to the relay, never exposed.
-        contactDeliveryService.deliver(conversationId, channel,
+        ConversationStatus status = contactDeliveryService.deliver(conversationId, channel,
                 vehicle.getOwner().getPhone(), note, request.reason());
 
-        return new ContactSubmitResponse(conversationId, "Message sent to the owner.");
+        return new ContactSubmitResponse(conversationId, visitorStatus(status), status == ConversationStatus.FAILED
+                ? "The alert could not be sent to the owner by SMS."
+                : "Alert sent to the owner.");
+    }
+
+    /**
+     * Delivery status of an alert the visitor just sent, refreshed from the SMS
+     * provider's report. Bound to the sticker: the conversation must belong to the
+     * vehicle behind {@code rawToken} (anything else reads as 404), and only a
+     * coarse status leaves the server — never the failure reason, which could
+     * say something about the owner's number.
+     */
+    public DeliveryStatusResponse deliveryStatus(String rawToken, UUID conversationId, String clientIp) {
+        String ipKey = "public-status:" + tokenGenerator.sha256(clientIp);
+        if (!rateLimiter.tryAcquire(ipKey, STATUS_CHECKS_PER_MINUTE, WINDOW_IP_SECONDS)) {
+            throw new TooManyRequestsException("Too many requests. Try again later.",
+                    rateLimiter.retryAfterSeconds(ipKey, STATUS_CHECKS_PER_MINUTE, WINDOW_IP_SECONDS));
+        }
+        UUID vehicleId = vehicleIdForToken(rawToken);
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .filter(c -> c.getVehicle().getId().equals(vehicleId))
+                .orElseThrow(() -> new NotFoundException("Alert not found"));
+        return new DeliveryStatusResponse(visitorStatus(deliveryStatusService.refresh(conversation)));
+    }
+
+    private UUID vehicleIdForToken(String rawToken) {
+        String tokenHash = tokenGenerator.sha256(rawToken);
+        Optional<Sticker> sticker = stickerRepository.findByTokenHash(tokenHash);
+        if (sticker.isPresent()) {
+            Sticker s = sticker.get();
+            if (s.getStatus() != StickerStatus.BOUND || s.getVehicle() == null) {
+                throw new NotFoundException("QR code not found");
+            }
+            return s.getVehicle().getId();
+        }
+        return activeQrByHash(tokenHash).getVehicle().getId();
+    }
+
+    /** What the visitor may know: DELIVERED, SENT (waiting for confirmation) or FAILED. */
+    static String visitorStatus(ConversationStatus status) {
+        if (status == null) {
+            return "SENT";
+        }
+        return switch (status) {
+            case DELIVERED -> "DELIVERED";
+            case FAILED -> "FAILED";
+            default -> "SENT";
+        };
     }
 
     private QrPublicView viewFromSticker(Sticker sticker) {
@@ -152,10 +210,10 @@ public class PublicQrService {
                     "BOUND",
                     new QrPublicView.VehicleSafe(
                             v.getNickname(), v.getBrand(), v.getModel(), v.getColor()),
-                    advertisedChannels());
+                    advertisedChannels(), AlertSms.noteLimits());
         }
         // UNBOUND or DEACTIVATED: no vehicle, no channels
-        return new QrPublicView(status.name(), null, List.of());
+        return new QrPublicView(status.name(), null, List.of(), Map.of());
     }
 
     private QrPublicView viewFromLegacy(QrCode qr) {
@@ -164,7 +222,7 @@ public class PublicQrService {
                 "BOUND",
                 new QrPublicView.VehicleSafe(
                         v.getNickname(), v.getBrand(), v.getModel(), v.getColor()),
-                advertisedChannels());
+                advertisedChannels(), AlertSms.noteLimits());
     }
 
     /**

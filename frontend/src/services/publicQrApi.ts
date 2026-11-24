@@ -5,6 +5,7 @@ import type {
   MessageResponse,
   QrPublicView,
   ReportSubmitRequest,
+  AlertDeliveryStatus,
 } from '@/types'
 
 const BASE = '/public/qr'
@@ -33,6 +34,13 @@ export const publicQrApi = {
       .then((r) => r.data)
   },
 
+  /** Delivery status of an alert just sent from this sticker (refreshed from the SMS report). */
+  deliveryStatus(token: string, conversationId: string): Promise<{ status: AlertDeliveryStatus }> {
+    return apiClient
+      .get<{ status: AlertDeliveryStatus }>(`${BASE}/contact/${conversationId}/status`, withToken(token))
+      .then((r) => r.data)
+  },
+
   /** File an anonymous SPAM/ABUSE/OTHER report against a conversation. */
   report(body: ReportSubmitRequest, captcha: Record<string, string> = {}): Promise<MessageResponse> {
     return apiClient.post<MessageResponse>(`${BASE}/report`, body, { headers: captcha }).then((r) => r.data)
@@ -41,4 +49,5 @@ export const publicQrApi = {
 
 export const publicQrQueryKeys = {
   view: (token: string) => ['public', 'qr', 'view', token] as const,
+  delivery: (conversationId: string) => ['public', 'qr', 'delivery', conversationId] as const,
 }

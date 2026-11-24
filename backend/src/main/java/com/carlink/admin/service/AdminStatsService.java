@@ -115,7 +115,9 @@ public class AdminStatsService {
                 qrCodeRepository.countByActive(true),
                 conversationRepository.count(),
                 conversationRepository.countByStatus(ConversationStatus.PENDING),
-                conversationRepository.countByStatus(ConversationStatus.SENT),
+                // Delivered alerts are sent ones whose delivery is confirmed.
+                conversationRepository.countByStatus(ConversationStatus.SENT)
+                        + conversationRepository.countByStatus(ConversationStatus.DELIVERED),
                 conversationRepository.countByStatus(ConversationStatus.FAILED),
                 conversationRepository.countByStatus(ConversationStatus.EXPIRED),
                 messageRepository.count(),

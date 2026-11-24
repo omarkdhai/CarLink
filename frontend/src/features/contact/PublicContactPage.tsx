@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { AlertTriangle, AppWindow, BatteryCharging, CarFront, Check, DoorOpen, Flag, Lightbulb, ShieldAlert, Smartphone, Lock } from 'lucide-react'
+import { AlertTriangle, AppWindow, BatteryCharging, CarFront, Check, Clock, DoorOpen, Flag, Lightbulb, Loader2, ShieldAlert, Smartphone, Lock } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
@@ -12,9 +12,10 @@ import { publicQrApi, publicQrQueryKeys } from '@/services/publicQrApi'
 import { toApiError } from '@/services/errors'
 import { http } from '@/services/apiClient'
 import StickerActivation from '@/features/stickers/StickerActivation'
-import type { ContactChannel, ReportReason } from '@/types'
+import type { AlertDeliveryStatus, ContactChannel, ReportReason } from '@/types'
 import { SuccessMark } from '@/components/shared/SuccessMark'
 import { useCaptcha } from '@/components/shared/useCaptcha'
+import { fitNote } from '@/lib/sms'
 
 const REASONS = ['BLOCKING', 'LIGHTS', 'LEFT_OPEN', 'HIT_CAR', 'WINDOWS_OPEN', 'EV_CHARGE'] as const
 type ReasonKey = (typeof REASONS)[number]
@@ -70,7 +71,11 @@ export default function PublicContactPage() {
   const [selectedReason, setSelectedReason] = useState<ReasonKey | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
 
-  const [done, setDone] = useState<{ conversationId: string; method: ContactChannel } | null>(null)
+  const [done, setDone] = useState<{ conversationId: string; method: ContactChannel; status: AlertDeliveryStatus } | null>(null)
+  // Stop waiting for the operator's confirmation after this long.
+  const [confirmTimedOut, setConfirmTimedOut] = useState(false)
+  // ...and stop checking quietly in the background after this long.
+  const [confirmGaveUp, setConfirmGaveUp] = useState(false)
 
   // The backend advertises only the channels it will accept (SMS today).
   // Never hardcode a channel: the submit endpoint rejects anything else.
@@ -93,9 +98,40 @@ export default function PublicContactPage() {
         reason: selectedReason!,
       }, captcha.headers()),
     onSettled: () => captcha.reset(),
-    onSuccess: (data) => setDone({ conversationId: data.conversationId, method: activeChannel! }),
+    onSuccess: (data) => {
+      setConfirmTimedOut(false)
+      setConfirmGaveUp(false)
+      setDone({ conversationId: data.conversationId, method: activeChannel!, status: data.status ?? 'SENT' })
+    },
     onError: (err) => setFieldError(http.humanizeError(err)),
   })
+
+  // Accepted by the SMS provider is not "received": ask for the operator's
+  // delivery report for a little while before telling the visitor it worked.
+  const waitingForConfirmation = done?.status === 'SENT' && !confirmTimedOut
+  const delivery = useQuery({
+    queryKey: publicQrQueryKeys.delivery(done?.conversationId ?? ''),
+    queryFn: () => publicQrApi.deliveryStatus(token, done!.conversationId),
+    // Operator reports take from ~1 s (rejections) to a few minutes (delivered):
+    // ask every 2 s while the spinner shows, then every 5 s behind the
+    // "not confirmed yet" screen, which switches to delivered if it arrives.
+    enabled: done?.status === 'SENT' && !confirmGaveUp,
+    refetchInterval: (query) =>
+      query.state.data?.status === 'SENT' || !query.state.data ? (confirmTimedOut ? 5000 : 2000) : false,
+    retry: false,
+  })
+  useEffect(() => {
+    if (!waitingForConfirmation) return
+    const timer = window.setTimeout(() => setConfirmTimedOut(true), CONFIRM_TIMEOUT_MS)
+    return () => window.clearTimeout(timer)
+  }, [waitingForConfirmation])
+  useEffect(() => {
+    if (done?.status !== 'SENT') return
+    const timer = window.setTimeout(() => setConfirmGaveUp(true), CONFIRM_BACKGROUND_MS)
+    return () => window.clearTimeout(timer)
+  }, [done])
+  const deliveryStatus: AlertDeliveryStatus | undefined =
+    done?.status === 'SENT' ? (delivery.data?.status ?? 'SENT') : done?.status
 
   const reportMutation = useMutation({
     mutationFn: () =>
@@ -108,6 +144,11 @@ export default function PublicContactPage() {
     onSuccess: () => setReportDone(true),
     onError: (err) => setFieldError(http.humanizeError(err)),
   })
+
+  // How much of the note fits in the owner's SMS (always Derja, 70 characters
+  // in all); the full note is always stored and shown in the owner's dashboard.
+  const noteLimit = selectedReason ? view.data?.smsNoteLimits?.[selectedReason] : undefined
+  const noteFit = activeChannel === 'SMS' && noteLimit !== undefined ? fitNote(message, noteLimit) : null
 
   const vehicle = view.data?.vehicle
   const color = useCarColor(vehicle?.color ?? null)
@@ -131,6 +172,8 @@ export default function PublicContactPage() {
 
   function resetForm() {
     setDone(null)
+    setConfirmTimedOut(false)
+    setConfirmGaveUp(false)
     setMessage('')
     setSelectedReason(null)
     setFieldError(null)
@@ -185,14 +228,16 @@ export default function PublicContactPage() {
         <Card>
           <Logo link={false} className="justify-center" />
           <div className="mt-6 text-center">
-            <SuccessMark className="mb-4" />
-            <h1 className="text-xl font-bold text-heading">{t('contact.contactSuccess')}</h1>
-            <p className="text-sm text-muted-fg mt-2">
-              {t('contact.contactSuccessHint', { method: t(`contact.${done.method.toLowerCase()}`) })}
-            </p>
-            <Button className="mt-6 w-full" onClick={resetForm}>
-              {t('contact.sendAnother')}
-            </Button>
+            <DeliveryOutcome
+              status={deliveryStatus ?? 'SENT'}
+              waiting={waitingForConfirmation && deliveryStatus === 'SENT'}
+              method={t(`contact.${done.method.toLowerCase()}`)}
+            />
+            {!(waitingForConfirmation && deliveryStatus === 'SENT') && (
+              <Button className="mt-6 w-full" onClick={resetForm}>
+                {deliveryStatus === 'FAILED' ? t('contact.delivery.tryAgain') : t('contact.sendAnother')}
+              </Button>
+            )}
             <button
               onClick={() => {
                 setShowReport(true)
@@ -288,8 +333,29 @@ export default function PublicContactPage() {
             placeholder={t('contact.notePlaceholder')}
             maxLength={500}
             rows={3}
+            aria-describedby="pub-msg-sms"
           />
-          <p className="mt-1.5 text-end text-xs text-muted-fg tabular-nums">{message.length}/500</p>
+          <div id="pub-msg-sms" aria-live="polite">
+            {noteFit ? (
+              <div className="mt-1.5 flex items-start justify-between gap-3 text-xs">
+                <span className={noteFit.over ? 'font-semibold text-destructive' : 'text-muted-fg'}>
+                  {noteFit.over
+                    ? t('contact.smsLimit.over')
+                    : t('contact.smsLimit.left', { count: noteFit.max - noteFit.used })}
+                </span>
+                <span className={'shrink-0 tabular-nums ' + (noteFit.over ? 'font-semibold text-destructive' : 'text-muted-fg')}>
+                  {noteFit.used}/{noteFit.max}
+                </span>
+              </div>
+            ) : (
+              <p className="mt-1.5 text-end text-xs text-muted-fg tabular-nums">{message.length}/500</p>
+            )}
+            {activeChannel === 'SMS' && (
+              <p className="mt-2 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-relaxed text-muted-fg">
+                {selectedReason ? t('contact.smsLimit.hint') : t('contact.smsLimit.pickReason')}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Delivery: a choice only when the backend offers several channels */}
@@ -528,4 +594,57 @@ function vehicleLabel(vehicle: { nickname: string | null; brand: string | null; 
   if (!vehicle) return ''
   const brandModel = [vehicle.brand, vehicle.model].filter(Boolean).join(' ')
   return [brandModel, vehicle.color].filter(Boolean).join(' · ')
+}
+
+/** How long the visitor waits for the operator's delivery report (rejections come back in ~1 s). */
+const CONFIRM_TIMEOUT_MS = 20_000
+/** Keep checking quietly behind the "not confirmed yet" screen for this long. */
+const CONFIRM_BACKGROUND_MS = 180_000
+
+/**
+ * The outcome shown after sending: delivered (confirmed by the operator), still
+ * being confirmed, accepted but not confirmed yet (phone off?), or failed.
+ */
+function DeliveryOutcome({ status, waiting, method }: { status: AlertDeliveryStatus; waiting: boolean; method: string }) {
+  const { t } = useTranslation()
+  if (waiting) {
+    return (
+      <div role="status" aria-live="polite">
+        <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-primary-soft text-primary">
+          <Loader2 className="h-8 w-8 animate-spin" aria-hidden />
+        </span>
+        <h1 className="text-xl font-bold text-heading">{t('contact.delivery.checkingTitle')}</h1>
+        <p className="text-sm text-muted-fg mt-2">{t('contact.delivery.checkingHint')}</p>
+      </div>
+    )
+  }
+  if (status === 'FAILED') {
+    return (
+      <div role="alert">
+        <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-destructive-soft text-destructive">
+          <AlertTriangle className="h-8 w-8" aria-hidden />
+        </span>
+        <h1 className="text-xl font-bold text-heading">{t('contact.delivery.failedTitle')}</h1>
+        <p className="text-sm text-muted-fg mt-2 leading-relaxed">{t('contact.delivery.failedHint')}</p>
+      </div>
+    )
+  }
+  if (status === 'SENT') {
+    return (
+      <div role="status">
+        <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-warning-soft text-warning">
+          <Clock className="h-8 w-8" aria-hidden />
+        </span>
+        <h1 className="text-xl font-bold text-heading">{t('contact.delivery.unconfirmedTitle')}</h1>
+        <p className="text-sm text-muted-fg mt-2 leading-relaxed">{t('contact.delivery.unconfirmedHint')}</p>
+      </div>
+    )
+  }
+  return (
+    <div role="status">
+      <SuccessMark className="mb-4" />
+      <h1 className="text-xl font-bold text-heading">{t('contact.delivery.deliveredTitle')}</h1>
+      <p className="text-sm text-muted-fg mt-2">{t('contact.delivery.deliveredHint', { method })}</p>
+    </div>
+  )
 }

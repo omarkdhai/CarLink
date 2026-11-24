@@ -392,7 +392,25 @@
     "requiredNote": "All fields except phone are required.",
     "scanTitle": "Contact the owner",
     "scanSubtitle": "Pick a reason. The owner gets an alert right away — neither of you sees the other's number.",
-    "deliveredBy": "The owner is alerted by {{method}}."
+    "deliveredBy": "The owner is alerted by {{method}}.",
+    "smsLimit": {
+      "left_one": "{{count}} character left in the SMS",
+      "left_other": "{{count}} characters left in the SMS",
+      "over": "Too long for one SMS: the owner gets the beginning by SMS and reads your full note in CarLink.",
+      "hint": "The owner gets an SMS in Tunisian Arabic with the reason you picked, followed by your note exactly as you write it, in any language. One SMS holds about 70 characters in all and an emoji counts as 2: a longer note is shortened in the SMS, but the owner always reads it in full in CarLink.",
+      "pickReason": "Pick a reason to see how much of your note fits in the SMS."
+    },
+    "delivery": {
+      "checkingTitle": "Sending your alert…",
+      "checkingHint": "Waiting for the phone operator to confirm that the SMS reached the owner.",
+      "deliveredTitle": "Alert delivered!",
+      "deliveredHint": "The owner received your alert by {{method}}.",
+      "unconfirmedTitle": "Alert sent",
+      "unconfirmedHint": "The operator has not confirmed delivery yet: the owner’s phone may be off or out of coverage. The SMS will arrive as soon as it can, and the owner will also see your alert in CarLink.",
+      "failedTitle": "Your alert could not be delivered",
+      "failedHint": "The SMS could not reach the owner’s phone. Your alert is saved and the owner will see it when they open CarLink. If it is urgent, try again in a few minutes or look for the owner nearby.",
+      "tryAgain": "Try again"
+    }
   },
   "message": {
     "title": "Messages",
@@ -423,7 +441,8 @@
       "today": "Today",
       "yesterday": "Yesterday",
       "earlier": "Earlier"
-    }
+    },
+    "delivered": "Delivered"
   },
   "notifications": {
     "title": "Notifications",

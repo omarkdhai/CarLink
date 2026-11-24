@@ -45,7 +45,9 @@ development-grade default if omitted.
 | `APP_BASE_URL` | Public origin used to build QR, verification and reset links. Must be the real `https://` URL, or those links point nowhere. |
 | `APP_PUBLIC_URL` | Public frontend origin, used for links and CORS. |
 | `CORS_ALLOWED_ORIGINS` | Leave **empty** for the normal deployment: nginx serves the SPA and API from one origin, so no cross-origin access is needed. |
-| `CONTACT_PROVIDER` | `mock` (default) logs instead of sending real SMS. Set `telnyx` and supply the Telnyx variables below to go live. |
+| `CONTACT_PROVIDER` | `mock` (default) logs instead of sending real SMS. **`tunisiesms`** sends the owner alerts by SMS through TunisieSMS (production in Tunisia); `telnyx` is kept as an alternative. |
+| `TUNISIESMS_API_KEY` | TunisieSMS API key (client area app.tunisiesms.tn). Required when `CONTACT_PROVIDER=tunisiesms`; startup fails fast if blank. Sent only in a POST body, never in a URL or a log. |
+| `TUNISIESMS_SENDER` | Sender name authorized on the account (default `CarLink`). A sender that is not authorized makes every SMS fail with code 442. |
 | `CONTACT_ENABLED_CHANNELS` | Channels advertised and accepted. Defaults to `SMS`; WhatsApp is deliberately not enabled (needs a Meta template outside the 24-hour window). |
 | `TELNYX_API_KEY` | Telnyx API key. Required when `CONTACT_PROVIDER=telnyx`; startup fails fast if it is blank. |
 | `TELNYX_SMS_FROM` | SMS-enabled number in E.164, attached to a messaging profile. Required for SMS relay. |
@@ -337,9 +339,15 @@ Not yet automated, listed so they are not mistaken for oversights:
 - **No TLS or reverse-proxy config in this repo.** §3 assumes one exists
   elsewhere.
 - **Contact relay defaults to the logging mock.** With `CONTACT_PROVIDER=mock`,
-  submissions are recorded but never reach the owner. Set `telnyx` and supply
-  `TELNYX_API_KEY`, `TELNYX_SMS_FROM`, `TELNYX_VOICE_FROM`,
-  `TELNYX_CONNECTION_ID` and `TELNYX_VOICE_AUDIO_URL` for real SMS + alert calls.
+  submissions are recorded but never reach the owner. Production uses
+  `CONTACT_PROVIDER=tunisiesms` with `TUNISIESMS_API_KEY` (SMS only, one SMS per
+  alert, always in Tunisian Derja: an emoji + the reason, then the visitor's note
+  exactly as typed. Arabic makes it a Unicode SMS of 70 characters, so a long
+  note is shortened; the full note is in the dashboard and the public page shows
+  the visitor how many characters fit). There is no alert call with TunisieSMS.
+  Watch the balance in the TunisieSMS client area: at zero every alert fails
+  (log line `[TUNISIESMS] insufficient balance (402)`). Telnyx (`telnyx` and the
+  `TELNYX_*` variables) remains available for SMS + alert calls.
 - **WhatsApp is unsupported by design.** Telnyx delivers WhatsApp free-text only
   inside a 24-hour window opened by the recipient; a QR scan never opens it, so
   WhatsApp would need a Meta-approved template. `CONTACT_ENABLED_CHANNELS`
