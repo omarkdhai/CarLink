@@ -185,6 +185,7 @@ carlink:
 
   # Contact relay
   contact:
+    # mock (logs only) | tunisiesms (SMS in Tunisia) | telnyx
     provider: ${CONTACT_PROVIDER:mock}
     # Channels advertised on the public page and accepted by the submit
     # endpoint. SMS-only by default: WhatsApp on Telnyx requires an approved
@@ -235,6 +236,13 @@ carlink:
   admin:
     bootstrap-email: ${ADMIN_BOOTSTRAP_EMAIL:}
     bootstrap-password: ${ADMIN_BOOTSTRAP_PASSWORD:}
+
+  # TunisieSMS (L2T URL2SMS). Only read when contact.provider=tunisiesms.
+  tunisiesms:
+    api-key: ${TUNISIESMS_API_KEY:}
+    # Must be a sender authorized on the account.
+    sender: ${TUNISIESMS_SENDER:CarLink}
+    url: ${TUNISIESMS_URL:https://api.l2t.io/tn/v0/api/api.aspx}
 
   # Telnyx. Only read when contact.provider=telnyx.
   telnyx:

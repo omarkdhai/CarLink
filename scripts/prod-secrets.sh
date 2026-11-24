@@ -49,7 +49,8 @@ fi
 # Settings only a person can provide (the lines under "# FILL"). Names only.
 missing=""
 for key in CARLINK_VERSION CARLINK_DOMAIN ACME_EMAIL ADMIN_BOOTSTRAP_EMAIL MAIL_USERNAME \
-           MAIL_PASSWORD CONTACT_TO_EMAIL CAPTCHA_SITE_KEY CAPTCHA_SECRET_KEY; do
+           MAIL_PASSWORD CONTACT_TO_EMAIL CAPTCHA_SITE_KEY CAPTCHA_SECRET_KEY \
+           TUNISIESMS_API_KEY; do
   if grep -Eq "^${key}=[[:space:]]*$" "$file"; then
     missing="$missing $key"
   fi

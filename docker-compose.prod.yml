@@ -150,6 +150,9 @@ services:
       # mock until a real provider is configured (see .env.example for telnyx).
       CONTACT_PROVIDER: ${CONTACT_PROVIDER:-mock}
       CONTACT_ENABLED_CHANNELS: ${CONTACT_ENABLED_CHANNELS:-SMS}
+      # TunisieSMS (only read when CONTACT_PROVIDER=tunisiesms)
+      TUNISIESMS_API_KEY: ${TUNISIESMS_API_KEY:-}
+      TUNISIESMS_SENDER: ${TUNISIESMS_SENDER:-CarLink}
       # Telnyx (only read when CONTACT_PROVIDER=telnyx)
       TELNYX_API_KEY: ${TELNYX_API_KEY:-}
       TELNYX_SMS_FROM: ${TELNYX_SMS_FROM:-}

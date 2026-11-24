@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  *   password-reset links would silently vanish — so the prod profile refuses to
  *   start with it.</li>
  *   <li><b>Contact relay:</b> production may legitimately run on the mock relay
- *   until Telnyx is configured. That is allowed, but announced loudly, and the
+ *   until the SMS provider is configured. That is allowed, but announced loudly, and the
  *   mock never logs message content.</li>
  * </ul>
  */
@@ -49,7 +49,7 @@ public class ProductionProviderGuard {
         }
         if (isMock(properties.contact().provider())) {
             log.warn("CONTACT_PROVIDER=mock in production: visitor alerts are recorded but NOT delivered "
-                    + "to owners. Configure CONTACT_PROVIDER=telnyx and the TELNYX_* variables.");
+                    + "to owners. Configure CONTACT_PROVIDER=tunisiesms and TUNISIESMS_API_KEY.");
         }
     }
 
