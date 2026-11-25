@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   QrCode,
   LogOut,
+  House,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -209,6 +210,14 @@ export function AppLayout() {
               {accountNav.map((item) => sideLink(item))}
             </nav>
           </div>
+          {/* Back to the public site (the landing page stays open while signed in) */}
+          <Link
+            to="/"
+            className="flex items-center gap-3 h-11 px-3 rounded-lg text-sm font-medium text-muted-fg hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <House className="h-5 w-5 shrink-0" aria-hidden />
+            <span className="flex-1 truncate">{t('nav.backToSite')}</span>
+          </Link>
         </div>
         {/* Signed-in user */}
         <div className="p-3 border-t border-border">
@@ -249,6 +258,14 @@ export function AppLayout() {
             <div className="hidden sm:block">
               <LanguageSwitcher />
             </div>
+            <Link
+              to="/"
+              aria-label={t('nav.backToSite')}
+              title={t('nav.backToSite')}
+              className="lg:hidden h-10 w-10 rounded-xl flex items-center justify-center text-muted-fg hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <House className="h-5 w-5" aria-hidden />
+            </Link>
             <NavLink
               to="/notifications"
               aria-label={`${t('nav.notifications')}${counts.notifications ? ` — ${badgeLabel(counts.notifications)}` : ''}`}

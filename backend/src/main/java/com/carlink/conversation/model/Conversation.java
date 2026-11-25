@@ -63,6 +63,13 @@ public class Conversation {
     @Column(name = "read_at")
     private Instant readAt;
 
+    /**
+     * Set when the phone operator refused the note's content (V13): the alert
+     * is then hidden from the owner. Null = visible.
+     */
+    @Column(name = "hidden_at")
+    private Instant hiddenAt;
+
 
     /**
      * Creates a new conversation in the terminal-success state ({@code SENT}).

@@ -121,6 +121,16 @@ public class DeliveryStatusService {
         return true;
     }
 
+    /**
+     * Whether the operator refused the alert because of what the note says
+     * (TunisieSMS report {@code UNAUTHORIZED}, "contenu non autorisé").
+     */
+    public boolean refusedForContent(java.util.UUID conversationId) {
+        return deliveryRepository.findAllByConversationId(conversationId).stream()
+                .anyMatch(d -> d.getStatus() == DeliveryStatus.FAILED
+                        && ConversationDelivery.CONTENT_REFUSED.equals(d.getError()));
+    }
+
     /** Asks for one SMS report and applies it. @return whether there was a report. */
     private boolean check(DeliveryReportClient client, ConversationDelivery delivery) {
         Optional<DeliveryReportClient.DeliveryReport> report = client.report(delivery.getProviderMessageId());

@@ -402,6 +402,12 @@ answer never repeats the note; the log line has only the score.
   about 3% honest notes blocked in cross-validation, 49% of spam caught).
   Blocking a real alert is the worse mistake, hence 0.8.
 - `CONTACT_SPAM_FILTER_ENABLED=false` turns the filter off.
+- **Second line of defence:** if a note the classifier missed is refused by the
+  phone operator for its content (TunisieSMS report `UNAUTHORIZED`), the alert
+  is hidden from the owner (`conversations.hidden_at`, V13: not in the list,
+  the detail answers 404) and the visitor sees "Your note was refused" with a
+  button to change it. The row stays for admin moderation and normal retention.
+  Add such notes to `notes-train.tsv` as `B` so the classifier learns them.
 
 **Also configure, in the Telnyx portal** (cannot be done from this repo): a
 low-balance / spend alert on the account and a daily spend limit on the

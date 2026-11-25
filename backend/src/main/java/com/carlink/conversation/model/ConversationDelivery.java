@@ -29,6 +29,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ConversationDelivery {
 
+    /**
+     * Failure code when the phone operator refused what the note says
+     * (TunisieSMS report {@code UNAUTHORIZED}, "contenu non autorisé").
+     */
+    public static final String CONTENT_REFUSED = "UNAUTHORIZED";
+
     @Id
     private UUID id;
 

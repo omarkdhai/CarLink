@@ -644,3 +644,55 @@ A	appartement 4, deuxième étage
 A	je suis le voisin
 A	c'est moi le monsieur à la veste bleue
 A	ena el jar mte3ek
+
+# ---------------------------------------------------------------- blocked, insults and threats mixed with car words
+# A car word does not make an insult acceptable: the operator refuses these
+# SMS anyway ("contenu non autorisé").
+B	ija nayek na7i karhbtek
+B	na7i karhbtek ya zebi
+B	karhbtek sakra 3lia ya mibun
+B	ya 9a7ba na7i el karhba
+B	zebi fik w fi karhbtek
+B	nik omek na7i el karhba
+B	ya wled el 9a7ba karhbtek sakra
+B	ya bhim ta3allem tparki
+B	ya kalb na7i karhbtek
+B	ya 7mar karhbtek sakra el bab
+B	yel3an bouk na7i el karhba
+B	ya tahan karhbtek sakra
+B	ija ya mnayek
+B	karhbtek sakra ya zabi
+B	nayek na7i el karhba taw
+B	نحي كرهبتك يا زبي
+B	كرهبتك سادة عليا يا ميبون
+B	يا قحبة نحي الكرهبة
+B	نيك أمك نحي كرهبتك
+B	يا حمار تعلم تباركي
+B	يلعن بوك نحي الكرهبة
+B	يا كلب كرهبتك سادة
+B	يا طحان نحي كرهبتك
+B	يا حيوان كرهبتك في بلاصتي
+B	ta voiture me bloque connard
+B	bouge ta caisse connard
+B	déplace ta bagnole sale con
+B	ta voiture de merde me bloque
+B	enculé, ta voiture est sur ma place
+B	putain de connard, bouge ta voiture
+B	apprends à te garer espèce d'abruti
+B	nique ta mère, ta voiture me bloque
+B	fils de pute, tu bloques ma sortie
+B	ta caisse pourrie gêne tout le monde, imbécile
+B	move your car asshole
+B	move your fucking car
+B	learn to park you idiot
+B	your car is blocking me, bitch
+B	stupid asshole parked like an idiot
+B	fuck you and your car
+B	move it or I will smash your windows
+B	next time I will slash your tyres
+B	je vais crever tes pneus
+B	je vais rayer ta voiture si tu recommences
+B	nkasser el blar mta3 karhbtek
+B	nfaccha3lek el rwayed
+B	سأكسر زجاج سيارتك
+B	نكسرلك البلار متاع الكرهبة

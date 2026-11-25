@@ -20,11 +20,11 @@ import java.util.UUID;
  */
 public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
 
-    /** All conversations for a given owner, newest first. */
-    List<Conversation> findAllByVehicle_Owner_IdOrderByCreatedAtDesc(UUID ownerId);
+    /** All conversations for a given owner, newest first (hidden ones left out). */
+    List<Conversation> findAllByVehicle_Owner_IdAndHiddenAtIsNullOrderByCreatedAtDesc(UUID ownerId);
 
-    /** All conversations for a single vehicle, newest first. */
-    List<Conversation> findAllByVehicle_IdOrderByCreatedAtDesc(UUID vehicleId);
+    /** All conversations for a single vehicle, newest first (hidden ones left out). */
+    List<Conversation> findAllByVehicle_IdAndHiddenAtIsNullOrderByCreatedAtDesc(UUID vehicleId);
 
     /**
      * Locks the conversation row while its aggregate status is recomputed, so

@@ -36,6 +36,11 @@ class NoteSpamFilterTest {
             "follow me on instagram",
             "asdfghjkl",
             "nique ta mère",
+            // insults stay insults next to a car word (the operator refuses them anyway)
+            "ija nayek baad karhbtek ha zebi",
+            "ta voiture me bloque connard",
+            "move your car asshole",
+            "نحي كرهبتك يا ميبون",
     })
     void clearSpamIsRefused(String note) {
         assertThat(filter.wouldRefuse(note)).as(note).isTrue();

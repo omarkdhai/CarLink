@@ -71,7 +71,8 @@
     "main": "Main navigation",
     "skipToContent": "Skip to content",
     "badge_one": "{{count}} new",
-    "badge_other": "{{count}} new"
+    "badge_other": "{{count}} new",
+    "backToSite": "Back to the website"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -409,7 +410,10 @@
       "unconfirmedHint": "The operator has not confirmed delivery yet: the owner’s phone may be off or out of coverage. The SMS will arrive as soon as it can, and the owner will also see your alert in CarLink.",
       "failedTitle": "Your alert could not be delivered",
       "failedHint": "The SMS could not reach the owner’s phone. Your alert is saved and the owner will see it when they open CarLink. If it is urgent, try again in a few minutes or look for the owner nearby.",
-      "tryAgain": "Try again"
+      "tryAgain": "Try again",
+      "refusedTitle": "Your note was refused",
+      "refusedHint": "The phone operator refused to deliver this message because of what the note says. Change your note and send the alert again.",
+      "changeNote": "Change my note"
     },
     "smsAndWhatsapp": "SMS and WhatsApp"
   },
