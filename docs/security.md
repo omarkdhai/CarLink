@@ -41,7 +41,9 @@ still omit it.
   `POST /api/v1/stickers/activate`). The status endpoint answers only for an
   alert of the vehicle behind that token (else 404), returns one of
   DELIVERED / SENT / FAILED — never the failure reason, which could reveal
-  something about the owner's number — and is rate-limited per hashed IP. The
+  something about the owner's number (the one exception, REFUSED, says only
+  that the operator refused the note's content, so the visitor changes it) —
+  and is rate-limited per hashed IP. The
   only URL carrying a token is the QR's own `/c/{token}` page; nginx's
   `carlink` log format masks it in the request line *and* in the Referer of
   the API calls made from that page (security plan S-08).

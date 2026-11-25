@@ -153,6 +153,16 @@ export default function PublicContactPage() {
     contactMutation.mutate()
   }
 
+  /** Back to the form with the reason and note kept, so the visitor can change the note. */
+  function editNote() {
+    setDone(null)
+    setConfirmTimedOut(false)
+    setConfirmGaveUp(false)
+    setFieldError(null)
+    setShowReport(false)
+    setReportDone(false)
+  }
+
   function resetForm() {
     setDone(null)
     setConfirmTimedOut(false)
@@ -216,7 +226,11 @@ export default function PublicContactPage() {
               waiting={waitingForConfirmation && deliveryStatus === 'SENT'}
               method={done.method}
             />
-            {!(waitingForConfirmation && deliveryStatus === 'SENT') && (
+            {deliveryStatus === 'REFUSED' ? (
+              <Button className="mt-6 w-full" onClick={editNote}>
+                {t('contact.delivery.changeNote')}
+              </Button>
+            ) : !(waitingForConfirmation && deliveryStatus === 'SENT') && (
               <Button className="mt-6 w-full" onClick={resetForm}>
                 {deliveryStatus === 'FAILED' ? t('contact.delivery.tryAgain') : t('contact.sendAnother')}
               </Button>
@@ -548,6 +562,17 @@ function DeliveryOutcome({ status, waiting, method }: { status: AlertDeliverySta
         </span>
         <h1 className="text-xl font-bold text-heading">{t('contact.delivery.checkingTitle')}</h1>
         <p className="text-sm text-muted-fg mt-2">{t('contact.delivery.checkingHint')}</p>
+      </div>
+    )
+  }
+  if (status === 'REFUSED') {
+    return (
+      <div role="alert">
+        <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-warning-soft text-warning">
+          <ShieldAlert className="h-8 w-8" aria-hidden />
+        </span>
+        <h1 className="text-xl font-bold text-heading">{t('contact.delivery.refusedTitle')}</h1>
+        <p className="text-sm text-muted-fg mt-2 leading-relaxed">{t('contact.delivery.refusedHint')}</p>
       </div>
     )
   }

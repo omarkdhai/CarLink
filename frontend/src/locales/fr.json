@@ -71,7 +71,8 @@
     "main": "Navigation principale",
     "skipToContent": "Aller au contenu",
     "badge_one": "{{count}} nouveau",
-    "badge_other": "{{count}} nouveaux"
+    "badge_other": "{{count}} nouveaux",
+    "backToSite": "Retour au site"
   },
   "auth": {
     "loginTitle": "Connexion",
@@ -409,7 +410,10 @@
       "unconfirmedHint": "L’opérateur n’a pas encore confirmé la réception : le téléphone du propriétaire est peut-être éteint ou hors réseau. Le SMS arrivera dès que possible, et le propriétaire verra aussi votre alerte dans CarLink.",
       "failedTitle": "Votre alerte n’a pas pu être livrée",
       "failedHint": "Le SMS n’a pas pu atteindre le téléphone du propriétaire. Votre alerte est enregistrée et il la verra en ouvrant CarLink. Si c’est urgent, réessayez dans quelques minutes ou cherchez le propriétaire à proximité.",
-      "tryAgain": "Réessayer"
+      "tryAgain": "Réessayer",
+      "refusedTitle": "Votre note a été refusée",
+      "refusedHint": "L’opérateur a refusé de livrer ce message à cause du contenu de la note. Modifiez votre note et renvoyez l’alerte.",
+      "changeNote": "Modifier ma note"
     },
     "smsAndWhatsapp": "SMS et WhatsApp"
   },

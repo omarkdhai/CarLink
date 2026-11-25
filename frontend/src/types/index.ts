@@ -303,8 +303,11 @@ export interface ReportSubmitRequest {
 /** SENT = accepted by the SMS provider, delivery not confirmed yet; DELIVERED = confirmed. */
 export type ConversationStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'EXPIRED'
 
-/** What the visitor may know about the alert they just sent. */
-export type AlertDeliveryStatus = 'DELIVERED' | 'SENT' | 'FAILED'
+/**
+ * What the visitor may know about the alert they just sent. REFUSED: the phone
+ * operator refused the note's content (the visitor should change the note).
+ */
+export type AlertDeliveryStatus = 'DELIVERED' | 'SENT' | 'FAILED' | 'REFUSED'
 
 export interface ConversationSummaryResponse {
   id: UUID

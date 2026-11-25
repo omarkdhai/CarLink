@@ -177,7 +177,9 @@ public class PublicQrService {
      * provider's report. Bound to the sticker: the conversation must belong to the
      * vehicle behind {@code rawToken} (anything else reads as 404), and only a
      * coarse status leaves the server — never the failure reason, which could
-     * say something about the owner's number.
+     * say something about the owner's number. One exception that says nothing
+     * about the owner: REFUSED when the operator refused the note's content, so
+     * the visitor knows to change the note rather than retry it.
      */
     public DeliveryStatusResponse deliveryStatus(String rawToken, UUID conversationId, String clientIp) {
         String ipKey = "public-status:" + tokenGenerator.sha256(clientIp);
@@ -189,7 +191,11 @@ public class PublicQrService {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .filter(c -> c.getVehicle().getId().equals(vehicleId))
                 .orElseThrow(() -> new NotFoundException("Alert not found"));
-        return new DeliveryStatusResponse(visitorStatus(deliveryStatusService.refresh(conversation)));
+        ConversationStatus status = deliveryStatusService.refresh(conversation);
+        if (status == ConversationStatus.FAILED && deliveryStatusService.refusedForContent(conversationId)) {
+            return new DeliveryStatusResponse("REFUSED");
+        }
+        return new DeliveryStatusResponse(visitorStatus(status));
     }
 
     private UUID vehicleIdForToken(String rawToken) {

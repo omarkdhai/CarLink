@@ -442,6 +442,19 @@ class PublicQrServiceTest {
     }
 
     @Test
+    void contentRefusedByTheOperatorTellsTheVisitorToChangeTheNote() {
+        allowAllRequests();
+        when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken))).thenReturn(Optional.of(activeCode()));
+        var conversation = conversationOf(vehicle);
+        when(conversationRepository.findById(conversation.getId())).thenReturn(Optional.of(conversation));
+        when(deliveryStatusService.refresh(conversation))
+                .thenReturn(com.carlink.conversation.model.ConversationStatus.FAILED);
+        when(deliveryStatusService.refusedForContent(conversation.getId())).thenReturn(true);
+
+        assertThat(service.deliveryStatus(rawToken, conversation.getId(), clientIp).status()).isEqualTo("REFUSED");
+    }
+
+    @Test
     void deliveryStatusOfAnotherVehiclesAlertIsNotFound() {
         allowAllRequests();
         when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken))).thenReturn(Optional.of(activeCode()));

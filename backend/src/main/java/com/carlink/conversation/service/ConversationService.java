@@ -71,7 +71,7 @@ public class ConversationService {
     /** Returns all conversations for the owner, newest first, with a last-message preview. */
     public List<ConversationSummaryResponse> listForOwner(UUID ownerId) {
         List<Conversation> conversations =
-                conversationRepository.findAllByVehicle_Owner_IdOrderByCreatedAtDesc(ownerId);
+                conversationRepository.findAllByVehicle_Owner_IdAndHiddenAtIsNullOrderByCreatedAtDesc(ownerId);
 
         return conversations.stream()
                 .map(conv -> {
@@ -90,7 +90,7 @@ public class ConversationService {
         vehicleService.getOwned(ownerId, vehicleId);
 
         List<Conversation> conversations =
-                conversationRepository.findAllByVehicle_IdOrderByCreatedAtDesc(vehicleId);
+                conversationRepository.findAllByVehicle_IdAndHiddenAtIsNullOrderByCreatedAtDesc(vehicleId);
 
         return conversations.stream()
                 .map(conv -> {
@@ -103,10 +103,16 @@ public class ConversationService {
                 .toList();
     }
 
+    /** A conversation the owner may see: a hidden one (content refused) reads as 404. */
+    private Conversation visibleConversation(UUID conversationId) {
+        return conversationRepository.findById(conversationId)
+                .filter(c -> c.getHiddenAt() == null)
+                .orElseThrow(() -> new NotFoundException("Conversation not found"));
+    }
+
     /** Returns the full message history for one conversation. */
     public ConversationDetailResponse getForOwner(UUID ownerId, UUID conversationId) {
-        Conversation conv = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new NotFoundException("Conversation not found"));
+        Conversation conv = visibleConversation(conversationId);
 
         // Ownership check — 404 on mismatch
         vehicleService.getOwned(ownerId, conv.getVehicle().getId());
@@ -123,8 +129,7 @@ public class ConversationService {
 
     /** Marks a conversation as read. */
     public void markRead(UUID ownerId, UUID conversationId) {
-        Conversation conv = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new NotFoundException("Conversation not found"));
+        Conversation conv = visibleConversation(conversationId);
 
         // Ownership check — 404 on mismatch
         vehicleService.getOwned(ownerId, conv.getVehicle().getId());

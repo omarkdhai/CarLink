@@ -143,4 +143,19 @@ class DeliveryStatusServiceTest {
         assertThat(service(client).applyPushedReport("meta", "other", DeliveryStatus.DELIVERED, null)).isFalse();
         verify(deliveries, never()).applyReport(any(), any(), any());
     }
+
+    @Test
+    void contentRefusedByTheOperatorIsRecognised() {
+        UUID refusedId = UUID.randomUUID();
+        ConversationDelivery refused = delivery(refusedId, Channel.SMS, "tunisiesms", "r1", DeliveryStatus.FAILED);
+        refused.setError("UNAUTHORIZED");
+        when(deliveryRepository.findAllByConversationId(refusedId)).thenReturn(List.of(refused));
+        UUID rejectedId = UUID.randomUUID();
+        ConversationDelivery rejected = delivery(rejectedId, Channel.SMS, "tunisiesms", "r2", DeliveryStatus.FAILED);
+        rejected.setError("REJECTED");
+        when(deliveryRepository.findAllByConversationId(rejectedId)).thenReturn(List.of(rejected));
+
+        assertThat(service(client).refusedForContent(refusedId)).isTrue();
+        assertThat(service(client).refusedForContent(rejectedId)).isFalse();
+    }
 }

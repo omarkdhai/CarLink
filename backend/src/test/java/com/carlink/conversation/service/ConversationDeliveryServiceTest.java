@@ -89,4 +89,26 @@ class ConversationDeliveryServiceTest {
         service.applyReport(wa, FAILED, "WA_131026");
         verify(deliveries).applyReport(eq(wa.getId()), eq(FAILED), eq("WA_131026"), any(), eq(EnumSet.of(SENT)));
     }
+
+    @Test
+    void contentRefusedByTheOperatorHidesTheAlertFromTheOwner() {
+        Conversation c = conversation(ConversationStatus.SENT);
+        ConversationDelivery sms = delivery(c.getId(), Channel.SMS, SENT);
+        when(deliveries.applyReport(eq(sms.getId()), eq(FAILED), eq("UNAUTHORIZED"), any(), any())).thenReturn(1);
+
+        service.applyReport(sms, FAILED, ConversationDelivery.CONTENT_REFUSED);
+
+        assertThat(c.getHiddenAt()).isNotNull();
+    }
+
+    @Test
+    void otherFailuresKeepTheAlertVisible() {
+        Conversation c = conversation(ConversationStatus.SENT);
+        ConversationDelivery sms = delivery(c.getId(), Channel.SMS, SENT);
+        when(deliveries.applyReport(eq(sms.getId()), eq(FAILED), eq("REJECTED"), any(), any())).thenReturn(1);
+
+        service.applyReport(sms, FAILED, "REJECTED");
+
+        assertThat(c.getHiddenAt()).isNull();
+    }
 }

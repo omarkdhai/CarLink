@@ -69,8 +69,15 @@ public class ConversationDeliveryService {
      */
     public ConversationStatus applyReport(ConversationDelivery delivery, DeliveryStatus status, String error) {
         Collection<DeliveryStatus> from = status == DeliveryStatus.READ ? FROM_SENT_OR_DELIVERED : FROM_SENT;
-        deliveryRepository.applyReport(delivery.getId(), status,
+        int applied = deliveryRepository.applyReport(delivery.getId(), status,
                 status == DeliveryStatus.FAILED ? error : null, Instant.now(), from);
+        if (applied == 1 && status == DeliveryStatus.FAILED && ConversationDelivery.CONTENT_REFUSED.equals(error)) {
+            // The operator refused what the note says: spam the classifier missed.
+            // The owner must not see it in the dashboard either.
+            conversationRepository.lockById(delivery.getConversationId())
+                    .filter(c -> c.getHiddenAt() == null)
+                    .ifPresent(c -> c.setHiddenAt(Instant.now()));
+        }
         return recompute(delivery.getConversationId());
     }
 

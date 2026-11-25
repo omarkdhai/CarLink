@@ -79,7 +79,7 @@ class ConversationServiceTest {
     void listForOwnerReturnsSummariesWithUnreadFlagsAndPreview() {
         Conversation unread = conversation(null, Channel.WHATSAPP);
         Conversation read = conversation(Instant.now(), Channel.SMS);
-        when(conversationRepository.findAllByVehicle_Owner_IdOrderByCreatedAtDesc(ownerId))
+        when(conversationRepository.findAllByVehicle_Owner_IdAndHiddenAtIsNullOrderByCreatedAtDesc(ownerId))
                 .thenReturn(List.of(unread, read));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(unread.getId()))
                 .thenReturn(List.of(Message.of(unread, "Hello, is it available?", "BLOCKING")));
@@ -99,7 +99,7 @@ class ConversationServiceTest {
     @Test
     void listForOwnerShowsNullPreviewWhenNoMessages() {
         Conversation conv = conversation(null, Channel.WHATSAPP);
-        when(conversationRepository.findAllByVehicle_Owner_IdOrderByCreatedAtDesc(ownerId))
+        when(conversationRepository.findAllByVehicle_Owner_IdAndHiddenAtIsNullOrderByCreatedAtDesc(ownerId))
                 .thenReturn(List.of(conv));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(conv.getId()))
                 .thenReturn(List.of());
@@ -111,7 +111,7 @@ class ConversationServiceTest {
     void listForOwnerTruncatesLongPreviewTo80Chars() {
         Conversation conv = conversation(null, Channel.WHATSAPP);
         String longMsg = "x".repeat(120);
-        when(conversationRepository.findAllByVehicle_Owner_IdOrderByCreatedAtDesc(ownerId))
+        when(conversationRepository.findAllByVehicle_Owner_IdAndHiddenAtIsNullOrderByCreatedAtDesc(ownerId))
                 .thenReturn(List.of(conv));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(conv.getId()))
                 .thenReturn(List.of(Message.of(conv, longMsg, "BLOCKING")));
@@ -128,7 +128,7 @@ class ConversationServiceTest {
     void listForVehicleScopesToVehicle() {
         Conversation conv = conversation(null, Channel.WHATSAPP);
         when(vehicleService.getOwned(ownerId, vehicle.getId())).thenReturn(vehicle);
-        when(conversationRepository.findAllByVehicle_IdOrderByCreatedAtDesc(vehicle.getId()))
+        when(conversationRepository.findAllByVehicle_IdAndHiddenAtIsNullOrderByCreatedAtDesc(vehicle.getId()))
                 .thenReturn(List.of(conv));
         when(messageRepository.findAllByConversation_IdOrderByCreatedAtAsc(conv.getId()))
                 .thenReturn(List.of(Message.of(conv, "hi", "BLOCKING")));
@@ -172,6 +172,16 @@ class ConversationServiceTest {
         when(conversationRepository.findById(any())).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.getForOwner(ownerId, UUID.randomUUID()))
                 .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void anAlertWhoseContentTheOperatorRefusedIsHiddenFromTheOwner() {
+        Conversation conv = conversation(null, Channel.SMS);
+        conv.setHiddenAt(Instant.now());
+        when(conversationRepository.findById(conv.getId())).thenReturn(Optional.of(conv));
+
+        assertThatThrownBy(() -> service.getForOwner(ownerId, conv.getId())).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.markRead(ownerId, conv.getId())).isInstanceOf(NotFoundException.class);
     }
 
     @Test
