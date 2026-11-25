@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Profile;
 @EnableConfigurationProperties({CarLinkProperties.class,
         com.carlink.security.ratelimit.ThrottleProperties.class,
         com.carlink.security.captcha.CaptchaProperties.class,
-        com.carlink.notification.tunisiesms.TunisieSmsProperties.class})
+        com.carlink.notification.tunisiesms.TunisieSmsProperties.class,
+        com.carlink.notification.whatsapp.WhatsAppProperties.class})
 public class AppConfig {
 
     /**

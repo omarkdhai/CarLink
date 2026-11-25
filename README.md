@@ -18,11 +18,9 @@ scans the code and sends an SMS through the platform.
 > the ordering/sticker flow are implemented and tested. SMS delivery goes through
 > Telnyx when `CONTACT_PROVIDER=telnyx` is configured (`TelnyxContactChannelSender`);
 > without it the default `mock` provider only logs, so a submitted message is
-> recorded but not delivered to a real phone. WhatsApp is **not** offered: Telnyx
-> requires an approved Meta template for free-text WhatsApp outside a 24-hour
-> window, which never applies to an unprompted QR scan, so
-> `carlink.contact.enabled-channels` defaults to `SMS` for both the advertised
-> page and the submit endpoint. See `docs/deployment.md` §13 for the credentials
+> recorded but not delivered to a real phone. Alerts can also go to the owner's
+> WhatsApp (`WHATSAPP_PROVIDER=meta`, Meta WhatsApp Cloud API with an approved
+> template, see `docs/whatsapp.md`); owners can turn it off in their profile. See `docs/deployment.md` §13 for the credentials
 > still required. Numbers below describe the configuration in this repo, which is
 > the source of truth.
 

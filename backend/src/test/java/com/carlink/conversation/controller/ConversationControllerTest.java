@@ -51,7 +51,8 @@ class ConversationControllerTest {
                 id, VEHICLE_ID, "My Car", "WHATSAPP", "SENT",
                 true, Instant.now(), Instant.now(),
                 List.of(new ConversationMessageResponse(
-                        UUID.randomUUID(), "Hello!", "BLOCKING", Instant.now())));
+                        UUID.randomUUID(), "Hello!", "BLOCKING", Instant.now())),
+                List.of(new ConversationDetailResponse.Delivery("SMS", "SENT")));
     }
 
     // ---------- list ----------

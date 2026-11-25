@@ -172,7 +172,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
         JsonNode detail = getJson(admin.auth, "/api/v1/admin/reports/" + reportId);
         assertThat(detail.get("conversation").get("conversationId").asString()).isEqualTo(convId);
         assertThat(detail.get("conversation").get("lastMessageContent").asString())
-                .isEqualTo("Buy it now!");
+                .isEqualTo("Please move your car now!");
         assertThat(detail.get("conversation").get("messageCount").asLong()).isEqualTo(1);
 
         // Transition OPEN → REVIEWED
@@ -266,7 +266,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String raw = result.getResponse().getContentAsString();
-        assertThat(raw).doesNotContain("Buy it now!").doesNotContain("+21655");
+        assertThat(raw).doesNotContain("Please move your car now!").doesNotContain("+21655");
 
         JsonNode d = objectMapper.readTree(raw);
         assertThat(d.get("granularity").asString()).isEqualTo("day");
@@ -347,7 +347,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.content[*].owner.phone").doesNotExist())
                 .andReturn();
         String raw = listed.getResponse().getContentAsString();
-        assertThat(raw).doesNotContain("+21655100").doesNotContain("Buy it now!");
+        assertThat(raw).doesNotContain("+21655100").doesNotContain("Please move your car now!");
 
         JsonNode page = objectMapper.readTree(raw);
         assertThat(page.get("totalElements").asLong()).isEqualTo(1);
@@ -560,7 +560,7 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
 
         MvcResult contact = mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("channel", "SMS", "message", "Buy it now!", "reason", "BLOCKING"))))
+                        .content(json(Map.of("channel", "SMS", "message", "Please move your car now!", "reason", "BLOCKING"))))
                 .andExpect(status().isOk())
                 .andReturn();
         String convId = objectMapper.readTree(contact.getResponse().getContentAsString())

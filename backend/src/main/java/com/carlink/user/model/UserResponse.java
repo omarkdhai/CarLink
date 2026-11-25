@@ -18,7 +18,8 @@ public record UserResponse(
         String role,
         boolean emailVerified,
         Instant createdAt,
-        String phone
+        String phone,
+        boolean whatsappAlerts
 ) {
 
     public static UserResponse from(User user) {
@@ -30,6 +31,7 @@ public record UserResponse(
                 user.getRole().name(),
                 user.isEmailVerified(),
                 user.getCreatedAt(),
-                user.getPhone());
+                user.getPhone(),
+                user.isWhatsappAlerts());
     }
 }

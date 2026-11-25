@@ -35,6 +35,8 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
     private ConversationRepository conversationRepository;
     @Autowired
     private MessageRepository messageRepository;
+    @Autowired
+    private com.carlink.conversation.repository.ConversationDeliveryRepository deliveryRepository;
 
     private static int seq;
 
@@ -55,6 +57,7 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.vehicle.brand").value("Toyota"))
                 .andExpect(jsonPath("$.channels").isArray())
                 .andExpect(jsonPath("$.channels[0]").value("SMS"))
+                .andExpect(jsonPath("$.channels[1]").value("WHATSAPP"))
                 .andExpect(jsonPath("$.licensePlate").doesNotExist())
                 .andExpect(jsonPath("$.phone").doesNotExist())
                 .andReturn();
@@ -94,6 +97,10 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(conv.getStatus().name()).isEqualTo("DELIVERED");
         assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).get("status").asString())
                 .isEqualTo("DELIVERED");
+        // One delivery per channel: the SMS and the WhatsApp message (both mocks).
+        assertThat(deliveryRepository.findAllByConversationId(conv.getId()))
+                .extracting(d -> d.getChannel().name() + ":" + d.getStatus().name())
+                .containsExactlyInAnyOrder("SMS:DELIVERED", "WHATSAPP:DELIVERED");
 
         // Scoped to this conversation (the DB also holds messages from other
         // test classes sharing the container).
@@ -136,6 +143,23 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
                                 "message", "x".repeat(501), "reason", "BLOCKING"))))
                 .andExpect(status().isBadRequest());
         // Nothing persisted by the rejected submission.
+        assertThat(messageRepository.count()).isEqualTo(before);
+    }
+
+    @Test
+    void offTopicNoteIsRefusedWithItsCodeAndNothingIsSaved() throws Exception {
+        String[] creds = ownerWithQr();
+        String rawToken = creds[1];
+        long before = messageRepository.count();
+
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("message", "Gagnez un iPhone 15 gratuitement, cliquez ici",
+                                "reason", "BLOCKING"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("NOTE_OFF_TOPIC"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("iPhone"))));
         assertThat(messageRepository.count()).isEqualTo(before);
     }
 

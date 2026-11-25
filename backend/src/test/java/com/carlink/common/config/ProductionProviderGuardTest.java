@@ -12,7 +12,8 @@ class ProductionProviderGuardTest {
     @Test
     void refusesMockEmailInProduction() {
         CarLinkProperties props = TestProperties.minimal(); // email + contact = mock
-        assertThatThrownBy(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties()).check())
+        assertThatThrownBy(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties(),
+                new com.carlink.notification.whatsapp.WhatsAppProperties()).check())
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("EMAIL_PROVIDER=mock");
     }
@@ -25,7 +26,8 @@ class ProductionProviderGuardTest {
                 base.ratelimit(), base.contact(), base.contactForm(),
                 new CarLinkProperties.Email("smtp", 60, "noreply@carlink.test", "noreply@carlink.test"),
                 base.security(), base.admin(), base.telnyx());
-        assertThatCode(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties()).check()).doesNotThrowAnyException();
+        assertThatCode(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties(),
+                new com.carlink.notification.whatsapp.WhatsAppProperties()).check()).doesNotThrowAnyException();
     }
 
     @Test
@@ -37,8 +39,26 @@ class ProductionProviderGuardTest {
                 base.ratelimit(), base.contact(), base.contactForm(),
                 new CarLinkProperties.Email("smtp", 60, "no-reply@carlink.invalid", "no-reply@carlink.invalid"),
                 base.security(), base.admin(), base.telnyx());
-        assertThatThrownBy(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties()).check())
+        assertThatThrownBy(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties(),
+                new com.carlink.notification.whatsapp.WhatsAppProperties()).check())
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("MAIL_FROM");
+    }
+
+    @Test
+    void refusesTheWhatsAppMockBecauseItWouldReportAlertsDelivered() {
+        CarLinkProperties base = TestProperties.minimal();
+        CarLinkProperties props = new CarLinkProperties(
+                base.baseUrl(), base.publicUrl(), base.jwt(), base.conversation(), base.qr(),
+                base.ratelimit(), base.contact(), base.contactForm(),
+                new CarLinkProperties.Email("smtp", 60, "noreply@carlink.test", "noreply@carlink.test"),
+                base.security(), base.admin(), base.telnyx());
+        com.carlink.notification.whatsapp.WhatsAppProperties whatsapp =
+                new com.carlink.notification.whatsapp.WhatsAppProperties();
+        whatsapp.setProvider("mock");
+        assertThatThrownBy(() -> new ProductionProviderGuard(props, new com.carlink.security.captcha.CaptchaProperties(),
+                whatsapp).check())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("WHATSAPP_PROVIDER=mock");
     }
 }

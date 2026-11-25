@@ -392,11 +392,11 @@
     "requiredNote": "Tous les champs sont obligatoires, sauf le téléphone.",
     "scanTitle": "Contacter le propriétaire",
     "scanSubtitle": "Choisissez un motif. Le propriétaire est prévenu immédiatement — aucun de vous ne voit le numéro de l'autre.",
-    "deliveredBy": "Le propriétaire est prévenu par {{method}}.",
+    "deliveredBy": "Le propriétaire est alerté par {{method}}.",
     "smsLimit": {
       "left_one": "{{count}} caractère restant dans le SMS",
       "left_other": "{{count}} caractères restants dans le SMS",
-      "over": "Trop long pour un seul SMS : le propriétaire reçoit le début par SMS et lit votre message complet dans CarLink.",
+      "over": "Trop long pour un SMS : le SMS affiche le début ; WhatsApp et CarLink affichent votre note en entier.",
       "hint": "Le propriétaire reçoit un SMS en derja tunisienne avec le motif choisi, suivi de votre message tel que vous l’écrivez, dans n’importe quelle langue. Un SMS contient environ 70 caractères au total et un emoji compte pour 2 : un message plus long est raccourci dans le SMS, mais le propriétaire le lit toujours en entier dans CarLink.",
       "pickReason": "Choisissez un motif pour voir combien de caractères de votre message tiennent dans le SMS."
     },
@@ -410,7 +410,8 @@
       "failedTitle": "Votre alerte n’a pas pu être livrée",
       "failedHint": "Le SMS n’a pas pu atteindre le téléphone du propriétaire. Votre alerte est enregistrée et il la verra en ouvrant CarLink. Si c’est urgent, réessayez dans quelques minutes ou cherchez le propriétaire à proximité.",
       "tryAgain": "Réessayer"
-    }
+    },
+    "smsAndWhatsapp": "SMS et WhatsApp"
   },
   "message": {
     "title": "Messages",
@@ -442,7 +443,13 @@
       "yesterday": "Hier",
       "earlier": "Plus tôt"
     },
-    "delivered": "Livré"
+    "delivered": "Livré",
+    "delivery": {
+      "sent": "Envoyé",
+      "delivered": "Livré",
+      "read": "Lu",
+      "failed": "Échec"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -486,7 +493,9 @@
     "phoneHint": "Utilisé uniquement pour vous transmettre les alertes par SMS. Jamais affiché aux visiteurs.",
     "unsaved": "Modifications non enregistrées",
     "privacyTitle": "Votre numéro reste privé",
-    "privacyHint": "Les personnes qui scannent votre sticker ne voient jamais votre numéro ni votre nom — CarLink relaie leur message."
+    "privacyHint": "Les personnes qui scannent votre sticker ne voient jamais votre numéro ni votre nom — CarLink relaie leur message.",
+    "whatsappAlerts": "Recevoir aussi mes alertes sur WhatsApp",
+    "whatsappAlertsHint": "Chaque alerte vous arrive par SMS et sur WhatsApp au numéro ci-dessus : vous la voyez même si l’un des deux ne passe pas. Désactivez pour ne recevoir que des SMS."
   },
   "settings": {
     "title": "Paramètres",
@@ -1235,7 +1244,8 @@
     "adminAccountDeletion": "Un compte administrateur ne peut être supprimé que par un autre administrateur.",
     "captchaRequired": "Par sécurité, complétez la vérification ci-dessous puis reconnectez-vous.",
     "loginSlowedDown": "Trop de tentatives échouées sur ce compte. Patientez 30 secondes puis réessayez.",
-    "orderLimitReached": "Cette adresse e-mail ou ce numéro a atteint la limite de commandes du jour. Contactez-nous s’il vous faut plus d’autocollants."
+    "orderLimitReached": "Cette adresse e-mail ou ce numéro a atteint la limite de commandes du jour. Contactez-nous s’il vous faut plus d’autocollants.",
+    "noteOffTopic": "Votre note ne semble pas concerner ce véhicule. Modifiez-la."
   },
   "validation": {
     "email": "Adresse e-mail invalide",

@@ -9,6 +9,9 @@ import java.util.Optional;
  */
 public interface DeliveryReportClient {
 
+    /** The provider whose message ids this client can look up. */
+    String provider();
+
     /**
      * @return empty while the operator has not reported yet (or the provider
      *         could not be asked); otherwise the final outcome.

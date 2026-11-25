@@ -38,6 +38,7 @@ class ConversationServiceTest {
     @Mock private ConversationRepository conversationRepository;
     @Mock private MessageRepository messageRepository;
     @Mock private VehicleService vehicleService;
+    @Mock private com.carlink.conversation.repository.ConversationDeliveryRepository deliveryRepository;
 
     private ConversationService service;
     private final UUID ownerId = UUID.randomUUID();
@@ -47,7 +48,8 @@ class ConversationServiceTest {
     @BeforeEach
     void setUp() {
         service = new ConversationService(
-                conversationRepository, messageRepository, vehicleService, TestProperties.minimal());
+                conversationRepository, messageRepository, vehicleService, TestProperties.minimal(),
+                deliveryRepository);
         vehicle = Vehicle.builder()
                 .id(UUID.randomUUID())
                 .owner(User.builder().id(ownerId).email("owner@example.com").role(Role.USER).build())

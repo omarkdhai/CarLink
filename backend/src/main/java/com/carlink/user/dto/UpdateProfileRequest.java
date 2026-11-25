@@ -14,5 +14,7 @@ public record UpdateProfileRequest(
         @NotBlank @Size(max = 100) String lastName,
         @Size(max = 20) @Pattern(regexp = "^$|^\\+[1-9][0-9]{6,14}$",
                 message = "phone must be empty or an E.164 number starting with +")
-        String phone
+        String phone,
+        /* Also send alerts on WhatsApp; null leaves the setting unchanged. */
+        Boolean whatsappAlerts
 ) {}

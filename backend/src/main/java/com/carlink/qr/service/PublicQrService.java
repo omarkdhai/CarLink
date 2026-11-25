@@ -1,7 +1,6 @@
 package com.carlink.qr.service;
 
 import com.carlink.common.config.CarLinkProperties;
-import com.carlink.common.exception.BadRequestException;
 import com.carlink.common.exception.NotFoundException;
 import com.carlink.common.exception.TooManyRequestsException;
 import com.carlink.common.security.TokenGenerator;
@@ -30,6 +29,7 @@ import com.carlink.vehicle.model.Vehicle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -73,6 +73,8 @@ public class PublicQrService {
     private final CarLinkProperties properties;
     private final ConversationRepository conversationRepository;
     private final DeliveryStatusService deliveryStatusService;
+    private final TransactionTemplate transactionTemplate;
+    private final NoteSpamFilter noteSpamFilter;
 
     /** Status checks while the visitor waits: every ~2 s for ~20 s, per hashed IP. */
     static final int STATUS_CHECKS_PER_MINUTE = 40;
@@ -96,38 +98,55 @@ public class PublicQrService {
         return viewFromLegacy(qr);
     }
 
-    /** Persists a visitor's contact request and relays it to the owner. */
-    @Transactional
+    /**
+     * Persists a visitor's contact request and relays it to the owner on every
+     * channel (SMS, and WhatsApp when enabled). The alert is saved and committed
+     * first; the sends run after, outside the transaction, so no database
+     * connection is held during the provider calls and each channel's outcome is
+     * committed as soon as it is known. The visitor's {@code channel} field is
+     * ignored (kept for older pages).
+     */
     public ContactSubmitResponse submit(String rawToken, String clientIp,
                                         ContactSubmitRequest request) {
         requireRate(new RateLimits(
                 rateLimiter, tokenGenerator, properties, clientIp, rawToken));
+        // Off-topic notes (ads, scams, insults, gibberish) are refused before
+        // anything is saved: the visitor is asked to change the note.
+        noteSpamFilter.requireOnTopic(request.message());
 
-        String tokenHash = tokenGenerator.sha256(rawToken);
-
-        // Sticker-first
-        Optional<Sticker> sticker = stickerRepository.findByTokenHash(tokenHash);
-        if (sticker.isPresent()) {
-            Sticker s = sticker.get();
-            if (s.getStatus() != StickerStatus.BOUND || s.getVehicle() == null) {
-                throw new NotFoundException("QR code not found");
+        Prepared alert = transactionTemplate.execute(tx -> {
+            String tokenHash = tokenGenerator.sha256(rawToken);
+            // Sticker-first
+            Optional<Sticker> sticker = stickerRepository.findByTokenHash(tokenHash);
+            if (sticker.isPresent()) {
+                Sticker s = sticker.get();
+                if (s.getStatus() != StickerStatus.BOUND || s.getVehicle() == null) {
+                    throw new NotFoundException("QR code not found");
+                }
+                return save(s.getVehicle(), request, rawToken, clientIp);
             }
-            return doSubmit(s.getVehicle(), request, rawToken, clientIp);
-        }
+            // Fallback: legacy qr_codes
+            return save(activeQrByHash(tokenHash).getVehicle(), request, rawToken, clientIp);
+        });
 
-        // Fallback: legacy qr_codes
-        QrCode qr = activeQrByHash(tokenHash);
-        return doSubmit(qr.getVehicle(), request, rawToken, clientIp);
+        // Owner phone stays server-side: passed to the relay, never exposed.
+        ConversationStatus status = contactDeliveryService.deliver(alert.conversationId(),
+                alert.ownerPhone(), alert.whatsappAlerts(), alert.note(), request.reason());
+
+        return new ContactSubmitResponse(alert.conversationId(), visitorStatus(status),
+                status == ConversationStatus.FAILED
+                        ? "The alert could not be sent to the owner."
+                        : "Alert sent to the owner.");
+    }
+
+    /** What the send needs once the alert is saved; never leaves the server. */
+    private record Prepared(UUID conversationId, String ownerPhone, boolean whatsappAlerts, String note) {
     }
 
     // ————————— internal —————————
 
-    private ContactSubmitResponse doSubmit(Vehicle vehicle, ContactSubmitRequest request,
-                                           String rawToken, String clientIp) {
-        Channel channel = Channel.valueOf(request.channel());
-        if (!advertisedChannels().contains(channel.name())) {
-            throw new BadRequestException("Unsupported contact channel: " + channel);
-        }
+    private Prepared save(Vehicle vehicle, ContactSubmitRequest request,
+                          String rawToken, String clientIp) {
         // S-12: each alert can become a paid SMS to a phone the visitor cannot
         // see. Beyond the per-token hourly limit above: one alert per visitor per
         // sticker per cooldown, a daily cap per sticker, and per owner (all of
@@ -144,17 +163,13 @@ public class PublicQrService {
         String content = note == null || note.isBlank()
                 ? ContactReason.from(request.reason()).label()
                 : note.trim();
+        // SMS is the channel every owner gets; per-channel outcomes are in
+        // conversation_deliveries.
         UUID conversationId = conversationService.open(vehicle,
-                channel, ConversationStatus.PENDING);
+                Channel.SMS, ConversationStatus.PENDING);
         conversationService.appendMessage(conversationId, content, request.reason());
-
-        // Owner phone stays server-side: passed to the relay, never exposed.
-        ConversationStatus status = contactDeliveryService.deliver(conversationId, channel,
-                vehicle.getOwner().getPhone(), note, request.reason());
-
-        return new ContactSubmitResponse(conversationId, visitorStatus(status), status == ConversationStatus.FAILED
-                ? "The alert could not be sent to the owner by SMS."
-                : "Alert sent to the owner.");
+        return new Prepared(conversationId, vehicle.getOwner().getPhone(),
+                vehicle.getOwner().isWhatsappAlerts(), note);
     }
 
     /**
@@ -226,12 +241,12 @@ public class PublicQrService {
     }
 
     /**
-     * Channels the public page offers, from {@code carlink.contact.enabled-channels}.
-     * Defaults to SMS-only when unset.
+     * Channels every alert goes out on (SMS, plus WHATSAPP when a WhatsApp
+     * provider is configured), for the page to tell the visitor. Not per owner:
+     * whether an owner turned WhatsApp off stays private.
      */
     private List<String> advertisedChannels() {
-        List<String> configured = properties.contact().enabledChannels();
-        return configured == null ? List.of() : List.copyOf(configured);
+        return contactDeliveryService.channels();
     }
 
     /** Verifies the token maps to an ACTIVE QR. Missing/inactive → 404. */

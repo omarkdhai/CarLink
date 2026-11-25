@@ -93,7 +93,8 @@ carlink:
       window-seconds: 60
   contact:
     provider: mock
-    enabled-channels: SMS
+  whatsapp:
+    provider: mock
 
   security:
     cors-allowed-origins: http://localhost:5173

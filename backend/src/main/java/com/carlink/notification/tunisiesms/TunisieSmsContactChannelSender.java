@@ -44,6 +44,16 @@ import java.util.Optional;
 @ConditionalOnProperty(name = "carlink.contact.provider", havingValue = "tunisiesms")
 public class TunisieSmsContactChannelSender implements ContactChannelSender, DeliveryReportClient {
 
+    @Override
+    public Channel channel() {
+        return Channel.SMS;
+    }
+
+    @Override
+    public String provider() {
+        return "tunisiesms";
+    }
+
     private final RestClient client;
     private final TunisieSmsProperties properties;
     private final TokenGenerator tokenGenerator;

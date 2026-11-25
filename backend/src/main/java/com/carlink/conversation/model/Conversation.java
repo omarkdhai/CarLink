@@ -23,7 +23,9 @@ import java.util.UUID;
  * A visitor-initiated contact request for a {@link Vehicle}.
  *
  * <p>This table deliberately has no {@code updated_at}; the entity sets
- * {@code createdAt} explicitly rather than extending {@code BaseEntity}.
+ * {@code createdAt} explicitly rather than extending {@code BaseEntity}. Its
+ * {@code status} is the aggregate of its per-channel deliveries
+ * ({@link ConversationDelivery}).
  * A conversation reaches a terminal state via {@code status} (SENT/FAILED/
  * EXPIRED) and {@code expiresAt}.</p>
  */
@@ -61,13 +63,6 @@ public class Conversation {
     @Column(name = "read_at")
     private Instant readAt;
 
-    /** Provider id of the SMS, to fetch its delivery report (V11). Not the phone. */
-    @Column(name = "provider_message_id", length = 64)
-    private String providerMessageId;
-
-    /** Short failure code when FAILED (e.g. REJECTED, BLACK_LIST, TIMEOUT). */
-    @Column(name = "delivery_error", length = 40)
-    private String deliveryError;
 
     /**
      * Creates a new conversation in the terminal-success state ({@code SENT}).

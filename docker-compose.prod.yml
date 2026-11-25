@@ -149,10 +149,17 @@ services:
       CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-hello@carlink.app}
       # mock until a real provider is configured (see .env.example for telnyx).
       CONTACT_PROVIDER: ${CONTACT_PROVIDER:-mock}
-      CONTACT_ENABLED_CHANNELS: ${CONTACT_ENABLED_CHANNELS:-SMS}
       # TunisieSMS (only read when CONTACT_PROVIDER=tunisiesms)
       TUNISIESMS_API_KEY: ${TUNISIESMS_API_KEY:-}
       TUNISIESMS_SENDER: ${TUNISIESMS_SENDER:-CarLink}
+      # WhatsApp (Meta Cloud API): off | mock | meta. See docs/whatsapp.md.
+      WHATSAPP_PROVIDER: ${WHATSAPP_PROVIDER:-off}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_TEMPLATE_NAME: ${WHATSAPP_TEMPLATE_NAME:-carlink_alert}
+      WHATSAPP_TEMPLATE_LANG: ${WHATSAPP_TEMPLATE_LANG:-ar}
       # Telnyx (only read when CONTACT_PROVIDER=telnyx)
       TELNYX_API_KEY: ${TELNYX_API_KEY:-}
       TELNYX_SMS_FROM: ${TELNYX_SMS_FROM:-}

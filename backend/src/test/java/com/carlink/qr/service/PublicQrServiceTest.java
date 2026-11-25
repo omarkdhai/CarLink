@@ -73,7 +73,11 @@ class PublicQrServiceTest {
                 conversationService, contactDeliveryService,
                 new com.carlink.security.ratelimit.Throttle(rateLimiter, tokenGenerator),
                 new com.carlink.security.ratelimit.ThrottleProperties(), tokenGenerator,
-                rateLimiter, properties, conversationRepository, deliveryStatusService);
+                rateLimiter, properties, conversationRepository, deliveryStatusService,
+                new org.springframework.transaction.support.TransactionTemplate(
+                        org.mockito.Mockito.mock(org.springframework.transaction.PlatformTransactionManager.class)),
+                new NoteSpamFilter(true));
+        org.mockito.Mockito.lenient().when(contactDeliveryService.channels()).thenReturn(java.util.List.of("SMS"));
     }
 
     private QrCode activeCode() {
@@ -191,8 +195,8 @@ class PublicQrServiceTest {
         // The owner phone travels only into the relay, never out of it.
         verify(contactDeliveryService).deliver(
                 org.mockito.ArgumentMatchers.any(UUID.class),
-                org.mockito.ArgumentMatchers.eq(Channel.SMS),
                 org.mockito.ArgumentMatchers.eq("+21655123456"),
+                org.mockito.ArgumentMatchers.eq(true),
                 org.mockito.ArgumentMatchers.eq("Hi! Is this car for sale?"),
                 org.mockito.ArgumentMatchers.eq("BLOCKING"));
     }
@@ -214,7 +218,7 @@ class PublicQrServiceTest {
         verify(conversationService).appendMessage(org.mockito.ArgumentMatchers.any(UUID.class),
                 org.mockito.ArgumentMatchers.eq(cleaned), org.mockito.ArgumentMatchers.eq("BLOCKING"));
         verify(contactDeliveryService).deliver(org.mockito.ArgumentMatchers.any(UUID.class),
-                org.mockito.ArgumentMatchers.eq(Channel.SMS), anyString(),
+                anyString(), org.mockito.ArgumentMatchers.anyBoolean(),
                 org.mockito.ArgumentMatchers.eq(cleaned), org.mockito.ArgumentMatchers.eq("BLOCKING"));
     }
 
@@ -233,7 +237,7 @@ class PublicQrServiceTest {
         verify(conversationService, never()).open(org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
         verify(contactDeliveryService, never()).deliver(org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean(),
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
 
@@ -347,24 +351,33 @@ class PublicQrServiceTest {
     }
 
     @Test
-    void submitRejectsChannelThatIsNotEnabled() {
+    void submitRefusesAnOffTopicNoteBeforeSavingOrSendingAnything() {
+        allowAllRequests();
+
+        assertThatThrownBy(() -> service.submit(rawToken, clientIp,
+                new ContactSubmitRequest(null, "Gagnez un iPhone 15 gratuitement, cliquez ici", "BLOCKING")))
+                .isInstanceOf(com.carlink.common.exception.BadRequestException.class)
+                .satisfies(e -> assertThat(((com.carlink.common.exception.ApiException) e).getCode())
+                        .isEqualTo(NoteSpamFilter.ERROR_CODE));
+        verify(conversationService, never()).open(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(contactDeliveryService, never()).deliver(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void submitIgnoresTheChannelSentByOlderPages() {
         allowAllRequests();
         when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken)))
                 .thenReturn(Optional.of(activeCode()));
+        when(conversationService.open(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenReturn(UUID.randomUUID());
 
-        assertThatThrownBy(() -> service.submit(rawToken, clientIp,
-                new ContactSubmitRequest("WHATSAPP", "hello", "BLOCKING")))
-                .isInstanceOf(com.carlink.common.exception.BadRequestException.class);
-        verify(conversationService, never()).open(
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any());
-        verify(contactDeliveryService, never()).deliver(
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any());
+        service.submit(rawToken, clientIp, new ContactSubmitRequest("WHATSAPP", "hello", "BLOCKING"));
+
+        verify(conversationService).open(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(Channel.SMS), org.mockito.ArgumentMatchers.any());
+        verify(contactDeliveryService).deliver(org.mockito.ArgumentMatchers.any(UUID.class), anyString(), org.mockito.ArgumentMatchers.eq(true),
+                org.mockito.ArgumentMatchers.eq("hello"), org.mockito.ArgumentMatchers.eq("BLOCKING"));
     }
 
     @Test
@@ -386,8 +399,8 @@ class PublicQrServiceTest {
                 org.mockito.ArgumentMatchers.any(UUID.class), anyString(), anyString());
         verify(contactDeliveryService).deliver(
                 org.mockito.ArgumentMatchers.any(UUID.class),
-                org.mockito.ArgumentMatchers.eq(Channel.SMS),
                 org.mockito.ArgumentMatchers.eq("+21655123456"),
+                org.mockito.ArgumentMatchers.eq(true),
                 org.mockito.ArgumentMatchers.eq("Hi! Is this car for sale?"),
                 org.mockito.ArgumentMatchers.eq("BLOCKING"));
         verify(qrCodeRepository, never()).findByTokenHash(anyString());
@@ -406,8 +419,8 @@ class PublicQrServiceTest {
         when(qrCodeRepository.findByTokenHash(tokenGenerator.sha256(rawToken))).thenReturn(Optional.of(activeCode()));
         when(conversationService.open(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any())).thenReturn(UUID.randomUUID());
-        when(contactDeliveryService.deliver(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
-                anyString(), org.mockito.ArgumentMatchers.any(), anyString()))
+        when(contactDeliveryService.deliver(org.mockito.ArgumentMatchers.any(), anyString(),
+                org.mockito.ArgumentMatchers.anyBoolean(), org.mockito.ArgumentMatchers.any(), anyString()))
                 .thenReturn(com.carlink.conversation.model.ConversationStatus.FAILED);
 
         ContactSubmitResponse response = service.submit(rawToken, clientIp,

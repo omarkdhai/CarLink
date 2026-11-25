@@ -396,7 +396,7 @@
     "smsLimit": {
       "left_one": "{{count}} character left in the SMS",
       "left_other": "{{count}} characters left in the SMS",
-      "over": "Too long for one SMS: the owner gets the beginning by SMS and reads your full note in CarLink.",
+      "over": "Too long for one SMS: the SMS shows the beginning; WhatsApp and CarLink show your full note.",
       "hint": "The owner gets an SMS in Tunisian Arabic with the reason you picked, followed by your note exactly as you write it, in any language. One SMS holds about 70 characters in all and an emoji counts as 2: a longer note is shortened in the SMS, but the owner always reads it in full in CarLink.",
       "pickReason": "Pick a reason to see how much of your note fits in the SMS."
     },
@@ -410,7 +410,8 @@
       "failedTitle": "Your alert could not be delivered",
       "failedHint": "The SMS could not reach the owner’s phone. Your alert is saved and the owner will see it when they open CarLink. If it is urgent, try again in a few minutes or look for the owner nearby.",
       "tryAgain": "Try again"
-    }
+    },
+    "smsAndWhatsapp": "SMS and WhatsApp"
   },
   "message": {
     "title": "Messages",
@@ -442,7 +443,13 @@
       "yesterday": "Yesterday",
       "earlier": "Earlier"
     },
-    "delivered": "Delivered"
+    "delivered": "Delivered",
+    "delivery": {
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "read": "Read",
+      "failed": "Failed"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -486,7 +493,9 @@
     "phoneHint": "Used only to forward contact alerts by SMS. Never shown to visitors.",
     "unsaved": "You have unsaved changes",
     "privacyTitle": "Your number stays private",
-    "privacyHint": "People who scan your sticker never see your phone number or name — CarLink relays their message for you."
+    "privacyHint": "People who scan your sticker never see your phone number or name — CarLink relays their message for you.",
+    "whatsappAlerts": "Also send my alerts on WhatsApp",
+    "whatsappAlertsHint": "Each alert reaches you by SMS and on WhatsApp at the number above, so you see it even if one of them does not get through. Turn this off to get SMS only."
   },
   "settings": {
     "title": "Settings",
@@ -1215,7 +1224,8 @@
     "adminAccountDeletion": "An administrator account can only be removed by another administrator.",
     "captchaRequired": "For your security, complete the check below, then sign in again.",
     "loginSlowedDown": "Too many failed sign-ins on this account. Wait 30 seconds and try again.",
-    "orderLimitReached": "This e-mail address or mobile number has reached today's order limit. Contact us if you need more stickers."
+    "orderLimitReached": "This e-mail address or mobile number has reached today's order limit. Contact us if you need more stickers.",
+    "noteOffTopic": "Your note doesn’t seem to be about this car. Change it."
   },
   "validation": {
     "email": "Invalid email address",

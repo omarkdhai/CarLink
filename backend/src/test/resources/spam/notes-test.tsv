@@ -1,0 +1,92 @@
+# Held-out notes for measuring the classifier: never used for training, and
+# worded differently from spam/notes-train.tsv. Same format: label <TAB> note.
+
+# ---------------------------------------------------------------- should pass
+A	votre véhicule bloque l'accès à mon immeuble
+A	je ne peux pas sortir ma voiture à cause de vous
+A	les feux de croisement sont allumés
+A	le toit ouvrant est ouvert et il va pleuvoir
+A	désolé, j'ai touché votre aile arrière, appelez-moi au 21 456 987
+A	la roue arrière gauche est dégonflée
+A	attention la dépanneuse enlève les voitures
+A	votre voiture klaxonne toute seule
+A	vous pouvez libérer la place de recharge ?
+A	je patiente devant l'immeuble
+A	merci d'avance
+A	je suis à la boulangerie juste à côté
+A	vous avez laissé la fenêtre arrière ouverte
+A	votre voiture est garée sur le passage piéton
+A	il y a un chat sous votre voiture
+A	écrivez-moi: mouna.benali@yahoo.fr
+A	you blocked me in, I have to pick up my kids
+A	your sunroof is open
+A	I think someone hit your car, the bumper is damaged
+A	the parking lot closes at 9 pm
+A	your back door is not closed properly
+A	can you move a bit forward please
+A	I am waiting at the entrance, thanks
+A	سيارتك واقفة أمام الباب
+A	من فضلك أبعد سيارتك قليلا
+A	ضوء السيارة الخلفي مشتعل
+A	شكرا جزيلا
+A	كرهبتك سادة عليا الثنية
+A	البيبان متاع الكرهبة محلولين
+A	ضربتلك الكرهبة شوية، سامحني، كلمني على 50123456
+A	يعيشك نحب نخرج بالكرهبة
+A	الحاكم جاي يعمل في الخطايا
+A	karhbtek sakra el bab mta3 el dar
+A	dhaw el karhba cha3el men lbera7
+A	3aychek na7i el karhba rani mesta3jel
+A	el chobbek mta3 el karhba ma7loul
+A	rani nestanna fel karhba li 9oddemek
+A	merci barcha 3aychek
+A	karhbtek mbarkya fi blasti
+A	vite svp je suis en retard
+A	bonjour
+A	ok j'arrive dans 5 minutes merci
+
+# ---------------------------------------------------------------- should be blocked
+B	vous êtes notre gagnant, réclamez votre cadeau
+B	gagnez de l'argent facilement depuis chez vous
+B	invest 100 dollars and get 1000 next week
+B	congratulations, you have been selected for a cash reward
+B	crédit immédiat sans banque, contactez-nous
+B	ربحت سيارة جديدة، ابعث رقمك
+B	tu es mignonne, on prend un café ?
+B	je cherche une copine
+B	want to have some fun tonight?
+B	nheb nkalmek ya mezyena
+B	t'es vraiment qu'un imbécile
+B	go to hell
+B	ya wled el kalb
+B	يلعن والديك
+B	espèce de connasse
+B	prix cassés sur nos téléphones
+B	ouverture de notre nouvelle boutique, venez nombreux
+B	subscribe to my channel for more videos
+B	salle de sport, abonnement à moitié prix
+B	3andna promo kbira fel 7anout
+B	طاولة للبيع بسعر مناسب
+B	tu regardes le match ce soir ?
+B	quel temps fait-il chez toi ?
+B	partagez ce message pour avoir de la chance
+B	chnowa a7walek? mel 9at chouftek
+B	what is your favourite movie?
+B	ghjghjghj
+B	ppppppppp
+B	zertyzerty
+B	@@@@@@@@
+B	mnbvcxw
+B	ytrezaqs
+
+# ---------------------------------------------------------------- should pass: short neutral notes (never seen in training)
+A	I'm downstairs
+A	almost there
+A	je suis en bas
+A	j'arrive tout de suite
+A	ena l'ta7t
+A	jey fel thniya
+A	راني تحت
+A	جاي توا
+A	hi there
+A	coming!

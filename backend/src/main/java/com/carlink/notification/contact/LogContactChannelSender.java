@@ -1,6 +1,7 @@
 package com.carlink.notification.contact;
 
 import com.carlink.common.security.TokenGenerator;
+import com.carlink.conversation.model.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,6 +25,16 @@ import org.springframework.stereotype.Component;
 public class LogContactChannelSender implements ContactChannelSender {
 
     private final TokenGenerator tokenGenerator;
+
+    @Override
+    public Channel channel() {
+        return Channel.SMS;
+    }
+
+    @Override
+    public String provider() {
+        return "mock";
+    }
 
     @Override
     public SendResult send(ContactDelivery delivery) {

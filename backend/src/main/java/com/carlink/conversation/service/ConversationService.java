@@ -9,6 +9,7 @@ import com.carlink.conversation.model.Channel;
 import com.carlink.conversation.model.Conversation;
 import com.carlink.conversation.model.ConversationStatus;
 import com.carlink.conversation.model.Message;
+import com.carlink.conversation.repository.ConversationDeliveryRepository;
 import com.carlink.conversation.repository.ConversationRepository;
 import com.carlink.conversation.repository.MessageRepository;
 import com.carlink.vehicle.model.Vehicle;
@@ -37,6 +38,7 @@ public class ConversationService {
     private final MessageRepository messageRepository;
     private final VehicleService vehicleService;
     private final CarLinkProperties properties;
+    private final ConversationDeliveryRepository deliveryRepository;
 
     // ---- public flow (Phases 5-6) ----
 
@@ -62,17 +64,6 @@ public class ConversationService {
                 .orElseThrow(() -> new IllegalStateException(
                         "Conversation not found: " + conversationId));
         conversation.setStatus(status);
-    }
-
-    /** Outcome of the SMS relay: status plus the provider id / failure code (never the phone). */
-    public void recordDelivery(UUID conversationId, ConversationStatus status,
-                               String providerMessageId, String deliveryError) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Conversation not found: " + conversationId));
-        conversation.setStatus(status);
-        conversation.setProviderMessageId(providerMessageId);
-        conversation.setDeliveryError(deliveryError);
     }
 
     // ---- owner dashboard (Phase 7) ----
@@ -126,7 +117,8 @@ public class ConversationService {
                 .map(ConversationMessageResponse::from)
                 .toList();
 
-        return ConversationDetailResponse.from(conv, messages);
+        return ConversationDetailResponse.from(conv, messages,
+                deliveryRepository.findAllByConversationId(conversationId));
     }
 
     /** Marks a conversation as read. */

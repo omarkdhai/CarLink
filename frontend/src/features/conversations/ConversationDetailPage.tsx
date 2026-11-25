@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Smartphone, Clock } from 'lucide-react'
 import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
-import { ChannelBadge, ConversationStatusBadge } from '@/features/conversations/ConversationBadges'
+import { ChannelBadge, ConversationStatusBadge, DeliveryBadges } from '@/features/conversations/ConversationBadges'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { formatDateTime, formatRelative } from '@/lib/format'
 import type { ConversationDetailResponse } from '@/types'
@@ -76,8 +76,14 @@ export default function ConversationDetailPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-bold text-heading">{conv.vehicleNickname ?? t('message.conversation')}</p>
-                <ChannelBadge channel={conv.channel} />
-                <ConversationStatusBadge status={conv.status} />
+                {conv.deliveries && conv.deliveries.length > 0 ? (
+                  <DeliveryBadges deliveries={conv.deliveries} />
+                ) : (
+                  <>
+                    <ChannelBadge channel={conv.channel} />
+                    <ConversationStatusBadge status={conv.status} />
+                  </>
+                )}
               </div>
               <p className="text-sm text-muted-fg mt-1 flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" aria-hidden />

@@ -51,6 +51,11 @@ public class User extends BaseEntity {
     @Column(length = 255)
     private String phone;
 
+    /** Alerts also go to the owner's WhatsApp (V12). On by default; the profile can turn it off. */
+    @Builder.Default
+    @Column(name = "whatsapp_alerts", nullable = false)
+    private boolean whatsappAlerts = true;
+
     @Column(name = "first_name", length = 100)
     private String firstName;
 

@@ -2,31 +2,40 @@ package com.carlink.notification.contact;
 
 import com.carlink.conversation.model.Channel;
 import com.carlink.conversation.model.ConversationStatus;
-import com.carlink.conversation.service.ConversationService;
+import com.carlink.conversation.model.DeliveryStatus;
+import com.carlink.conversation.service.ConversationDeliveryService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.web.client.ResourceAccessException;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ContactDeliveryServiceTest {
 
-    @Mock private ContactChannelSender sender;
+    @Mock private ContactChannelSender sms;
+    @Mock private ContactChannelSender whatsapp;
     @Mock private AnonymousCallSender anonymousCallSender;
-    @Mock private ConversationService conversationService;
+    @Mock private ConversationDeliveryService deliveries;
 
     private ContactDeliveryService service;
     private final UUID conversationId = UUID.randomUUID();
@@ -36,81 +45,130 @@ class ContactDeliveryServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ContactDeliveryService(sender, anonymousCallSender, conversationService);
+        when(sms.channel()).thenReturn(Channel.SMS);
+        when(sms.provider()).thenReturn("tunisiesms");
+        when(whatsapp.channel()).thenReturn(Channel.WHATSAPP);
+        when(whatsapp.provider()).thenReturn("meta");
+        // The aggregate itself is ConversationDeliveryService's job (tested there).
+        when(deliveries.recompute(conversationId)).thenReturn(ConversationStatus.SENT);
+        service = new ContactDeliveryService(List.of(whatsapp, sms), anonymousCallSender, deliveries);
     }
 
-    private ConversationStatus deliver(String phone) {
-        return service.deliver(conversationId, Channel.SMS, phone, message, reason);
+    @AfterEach
+    void tearDown() {
+        service.shutdown();
+    }
+
+    private ConversationStatus deliver(String phone, boolean whatsappAlerts) {
+        return service.deliver(conversationId, phone, whatsappAlerts, message, reason);
     }
 
     @Test
-    void acceptedByTheProviderIsSentWithItsIdUntilTheReportConfirms() {
-        when(sender.send(any())).thenReturn(SendResult.accepted("msg-1"));
+    void sendsOnSmsAndWhatsAppAndRecordsEachChannel() {
+        when(sms.send(any())).thenReturn(SendResult.accepted("sms-1"));
+        when(whatsapp.send(any())).thenReturn(SendResult.accepted("wamid.1"));
 
-        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.SENT);
+        assertThat(deliver(ownerPhone, true)).isEqualTo(ConversationStatus.SENT);
 
-        ArgumentCaptor<ContactDelivery> captor = ArgumentCaptor.forClass(ContactDelivery.class);
-        verify(sender).send(captor.capture());
-        assertThat(captor.getValue()).isEqualTo(new ContactDelivery(Channel.SMS, ownerPhone, message, reason));
-        verify(conversationService).recordDelivery(conversationId, ConversationStatus.SENT, "msg-1", null);
+        ArgumentCaptor<ContactDelivery> smsCall = ArgumentCaptor.forClass(ContactDelivery.class);
+        verify(sms).send(smsCall.capture());
+        assertThat(smsCall.getValue()).isEqualTo(new ContactDelivery(Channel.SMS, ownerPhone, message, reason));
+        ArgumentCaptor<ContactDelivery> waCall = ArgumentCaptor.forClass(ContactDelivery.class);
+        verify(whatsapp).send(waCall.capture());
+        assertThat(waCall.getValue().channel()).isEqualTo(Channel.WHATSAPP);
+
+        verify(deliveries).record(conversationId, Channel.SMS, "tunisiesms", DeliveryStatus.SENT, "sms-1", null);
+        verify(deliveries).record(conversationId, Channel.WHATSAPP, "meta", DeliveryStatus.SENT, "wamid.1", null);
         verify(anonymousCallSender).initiateCall(ownerPhone, reason, message, conversationId.toString());
     }
 
     @Test
-    void certainDeliveryIsDelivered() {
-        when(sender.send(any())).thenReturn(SendResult.delivered());
+    void ownerWhoTurnedWhatsAppOffGetsSmsOnly() {
+        when(sms.send(any())).thenReturn(SendResult.accepted("sms-1"));
 
-        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.DELIVERED);
-        verify(conversationService).recordDelivery(conversationId, ConversationStatus.DELIVERED, null, null);
+        deliver(ownerPhone, false);
+
+        verify(whatsapp, never()).send(any());
+        verify(deliveries, never()).record(any(), eq(Channel.WHATSAPP), any(), any(), any(), any());
     }
 
     @Test
-    void refusedByTheProviderIsFailedWithItsCodeAndNoCall() {
-        when(sender.send(any())).thenReturn(SendResult.failed("API_402"));
+    void withoutAWhatsAppSenderOnlySmsIsSent() {
+        service.shutdown();
+        service = new ContactDeliveryService(List.of(sms), anonymousCallSender, deliveries);
+        when(sms.send(any())).thenReturn(SendResult.delivered());
 
-        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
-        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "API_402");
+        deliver(ownerPhone, true);
+
+        verify(deliveries).record(conversationId, Channel.SMS, "tunisiesms", DeliveryStatus.DELIVERED, null, null);
+        assertThat(service.channels()).containsExactly("SMS");
+    }
+
+    @Test
+    void channelsAreListedSmsFirst() {
+        assertThat(service.channels()).containsExactly("SMS", "WHATSAPP");
+    }
+
+    @Test
+    void oneChannelFailingStillCallsAndReturnsTheAggregate() {
+        when(sms.send(any())).thenReturn(SendResult.failed("API_402"));
+        when(whatsapp.send(any())).thenReturn(SendResult.accepted("wamid.2"));
+
+        assertThat(deliver(ownerPhone, true)).isEqualTo(ConversationStatus.SENT);
+        verify(deliveries).record(conversationId, Channel.SMS, "tunisiesms", DeliveryStatus.FAILED, null, "API_402");
+        verify(anonymousCallSender).initiateCall(anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void everyChannelFailingMeansNoCall() {
+        when(sms.send(any())).thenReturn(SendResult.failed("API_402"));
+        when(whatsapp.send(any())).thenReturn(SendResult.failed("WA_131030"));
+        when(deliveries.recompute(conversationId)).thenReturn(ConversationStatus.FAILED);
+
+        assertThat(deliver(ownerPhone, true)).isEqualTo(ConversationStatus.FAILED);
+        verify(deliveries).record(conversationId, Channel.WHATSAPP, "meta", DeliveryStatus.FAILED, null, "WA_131030");
         verify(anonymousCallSender, never()).initiateCall(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
-    void unreachableProviderIsFailedNotThrown() {
-        when(sender.send(any())).thenThrow(new ResourceAccessException("timeout"));
+    void transportErrorsBecomeShortCodes() {
+        when(sms.send(any())).thenThrow(new ResourceAccessException("timeout"));
+        when(whatsapp.send(any())).thenThrow(new IllegalArgumentException("bad number"));
 
-        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
-        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "UNREACHABLE");
+        deliver(ownerPhone, true);
+
+        verify(deliveries).record(conversationId, Channel.SMS, "tunisiesms", DeliveryStatus.FAILED, null, "UNREACHABLE");
+        verify(deliveries).record(conversationId, Channel.WHATSAPP, "meta", DeliveryStatus.FAILED, null, "INVALID_NUMBER");
     }
 
     @Test
-    void invalidNumberIsFailed() {
-        when(sender.send(any())).thenThrow(new IllegalArgumentException("bad number"));
+    void anyOtherErrorIsError() {
+        when(sms.send(any())).thenThrow(new IllegalStateException("misconfigured"));
 
-        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
-        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "INVALID_NUMBER");
+        deliver(ownerPhone, false);
+
+        verify(deliveries).record(conversationId, Channel.SMS, "tunisiesms", DeliveryStatus.FAILED, null, "ERROR");
     }
 
     @Test
-    void anyOtherErrorIsFailed() {
-        when(sender.send(any())).thenThrow(new IllegalStateException("misconfigured"));
+    void ownerWithoutPhoneFailsEveryChannelWithoutCallingProviders() {
+        deliver("  ", true);
 
-        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.FAILED);
-        verify(conversationService).recordDelivery(conversationId, ConversationStatus.FAILED, null, "ERROR");
-    }
-
-    @Test
-    void ownerWithoutPhoneIsFailedWithoutCallingTheProvider() {
-        assertThat(deliver("  ")).isEqualTo(ConversationStatus.FAILED);
-        assertThat(deliver(null)).isEqualTo(ConversationStatus.FAILED);
-        verify(sender, never()).send(any());
+        verify(sms, never()).send(any());
+        verify(whatsapp, never()).send(any());
+        verify(deliveries).record(conversationId, Channel.SMS, "none", DeliveryStatus.FAILED, null, "NO_PHONE");
+        verify(deliveries).record(conversationId, Channel.WHATSAPP, "none", DeliveryStatus.FAILED, null, "NO_PHONE");
+        verify(deliveries).recompute(conversationId);
     }
 
     @Test
     void aFailingAlertCallDoesNotDowngradeTheMessage() {
-        when(sender.send(any())).thenReturn(SendResult.accepted("msg-2"));
+        when(sms.send(any())).thenReturn(SendResult.accepted("sms-2"));
         doThrow(new RuntimeException("call failed"))
                 .when(anonymousCallSender).initiateCall(anyString(), anyString(), anyString(), anyString());
 
-        assertThat(deliver(ownerPhone)).isEqualTo(ConversationStatus.SENT);
-        verify(conversationService).recordDelivery(conversationId, ConversationStatus.SENT, "msg-2", null);
+        assertThat(deliver(ownerPhone, false)).isEqualTo(ConversationStatus.SENT);
+        verify(deliveries).record(eq(conversationId), eq(Channel.SMS), eq("tunisiesms"),
+                eq(DeliveryStatus.SENT), eq("sms-2"), isNull());
     }
 }

@@ -45,7 +45,7 @@ public final class AlertSms {
     }
 
     /** The reason line, in Derja with its emoji. */
-    static String line(String reason) {
+    public static String line(String reason) {
         try {
             String line = LINES.get(ContactReason.from(reason));
             return line == null ? FALLBACK : line;
