@@ -11,7 +11,8 @@ import jakarta.validation.constraints.Size;
  * (security model: message length cap).
  */
 public record ContactSubmitRequest(
-        @NotBlank @Pattern(regexp = "WHATSAPP|SMS", message = "channel must be WHATSAPP or SMS")
+        // Ignored since alerts go on every channel; kept so older pages still validate.
+        @Pattern(regexp = "WHATSAPP|SMS", message = "channel must be WHATSAPP or SMS")
         String channel,
         @Size(max = 500, message = "message must be at most 500 characters")
         String message,

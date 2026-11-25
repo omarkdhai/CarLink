@@ -36,6 +36,9 @@ public class UserService {
             // Only the owner's own profile can set the private phone.
             user.setPhone(request.phone().isEmpty() ? null : request.phone());
         }
+        if (request.whatsappAlerts() != null) {
+            user.setWhatsappAlerts(request.whatsappAlerts());
+        }
         return UserResponse.from(userRepository.save(user));
     }
 

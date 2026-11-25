@@ -73,7 +73,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void ownerReadsConversationDetailWithMessageHistory() throws Exception {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
-        String convId = submitContact(auth, rawToken, "SMS", "First message");
+        String convId = submitContact(auth, rawToken, "SMS", "Your car is blocking my exit");
 
         mockMvc.perform(get("/api/v1/conversations/{id}", convId)
                         .header("Authorization", bearer(auth)))
@@ -83,7 +83,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.unread").value(true))
                 .andExpect(jsonPath("$.messages").isArray())
                 .andExpect(jsonPath("$.messages.length()").value(1))
-                .andExpect(jsonPath("$.messages[0].content").value("First message"))
+                .andExpect(jsonPath("$.messages[0].content").value("Your car is blocking my exit"))
                 // Ensure sensitive vehicle data never leaks
                 .andExpect(jsonPath("$.licensePlate").doesNotExist())
                 .andExpect(jsonPath("$.phone").doesNotExist());
@@ -125,7 +125,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void crossOwnerAccessReturns404() throws Exception {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
-        String convId = submitContact(auth, rawToken, "SMS", "Test");
+        String convId = submitContact(auth, rawToken, "SMS", "Your lights are on");
 
         String otherAuth = registerAndLogin(uniqueEmail());
 
@@ -161,8 +161,8 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
         String auth1 = creds1[0], rawToken1 = creds1[1], vehicleId1 = creds1[2];
         String auth2 = creds2[0], rawToken2 = creds2[1], vehicleId2 = creds2[2];
 
-        submitContact(auth1, rawToken1, "SMS", "For vehicle 1");
-        submitContact(auth2, rawToken2, "SMS", "For vehicle 2");
+        submitContact(auth1, rawToken1, "SMS", "Your door is open");
+        submitContact(auth2, rawToken2, "SMS", "Your window is open");
 
         // Scoped to vehicle 1 — shows only vehicle 1's conversation
         mockMvc.perform(get("/api/v1/conversations?vehicleId={vid}", vehicleId1)
@@ -185,7 +185,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void sweeperExpiresStaleConversations() throws Exception {
         String[] creds = ownerWithQr();
         String auth = creds[0], rawToken = creds[1];
-        String convId = submitContact(auth, rawToken, "SMS", "Will expire");
+        String convId = submitContact(auth, rawToken, "SMS", "Please move your car");
 
         var conv = conversationRepository.findById(UUID.fromString(convId)).orElseThrow();
         // The dev mock relay confirms delivery at once.
@@ -208,7 +208,7 @@ class ConversationFlowIntegrationTest extends AbstractIntegrationTest {
     void publicJsonViewDoesNotExposeMessageContent() throws Exception {
         String[] creds = ownerWithQr();
         String rawToken = creds[1];
-        submitContact(creds[0], rawToken, "SMS", "Private message text");
+        submitContact(creds[0], rawToken, "SMS", "Private note: your car is blocking me");
 
         mockMvc.perform(get("/api/v1/public/qr").header("X-CarLink-Token", rawToken))
                 .andExpect(status().isOk())

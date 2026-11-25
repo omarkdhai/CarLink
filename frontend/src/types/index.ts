@@ -37,6 +37,8 @@ export interface UserResponse {
   createdAt: ISOInstant
   /** Owner's own number; serialized only to the authenticated owner. */
   phone?: string | null
+  /** Alerts also go to the owner's WhatsApp (on by default). */
+  whatsappAlerts?: boolean
 }
 
 /** The refresh token never reaches JavaScript: it is an HttpOnly cookie (S-09). */
@@ -67,6 +69,8 @@ export interface UpdateProfileRequest {
   firstName: string
   lastName: string
   phone?: string
+  /** Omitted leaves the setting unchanged. */
+  whatsappAlerts?: boolean
 }
 
 // ---------- Vehicles ----------
@@ -251,7 +255,7 @@ export interface StickerView {
 
 // ---------- Public / contact ----------
 
-export type ContactChannel = 'SMS'
+export type ContactChannel = 'SMS' | 'WHATSAPP'
 
 /** Lifecycle state of the resolved token (physical sticker or legacy QR). */
 export type QrPublicState = 'BOUND' | 'UNBOUND' | 'DEACTIVATED'
@@ -265,7 +269,7 @@ export interface QrPublicView {
     model: string | null
     color: string | null
   } | null
-  /** Server-advertised channels, e.g. ['SMS']; empty when not BOUND. */
+  /** Channels every alert goes out on, e.g. ['SMS', 'WHATSAPP']; empty when not BOUND. */
   channels: ContactChannel[]
   /** Per reason: characters of the note that fit in the SMS (BOUND only). */
   smsNoteLimits?: Record<string, number>
@@ -274,7 +278,8 @@ export interface QrPublicView {
 export type ContactReason = 'BLOCKING' | 'LIGHTS' | 'LEFT_OPEN' | 'HIT_CAR' | 'WINDOWS_OPEN' | 'EV_CHARGE'
 
 export interface ContactSubmitRequest {
-  channel: ContactChannel
+  /** Ignored by the server (alerts go on every channel); kept for older servers. */
+  channel?: ContactChannel
   message: string
   reason: ContactReason
 }
@@ -330,6 +335,15 @@ export interface ConversationDetailResponse {
   expiresAt: ISOInstant
   createdAt: ISOInstant
   messages: ConversationMessageResponse[]
+  /** How the alert went on each channel; READ exists only on WhatsApp. */
+  deliveries?: ConversationDelivery[]
+}
+
+export type DeliveryStatus = 'SENT' | 'DELIVERED' | 'READ' | 'FAILED'
+
+export interface ConversationDelivery {
+  channel: ContactChannel
+  status: DeliveryStatus
 }
 
 // ---------- Admin ----------
@@ -585,6 +599,6 @@ export interface AuditLogResponse {
 
 // Enumerations shared with server enum names.
 
-export const CONTACT_CHANNELS: ContactChannel[] = ['SMS']
+export const CONTACT_CHANNELS: ContactChannel[] = ['SMS', 'WHATSAPP']
 export const REPORT_STATUSES: ReportStatus[] = ['OPEN', 'REVIEWED', 'CLOSED']
 export const REPORT_REASONS: ReportReason[] = ['SPAM', 'ABUSE', 'OTHER']

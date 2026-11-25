@@ -1,8 +1,10 @@
 package com.carlink.notification.contact;
 
+import com.carlink.conversation.model.Channel;
+
 /**
  * Abstraction over delivering a visitor's contact message to a vehicle owner
- * over a messaging channel (SMS). Decouples the submission flow from the
+ * over a messaging channel (SMS or WhatsApp). Decouples the submission flow from the
  * transport so a mock or a provider can be swapped through
  * {@code carlink.contact.provider} — the same shape as
  * {@code notification/email/EmailSender}.
@@ -11,6 +13,12 @@ package com.carlink.notification.contact;
  * but must never log, persist, or echo it.</p>
  */
 public interface ContactChannelSender {
+
+    /** The channel this sender carries (one SMS sender and at most one WhatsApp sender are active). */
+    Channel channel();
+
+    /** Short provider name stored with each delivery (e.g. tunisiesms, meta, mock). */
+    String provider();
 
     /**
      * Hands the message to the channel.

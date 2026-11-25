@@ -2,14 +2,16 @@ package com.carlink.conversation.repository;
 
 import com.carlink.conversation.model.Conversation;
 import com.carlink.conversation.model.ConversationStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -24,22 +26,15 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     /** All conversations for a single vehicle, newest first. */
     List<Conversation> findAllByVehicle_IdOrderByCreatedAtDesc(UUID vehicleId);
 
-    /** Finds stale conversations whose expiry has passed and are still in a transitional state. */
-    /** Accepted SMS still waiting for their delivery report, oldest first. */
-    List<Conversation> findTop100ByStatusAndProviderMessageIdIsNotNullAndCreatedAtAfterOrderByCreatedAtAsc(
-            ConversationStatus status, Instant createdAfter);
-
     /**
-     * Applies a delivery report, only if the alert is still SENT (a report never
-     * overrides EXPIRED, and two pollers cannot apply it twice).
+     * Locks the conversation row while its aggregate status is recomputed, so
+     * two channel reports arriving together cannot overwrite each other.
      */
-    @Modifying
-    @org.springframework.transaction.annotation.Transactional
-    @Query("update Conversation c set c.status = :status, c.deliveryError = :error "
-            + "where c.id = :id and c.status = com.carlink.conversation.model.ConversationStatus.SENT")
-    int applyDeliveryReport(@Param("id") UUID id, @Param("status") ConversationStatus status,
-                            @Param("error") String error);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Conversation c where c.id = :id")
+    Optional<Conversation> lockById(@Param("id") UUID id);
 
+    /** Finds stale conversations whose expiry has passed and are still in a transitional state. */
     List<Conversation> findByExpiresAtBeforeAndStatusIn(
             Instant expiresAtBefore, List<ConversationStatus> statuses);
 

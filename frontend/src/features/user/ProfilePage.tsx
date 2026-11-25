@@ -29,6 +29,7 @@ const profileSchema = z.object({
   lastName: z.string().trim().min(1, '').max(100),
   phoneCode: z.string().refine((v) => v.trim() === '' || phoneCodeRegex.test(v.trim()), ''),
   phoneNumber: z.string().optional().refine((v) => !v || v.trim() === '' || nationalRegex.test(v.trim()), ''),
+  whatsappAlerts: z.boolean(),
 })
 
 type ProfileValues = z.infer<typeof profileSchema>
@@ -52,7 +53,7 @@ export default function ProfilePage() {
     formState: { errors, isDirty },
   } = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { firstName: '', lastName: '', phoneCode: DEFAULT_PHONE_CODE, phoneNumber: '' },
+    defaultValues: { firstName: '', lastName: '', phoneCode: DEFAULT_PHONE_CODE, phoneNumber: '', whatsappAlerts: true },
   })
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export default function ProfilePage() {
         lastName: me.data.lastName,
         phoneCode: code,
         phoneNumber: national,
+        whatsappAlerts: me.data.whatsappAlerts ?? true,
       })
     }
   }, [me.data, reset])
@@ -73,6 +75,7 @@ export default function ProfilePage() {
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         phone: joinPhone(values.phoneCode, values.phoneNumber) || undefined,
+        whatsappAlerts: values.whatsappAlerts,
       }),
     onSuccess: (updated) => {
       setUser(updated)
@@ -164,6 +167,17 @@ export default function ProfilePage() {
                 nationalPlaceholder={t('profile.phoneNumberPlaceholder')}
               />
             </Field>
+            <label className="flex items-start gap-3 rounded-xl border border-border px-4 py-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+                {...register('whatsappAlerts')}
+              />
+              <span>
+                <span className="block text-sm font-semibold text-heading">{t('profile.whatsappAlerts')}</span>
+                <span className="block text-sm text-muted-fg mt-0.5 leading-relaxed">{t('profile.whatsappAlertsHint')}</span>
+              </span>
+            </label>
             <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-1">
               {isDirty && <span className="text-sm text-muted-fg sm:me-auto">{t('profile.unsaved')}</span>}
               <Button type="submit" loading={save.isPending} disabled={!isDirty}>

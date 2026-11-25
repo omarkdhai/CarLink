@@ -2,7 +2,6 @@ package com.carlink.common.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
 
 /**
  * Root configuration properties for the module. Binds the `carlink.*` prefix.
@@ -51,18 +50,11 @@ public record CarLinkProperties(
     /**
      * Contact relay settings.
      *
-     * @param provider        which {@code ContactChannelSender} is active:
-     *                        {@code mock} (logs, dev) or {@code telnyx}.
-     * @param enabledChannels channels the public page advertises and the
-     *                        submit endpoint accepts, as {@link
-     *                        com.carlink.conversation.model.Channel} names.
-     *                        Defaults to SMS-only: Telnyx cannot send free-text
-     *                        WhatsApp to an owner who has not messaged the
-     *                        business number in the last 24 hours, which is
-     *                        every unprompted QR scan, so offering WhatsApp
-     *                        would advertise a channel that cannot deliver.
+     * @param provider which SMS {@code ContactChannelSender} is active:
+     *                 {@code mock} (logs, dev), {@code tunisiesms} or {@code telnyx}.
+     *                 WhatsApp is configured apart ({@code carlink.whatsapp}).
      */
-    public record Contact(String provider, List<String> enabledChannels) {}
+    public record Contact(String provider) {}
 
     /**
      * Public "Contact us" form: the mailbox the form messages are delivered to

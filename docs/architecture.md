@@ -76,9 +76,14 @@ implemented: Telnyx only allows free-text WhatsApp inside a 24-hour window the
 owner must open first, which an unprompted QR scan cannot. Both providers receive
 the owner phone but never log, persist, or echo it except as a SHA-256.
 
-The advertised and accepted channels come from `carlink.contact.enabled-channels`
-(default `SMS`); a channel that is not enabled is rejected with 400 by the submit
-endpoint, so the page cannot offer what the API refuses.
+Since V12 each alert is sent on every channel at once (`ContactDeliveryService`):
+the SMS (`carlink.contact.provider`) and, when `carlink.whatsapp.provider` is
+`meta` and the owner has not turned it off, WhatsApp through Meta's Cloud API
+with an approved template (docs/whatsapp.md). Each channel's outcome is a row of
+`conversation_deliveries`. The conversation's status is their aggregate:
+DELIVERED when one channel reached the owner, SENT while one waits, FAILED only
+when all failed. SMS reports are polled (TunisieSMS); WhatsApp reports arrive on
+a signed webhook. The visitor no longer picks a channel.
 
 ### Security posture
 - Stateless JWT (`SessionCreationPolicy.STATELESS`).

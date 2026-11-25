@@ -187,11 +187,13 @@ carlink:
   contact:
     # mock (logs only) | tunisiesms (SMS in Tunisia) | telnyx
     provider: ${CONTACT_PROVIDER:mock}
-    # Channels advertised on the public page and accepted by the submit
-    # endpoint. SMS-only by default: WhatsApp on Telnyx requires an approved
-    # template outside the 24-hour window, which never applies to an
-    # unprompted QR scan.
-    enabled-channels: ${CONTACT_ENABLED_CHANNELS:SMS}
+    # Refuse alert notes that are not about the car (ads, scams, insults,
+    # unrelated chat, gibberish) with the in-app classifier trained on
+    # spam/notes-train.tsv (docs/deployment.md §14). A note is refused when the
+    # model is at least this sure; higher = fewer honest notes blocked.
+    spam-filter:
+      enabled: ${CONTACT_SPAM_FILTER_ENABLED:true}
+      threshold: ${CONTACT_SPAM_FILTER_THRESHOLD:0.8}
 
   # Public "Contact us" form → business mailbox
   contact-form:
@@ -243,6 +245,18 @@ carlink:
     # Must be a sender authorized on the account.
     sender: ${TUNISIESMS_SENDER:CarLink}
     url: ${TUNISIESMS_URL:https://api.l2t.io/tn/v0/api/api.aspx}
+
+  # WhatsApp alerts, sent next to the SMS (Meta WhatsApp Cloud API, docs/whatsapp.md).
+  # off (default) | mock | meta. Owners can turn WhatsApp off in their profile.
+  whatsapp:
+    provider: ${WHATSAPP_PROVIDER:off}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    app-secret: ${WHATSAPP_APP_SECRET:}
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:}
+    template-name: ${WHATSAPP_TEMPLATE_NAME:carlink_alert}
+    template-language: ${WHATSAPP_TEMPLATE_LANG:ar}
+    api-version: ${WHATSAPP_API_VERSION:v25.0}
 
   # Telnyx. Only read when contact.provider=telnyx.
   telnyx:

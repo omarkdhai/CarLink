@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * outside a 24-hour window that only opens once the owner has messaged the
  * business number. An unprompted QR scan is always outside that window, so
  * WhatsApp requires a Meta-approved template — advertised channels are
- * restricted to SMS until one exists (see {@code carlink.contact.enabled-channels}).</p>
+ * SMS only here; WhatsApp alerts go through Meta instead ({@code notification/whatsapp}).</p>
  *
  * <p>The owner phone is sent to Telnyx but never logged, persisted, or echoed —
  * only its SHA-256, and only for correlation.</p>
@@ -31,6 +31,16 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "carlink.contact.provider", havingValue = "telnyx")
 public class TelnyxContactChannelSender implements ContactChannelSender {
+
+    @Override
+    public Channel channel() {
+        return Channel.SMS;
+    }
+
+    @Override
+    public String provider() {
+        return "telnyx";
+    }
 
     private final TelnyxClient telnyxClient;
     private final CarLinkProperties properties;

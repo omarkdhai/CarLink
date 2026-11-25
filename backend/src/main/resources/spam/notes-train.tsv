@@ -1,0 +1,646 @@
+# Training notes for the alert-note classifier (com.carlink.qr.service.NoteClassifier).
+# One note per line: label <TAB> note.
+#   A = allowed: about the car or the parking problem, or a neutral courtesy
+#       (thanks, "I'm waiting", a phone number, an e-mail address)
+#   B = blocked: not about the car (ads, scams, dating, insults, threats,
+#       unrelated chat, gibberish)
+# Add real examples over time (never with a real phone number or name) and
+# redeploy: the model is trained from this file when the backend starts.
+
+# ---------------------------------------------------------------- allowed, French
+A	votre voiture bloque ma sortie, merci de la déplacer
+A	vous êtes garé devant mon garage
+A	ta voiture me bloque, je suis pressé
+A	vos phares sont restés allumés
+A	vos feux sont allumés depuis ce matin
+A	votre portière est ouverte
+A	la porte arrière de votre voiture n'est pas fermée
+A	vos vitres sont ouvertes et il commence à pleuvoir
+A	la fenêtre côté conducteur est ouverte
+A	j'ai accroché votre voiture en reculant, désolé, appelez-moi
+A	j'ai rayé votre pare-choc, je vous laisse mon numéro 22 345 678
+A	votre pneu avant droit est crevé
+A	un pneu est à plat
+A	la fourrière arrive, déplacez votre voiture
+A	la police est en train de verbaliser les voitures ici
+A	votre alarme sonne depuis 20 minutes
+A	votre voiture est chargée, je voudrais utiliser la borne
+A	pouvez-vous libérer la borne de recharge svp
+A	je suis devant, je vous attends
+A	je vous attends à côté de la voiture blanche
+A	merci de venir rapidement
+A	merci beaucoup
+A	urgent svp
+A	je dois partir à l'hôpital, vous me bloquez
+A	vous êtes garé en double file
+A	votre clé est restée sur la portière
+A	vous avez laissé les clés sur le contact
+A	le coffre est ouvert
+A	votre chien est enfermé dans la voiture au soleil
+A	il y a un enfant seul dans la voiture
+A	de la fumée sort du capot
+A	il y a une fuite d'huile sous votre voiture
+A	votre voiture gêne le passage du camion
+A	vous bloquez l'entrée du parking
+A	je suis le voisin du 3e, appelez-moi au 98 765 432
+A	contactez-moi par mail: sami.trabelsi@gmail.com
+A	je suis au café d'en face
+A	je suis dans la pharmacie à côté
+A	désolé du dérangement
+A	bonne journée
+A	ok merci
+A	svp vite
+A	vous êtes sur ma place réservée
+A	vous êtes garé sur le trottoir, les poussettes ne passent pas
+A	votre rétroviseur est cassé
+A	quelqu'un a cassé votre vitre
+A	une branche est tombée sur votre voiture
+A	votre voiture a été heurtée par un scooter
+A	le camion poubelle ne peut pas passer à cause de votre voiture
+A	je suis le gardien du parking
+A	le parking ferme à 20h, venez récupérer votre voiture
+A	votre moto est tombée
+A	votre voiture est à vendre ? je suis intéressé, appelez-moi
+A	bonjour, vous me bloquez depuis une heure
+A	j'ai un rendez-vous, merci de bouger
+A	votre voiture empiète sur ma place
+A	vous avez oublié d'éteindre le moteur
+A	le moteur tourne toujours
+A	vos clignotants sont allumés
+A	votre sac est visible sur le siège, attention aux vols
+A	c'est urgent, ma femme doit accoucher
+A	je suis livreur, je ne peux pas sortir
+A	merci et désolé
+A	bonsoir, votre voiture est mal garée
+A	pouvez-vous reculer un peu svp
+A	avancez votre voiture de deux mètres svp
+
+# ---------------------------------------------------------------- allowed, English
+A	your car is blocking my driveway
+A	please move your car, I need to get out
+A	you parked behind me and I cannot leave
+A	your headlights are on
+A	your lights have been on all day
+A	your door is open
+A	your window is down and it is raining
+A	I scratched your car while parking, sorry, call me
+A	I bumped your car, here is my number 55 123 456
+A	your tyre looks flat
+A	the tow truck is here
+A	police are giving tickets on this street
+A	your car alarm keeps going off
+A	your car is fully charged, can I use the charger
+A	I am waiting next to your car
+A	thanks
+A	please hurry
+A	I am in the shop across the street
+A	your trunk is open
+A	your keys are in the door
+A	there is a dog locked in your car
+A	smoke is coming from your engine
+A	you are blocking the garage entrance
+A	call me at +216 27 808 574
+A	email me at ali@example.com
+A	sorry to bother you
+A	you are parked in my reserved spot
+A	your mirror is broken
+A	someone broke your window
+A	fuel is leaking under your car
+A	you left your engine running
+A	your hazard lights are on
+A	I need to get my car out, I am late for work
+A	thank you very much
+A	no rush, just letting you know
+A	your bike fell on the sidewalk
+
+# ---------------------------------------------------------------- allowed, Arabic
+A	سيارتك تسد الطريق
+A	من فضلك حرك سيارتك
+A	أضواء سيارتك مشتعلة
+A	باب سيارتك مفتوح
+A	نوافذ سيارتك مفتوحة والمطر ينزل
+A	اصطدمت بسيارتك عن غير قصد، اتصل بي
+A	العجلة مثقوبة
+A	الشرطة تخالف السيارات هنا
+A	سيارتك تمنعني من الخروج
+A	أنا أنتظرك بجانب السيارة
+A	شكرا
+A	أرجو الإسراع
+A	إنذار سيارتك يرن
+A	سيارة الجر قادمة
+A	اتصل بي على 22333444
+A	المحرك مازال يعمل
+A	صندوق السيارة مفتوح
+
+# ---------------------------------------------------------------- allowed, Derja (Arabic letters)
+A	كرهبتك سادّة عليّ
+A	نحّي كرهبتك يعيشك
+A	ضو كرهبتك شاعل
+A	الباب متاع الكرهبة محلول
+A	الشبابك محلولين والمطر تصب
+A	ضربت كرهبتك بلاش ما نقصد، كلمني
+A	الرويضة مفشوشة
+A	الحاكم قاعد يخطي في الكراهب
+A	البوليس جاي
+A	الكرهبة سادة الباراج
+A	نستناك قدام الكرهبة
+A	يعيشك فيسع
+A	عيشك
+A	ما نجمش نخرج، الكرهبة متاعك سادة
+A	الكرهبة متاعك شحنت، نحب نشحن
+A	الإنذار متاع الكرهبة يصفر من الصباح
+A	الفوريان جاية تهز الكراهب
+A	كلمني على 98111222
+A	سامحني على الإزعاج
+A	راني في القهوة اللي قدام
+A	الكرهبة متاعك واقفة على الطروطوار
+A	الكلب مسكر في الكرهبة
+A	فما دخان يخرج من الكرهبة
+A	الكوفر محلول
+A	المفاتح قاعدين في الباب
+A	راني مستعجل برشا
+A	الموتور مازال يدور
+A	زيد قدم شوية يعيشك
+
+# ---------------------------------------------------------------- allowed, Derja (Latin letters)
+A	karhbtek sakra 3lia
+A	na7i karhbtek 3aychek
+A	dhaw karhbtek cha3el
+A	el bab mta3 el karhba ma7loul
+A	ech chbabek ma7loulin w el mtar tsob
+A	dhrabt karhbtek bla ma n9assed, kalemni
+A	el rwida mfaccha
+A	el 7akem 9a3ed y5atti fel krahb
+A	el police jeya
+A	nestannek 9oddem el karhba
+A	3aychek fissa3
+A	ma najjemch nokhrej, karhbtek sakra
+A	karhbtek charjet, n7eb ncharji
+A	el fourrière jeya
+A	kalemni 3al 22456789
+A	sem7ni 3al iz3aj
+A	rani fel 9ahwa li 9oddem
+A	karhbtek wa9fa 3al trottoir
+A	el coffre ma7loul
+A	el mafte7 fel bab
+A	famma dokhan yokhrej mel karhba
+A	3aychek
+A	rani mesta3jel barcha
+A	el moteur mazel ydour
+A	zid 9addem chwaya 3aychek
+A	karhbtek sakra el garage
+
+# ---------------------------------------------------------------- allowed, mixed
+A	merci 3aychek, je t'attends devant
+A	svp karhbtek bloque la sortie
+A	ta voiture sakra el garage
+A	please na7i el karhba
+A	ya kho karhbtek sakra 3lia
+A	salam, el karhba mta3ek sakra
+A	bonjour, désolé de vous déranger
+A	salam
+A	ok
+A	c'est urgent
+A	rani m3attel 3al khedma
+
+# ---------------------------------------------------------------- blocked, scams and money
+B	gagnez un iphone 15 gratuitement
+B	vous avez gagné 1000 dinars, cliquez ici
+B	félicitations vous êtes le gagnant du tirage
+B	investissez dans le bitcoin, 30% par mois
+B	crypto trading signals, join now
+B	you won a free gift card
+B	claim your prize now
+B	earn 500 dollars a day from home
+B	double your money in 7 days
+B	loan approved, no documents needed
+B	prêt rapide sans justificatif
+B	send me 50 dinars and I will send you 500
+B	binance airdrop free usdt
+B	forex account manager contact me
+B	cash prize waiting for you
+B	your account has been suspended, verify now
+B	votre colis est bloqué, payez les frais de douane
+B	ربحت جائزة كبيرة اتصل بنا
+B	استثمر معانا في البيتكوين
+B	قرض سريع بدون ضمانات
+B	rba7t iphone, ab3athli 10 dinars
+B	casino en ligne bonus 200%
+B	paris sportifs, cote boostée
+B	1xbet promo code
+B	lottery winner announcement
+B	work from home and earn money fast
+B	recharge gratuite ooredoo, envoyez votre code
+B	donnez-moi votre code de vérification
+B	devenez riche avec le trading
+B	ab3athli flous w nraja3lek el dhaf
+
+# ---------------------------------------------------------------- blocked, dating and adult
+B	tu es célibataire ? on peut se voir ce soir
+B	hot girls in your area
+B	sexy photos, add me
+B	je cherche une relation sérieuse
+B	viens chez moi ce soir bébé
+B	envoie-moi des photos
+B	onlyfans link in bio
+B	are you single?
+B	I like you, can we meet tonight
+B	plan cul discret
+B	escort available tonight
+B	تحب نتعرفو
+B	نحب نتعرف عليك
+B	بنات جميلات اتصل
+B	n7eb nt3aref bik
+B	inti mezyena barcha
+B	enti chbeba, a3tini numrouk
+B	tu es très belle, je t'invite à dîner
+B	rencontre coquine près de chez vous
+B	je t'aime
+
+# ---------------------------------------------------------------- blocked, insults and threats
+B	connard
+B	espèce d'idiot, apprends à te garer
+B	fils de pute
+B	va te faire foutre
+B	nique ta mère
+B	t'es qu'un abruti
+B	fuck you
+B	you stupid idiot
+B	asshole learn to park
+B	bitch
+B	ya mibun
+B	zebi fik
+B	yel7mar
+B	ya kalb
+B	يا ميبون
+B	يا حمار
+B	يلعن بوك
+B	ta voiture de merde, connard
+B	je vais casser ta voiture
+B	I will break your car
+B	nkasser karhbtek
+B	نكسرلك كرهبتك
+B	je sais où tu habites
+B	I know where you live
+B	tu vas le regretter
+
+# ---------------------------------------------------------------- blocked, ads and promotion
+B	promo -50% sur toute la boutique
+B	offre spéciale ce week-end seulement
+B	soldes d'été chez nous
+B	follow me on instagram
+B	abonnez-vous à ma chaîne youtube
+B	like my facebook page
+B	visit our new restaurant downtown
+B	nouveau salon de coiffure, première coupe gratuite
+B	achetez maintenant, livraison gratuite
+B	we sell cheap phones, contact us
+B	location de voitures pas cher, appelez-nous
+B	lavage auto à domicile, 15 dinars
+B	vente de pièces auto, prix imbattables
+B	assurance auto pas chère, devis gratuit
+B	تخفيضات كبيرة في المحل
+B	عرض خاص لمدة محدودة
+B	تابعونا على الفيسبوك
+B	اشترك في القناة
+B	promo 3al mlabes, ija chouf
+B	3andna offre jdida, kalemna
+B	cours particuliers maths, appelez-moi
+B	je vends mon appartement
+B	on recrute des livreurs, envoyez votre CV
+B	best pizza in town, order now
+B	download our app and get 20% off
+
+# ---------------------------------------------------------------- blocked, unrelated chat
+B	qui va gagner le match ce soir ?
+B	vive l'espérance
+B	votez pour notre candidat
+B	what time is it?
+B	quelle est la capitale de la france
+B	raconte-moi une blague
+B	I am bored, talk to me
+B	tu veux être mon ami ?
+B	c'est quoi ton nom ?
+B	bonne année à tous, partagez ce message
+B	transférez ce message à 10 personnes
+B	priez pour nous
+B	recette du couscous
+B	la météo de demain
+B	chkoun bech yerba7 el match
+B	chnowa esmek?
+B	ena mdabdab, a7ki m3aya
+B	شنوة اسمك
+B	آش تعمل في حياتك
+B	mabrouk 3al match
+B	le président a dit
+B	manifestation demain à 10h
+B	j'aime les chats
+B	test test
+B	hello how are you doing today my friend
+
+# ---------------------------------------------------------------- blocked, gibberish
+B	asdfghjkl
+B	qsdfghjklm
+B	azertyuiop
+B	qwertyuiop
+B	zxcvbnm
+B	jjjjjjjjjj
+B	ffffffff
+B	aaaaaaaaaa
+B	hahahahahaha
+B	dfgdfgdfg
+B	lkjhgfdsa
+B	mlkjhgf
+B	xcvxcvxcv
+B	sdfsdfsdf
+B	!!!!!!!!!!!
+B	???????????
+B	...........
+B	$$$$$$$$
+B	fgjkfdjgkdf
+B	hjkhjkhjk
+B	oiuytreza
+B	poiuytrez
+B	wxcvbn
+B	gfdsgfdsg
+B	kkkkkkkk
+B	dkjfhskdjfh
+B	qpwoeiruty
+
+# ---------------------------------------------------------------- allowed, more variety (French)
+A	je ne peux pas partir, votre voiture est collée à la mienne
+A	merci de dégager le passage
+A	vous gênez la sortie des voisins
+A	pouvez-vous déplacer votre véhicule s'il vous plaît
+A	je vous attends en bas de l'immeuble
+A	je patiente dans ma voiture
+A	je suis juste à côté, pas de souci
+A	prenez votre temps, je suis dans le magasin
+A	votre véhicule est stationné devant la porte
+A	vous êtes garé sur l'arrêt de bus
+A	vous bloquez la rampe pour fauteuil roulant
+A	le phare arrière est cassé
+A	les feux de position sont restés allumés
+A	vos warnings clignotent
+A	la vitre passager est baissée
+A	le toit ouvrant est resté ouvert
+A	une porte est mal fermée
+A	j'ai cogné votre voiture en me garant, je vous attends
+A	désolé pour la rayure, je paie la réparation
+A	votre pare-brise est fissuré
+A	votre roue est crevée
+A	la dépanneuse est là
+A	un agent municipal met des amendes
+A	l'alarme ne s'arrête pas
+A	il y a un oiseau coincé dans votre voiture
+A	votre enfant pleure dans la voiture
+A	vous avez laissé votre téléphone sur le toit de la voiture
+A	votre voiture électrique a fini de charger
+A	je dois emmener mon père chez le médecin
+A	je suis en retard pour le travail
+A	je serai devant dans 5 minutes
+A	je vous laisse mon numéro: 24 111 222
+A	appelez-moi dès que possible
+A	merci pour votre compréhension
+A	merci, bonne soirée
+A	salut, désolé
+A	c'est pour la voiture grise
+A	c'est la voiture rouge devant la boulangerie
+A	je suis le propriétaire de la maison en face
+A	je suis le chauffeur du bus scolaire, je ne peux pas passer
+A	l'ambulance ne peut pas passer
+
+# ---------------------------------------------------------------- allowed, more variety (English)
+A	can you move your car please
+A	could you come and move your vehicle
+A	I cannot get out of the parking spot
+A	you are double parked
+A	your car is in front of the gate
+A	you are blocking the exit
+A	you are blocking the bus stop
+A	I am waiting downstairs
+A	I am inside the bakery, no hurry
+A	I will be outside in five minutes
+A	your back light is broken
+A	your rear window is open
+A	the passenger door is open
+A	I accidentally hit your car, please call me
+A	I dented your door, I will pay for it
+A	your windshield has a crack
+A	you have a flat tire
+A	a parking officer is writing tickets
+A	your alarm will not stop
+A	there is a cat under your car
+A	you left your phone on the roof of your car
+A	your car finished charging
+A	I need to take my mother to the hospital
+A	I am late for an appointment
+A	here is my number 29 000 111
+A	please call me as soon as you can
+A	thank you for understanding
+A	hi, sorry
+A	it is the white car near the pharmacy
+A	the ambulance cannot get through
+A	the delivery truck cannot reach the shop
+A	please reverse a little
+A	could you move forward a bit
+A	you are taking two spots
+
+# ---------------------------------------------------------------- allowed, more variety (Arabic / Derja)
+A	من فضلك تعال حرك السيارة
+A	لا أستطيع الخروج بسيارتي
+A	أنا في انتظارك أمام العمارة
+A	السيارة متوقفة أمام المدخل
+A	زجاج السيارة الخلفي مكسور
+A	أعتذر، خدشت سيارتك
+A	الضوء الخلفي مشتعل
+A	سيارة الإسعاف لا تستطيع المرور
+A	هذا رقمي 24000111
+A	نستناك تحت الدار
+A	راني في الحانوت اللي بحذاك
+A	خذ وقتك، راني قاعد نستنى
+A	الكرهبة متاعك مسكرة الثنية على الكميون
+A	البلار متاع الكرهبة مكسور
+A	سامحني خدشتلك الكرهبة
+A	الضو اللوطاني شاعل
+A	الأمبيلونس ما نجمتش تتعدى
+A	راني نستنى في الكرهبة متاعي
+A	تعال يعيشك نحب نخرج
+A	قدم الكرهبة شوية
+A	رجع لتالي شوية
+A	كرهبتك واخذة جوج بلايص
+
+# ---------------------------------------------------------------- allowed, more variety (Arabizi)
+A	ija 3aychek na7i el karhba
+A	ma najjemch nokhrej bel karhba mte3i
+A	nestannek ta7t el dar
+A	rani fel 7anout li b7dheek
+A	5oudh wa9tek, rani nestanna
+A	karhbtek msakra el thnya 3al camion
+A	el blar mta3 el karhba mkasser
+A	sem7ni 5addacht el karhba
+A	el dhaw el louteni cha3el
+A	el ambulance ma tnajjemch tet3adda
+A	rani nestanna fel karhba mte3i
+A	9addem el karhba chwaya
+A	raja3 lteli chwaya
+A	karhbtek wa5dha zouz blayes
+A	3aychek rani mesta3jel lel 5edma
+A	rani m3a bnayti el sghira lazemni nokhrej
+A	ok merci, ena jey
+A	ya m3allem karhbtek sakra
+
+# ---------------------------------------------------------------- blocked, more variety
+B	gagnez des cadeaux en participant à notre jeu
+B	cliquez sur ce lien pour réclamer votre récompense
+B	profitez de notre offre exclusive aujourd'hui
+B	gains garantis chaque semaine, rejoignez-nous
+B	earn money online, no experience needed
+B	free bitcoin for the first 100 people
+B	exclusive deal just for you, buy today
+B	your package is waiting, pay the shipping fee
+B	ab3ath el code eli wsellek fel sms
+B	t7eb terba7 flous? kalemni
+B	استثمار مضمون أرباح يومية
+B	عرض لا يفوت، اشتري الآن
+B	ma belle, tu as whatsapp ?
+B	envoie ton snap
+B	you look beautiful, text me
+B	je veux te connaître
+B	nheb nchoufek el lila
+B	بنت حلوة، نحب نحكي معاك
+B	pauvre type
+B	t'es un con
+B	idiot, imbécile
+B	shut up
+B	stupid driver, go back to school
+B	ya bhim
+B	ya 7mar ma ta3refch tparki
+B	تعلم تسوق يا حيوان
+B	je vais rayer ta bagnole
+B	gare-toi encore ici et tu verras
+B	ndhorbek kan nchoufek
+B	restaurant ouvert 7j/7, réservez
+B	vente de meubles, prix intéressants
+B	livraison de pizza en 30 minutes
+B	coaching sportif, première séance offerte
+B	we fix phones and laptops, best prices
+B	nouvelle collection disponible en magasin
+B	3andna des offres fel 7anout mte3na
+B	tabe3na 3al instagram
+B	محل جديد للملابس، تخفيضات
+B	tu connais un bon dentiste ?
+B	il fait chaud aujourd'hui
+B	tu supportes quelle équipe ?
+B	bonne fête à toi et ta famille
+B	qui a vu mon chat ?
+B	je cherche du travail
+B	quelle heure est-il ?
+B	how was your day?
+B	do you like music?
+B	chkoun inti?
+B	win metkhalet?
+B	chnowa 3amel lyoum?
+B	ما هو رأيك في المباراة
+B	fjdksl
+B	kjhgkjhg
+B	qwqwqwqw
+B	nbvnbvnbv
+B	ezrzerzer
+B	########
+B	%%%%%%%%%
+B	lmkjlmkj
+
+# ---------------------------------------------------------------- allowed, contact details only (phone numbers and e-mails are welcome)
+A	écrivez-moi sur karim.jlassi@outlook.com
+A	mon mail: nour.h@gmail.com
+A	contact: amine92@hotmail.fr
+A	write to me at sara.k@mail.com
+A	email: youssef.b@company.tn
+A	ab3athli 3al mail: hedi.t@gmail.com
+A	ابعثلي على الإيميل rania@gmail.com
+A	mon numéro 23 456 789
+A	appelle-moi 50 600 700
+A	call me 98 765 432
+A	+216 55 444 333
+A	numrou: 27 111 333
+A	نومرو تليفوني 29888777
+A	envoyez-moi un sms au 21 999 888
+A	whatsapp 52 123 123
+
+# ---------------------------------------------------------------- allowed, short greetings and courtesies
+A	hello
+A	hello!
+A	hi
+A	hey
+A	salut
+A	bonsoir
+A	aslema
+A	ahla
+A	salam alikom
+A	السلام عليكم
+A	عسلامة
+A	merci!
+A	thanks a lot
+A	svp
+A	please
+A	urgent
+A	مستعجل
+A	22 345 678
+A	98765432
+A	+21650111222
+
+# ---------------------------------------------------------------- allowed, asking about the car itself
+A	is this car for sale? I am interested
+A	is your car still available? call me
+A	la voiture est à vendre ? combien ?
+A	el karhba lel bi3? 9addech?
+A	الكرهبة للبيع؟ قداش
+A	hi, nice car, is it for sale?
+
+# ---------------------------------------------------------------- allowed, arriving / waiting / where (everyday short phrases)
+A	I'm here
+A	I am outside
+A	on my way
+A	coming now
+A	wait for me please
+A	I will wait
+A	where are you?
+A	are you coming?
+A	how long will you be?
+A	see you in a minute
+A	je suis là
+A	j'arrive
+A	je descends
+A	j'attends
+A	vous arrivez bientôt ?
+A	vous êtes où ?
+A	combien de temps ?
+A	dans 5 minutes
+A	à tout de suite
+A	ena hna
+A	ena jey
+A	rani hna
+A	rani louta
+A	9adech bech testanna?
+A	win enti?
+A	wa9tech tji?
+A	ija taw
+A	nestanna fik
+A	tawa nji
+A	ani hna
+A	انا هنا
+A	راني هنا
+A	انا جاي
+A	وين انت؟
+A	وقتاش تجي؟
+A	تو نجي
+A	نستنى فيك
+A	أنا في الانتظار
+A	أين أنت؟
+A	سأنتظرك
+A	first floor, building B
+A	appartement 4, deuxième étage
+A	je suis le voisin
+A	c'est moi le monsieur à la veste bleue
+A	ena el jar mte3ek

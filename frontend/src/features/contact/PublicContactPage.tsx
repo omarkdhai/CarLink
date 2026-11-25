@@ -12,7 +12,7 @@ import { publicQrApi, publicQrQueryKeys } from '@/services/publicQrApi'
 import { toApiError } from '@/services/errors'
 import { http } from '@/services/apiClient'
 import StickerActivation from '@/features/stickers/StickerActivation'
-import type { AlertDeliveryStatus, ContactChannel, ReportReason } from '@/types'
+import type { AlertDeliveryStatus, ReportReason } from '@/types'
 import { SuccessMark } from '@/components/shared/SuccessMark'
 import { useCaptcha } from '@/components/shared/useCaptcha'
 import { fitNote } from '@/lib/sms'
@@ -31,28 +31,10 @@ const REASON_ICON: Record<ReasonKey, typeof CarFront> = {
 
 const REPORT_REASONS: ReportReason[] = ['SPAM', 'ABUSE', 'OTHER']
 
-const CHANNEL_UI: Record<
-  ContactChannel,
-  {
-    labelKey: string
-    icon: React.ReactNode
-    className: string
-    activeClass: string
-    variant: 'sms'
-  }
-> = {
-  SMS: {
-    labelKey: 'contact.sms',
-    icon: <Smartphone className="h-5 w-5" aria-hidden />,
-    className: 'border-sms/60 text-sms hover:bg-sms/5',
-    activeClass: 'bg-sms text-white border-sms',
-    variant: 'sms',
-  },
-}
-
 /**
  * Core product: the mobile-first public page behind a scanned QR (/c/:token).
- * Visitor picks a channel + message to reach the owner; nothing personal is
+ * Visitor picks a reason + note; the owner gets it by SMS (and WhatsApp when
+ * enabled). Nothing personal is
  * shared and the phone number is never revealed.
  */
 export default function PublicContactPage() {
@@ -66,21 +48,22 @@ export default function PublicContactPage() {
     retry: false,
   })
 
-  const [channel, setChannel] = useState<ContactChannel | null>(null)
   const [message, setMessage] = useState('')
   const [selectedReason, setSelectedReason] = useState<ReasonKey | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
 
-  const [done, setDone] = useState<{ conversationId: string; method: ContactChannel; status: AlertDeliveryStatus } | null>(null)
+  const [done, setDone] = useState<{ conversationId: string; method: string; status: AlertDeliveryStatus } | null>(null)
   // Stop waiting for the operator's confirmation after this long.
   const [confirmTimedOut, setConfirmTimedOut] = useState(false)
   // ...and stop checking quietly in the background after this long.
   const [confirmGaveUp, setConfirmGaveUp] = useState(false)
 
-  // The backend advertises only the channels it will accept (SMS today).
-  // Never hardcode a channel: the submit endpoint rejects anything else.
+  // Every alert goes out on all the channels the backend lists (SMS, plus
+  // WhatsApp when configured): the visitor does not choose.
   const channels = view.data?.channels ?? []
-  const activeChannel: ContactChannel | undefined = channel ?? channels[0]
+  const methodLabel = channels.includes('WHATSAPP')
+    ? t('contact.smsAndWhatsapp')
+    : t('contact.sms')
 
   // Report flow
   const [showReport, setShowReport] = useState(false)
@@ -93,7 +76,7 @@ export default function PublicContactPage() {
   const contactMutation = useMutation({
     mutationFn: () =>
       publicQrApi.submit(token, {
-        channel: activeChannel!,
+        channel: 'SMS',
         message: message.trim(),
         reason: selectedReason!,
       }, captcha.headers()),
@@ -101,7 +84,7 @@ export default function PublicContactPage() {
     onSuccess: (data) => {
       setConfirmTimedOut(false)
       setConfirmGaveUp(false)
-      setDone({ conversationId: data.conversationId, method: activeChannel!, status: data.status ?? 'SENT' })
+      setDone({ conversationId: data.conversationId, method: methodLabel, status: data.status ?? 'SENT' })
     },
     onError: (err) => setFieldError(http.humanizeError(err)),
   })
@@ -148,7 +131,7 @@ export default function PublicContactPage() {
   // How much of the note fits in the owner's SMS (always Derja, 70 characters
   // in all); the full note is always stored and shown in the owner's dashboard.
   const noteLimit = selectedReason ? view.data?.smsNoteLimits?.[selectedReason] : undefined
-  const noteFit = activeChannel === 'SMS' && noteLimit !== undefined ? fitNote(message, noteLimit) : null
+  const noteFit = channels.includes('SMS') && noteLimit !== undefined ? fitNote(message, noteLimit) : null
 
   const vehicle = view.data?.vehicle
   const color = useCarColor(vehicle?.color ?? null)
@@ -163,7 +146,7 @@ export default function PublicContactPage() {
       setFieldError(t('contact.reasonRequired'))
       return
     }
-    if (!activeChannel) {
+    if (channels.length === 0) {
       setFieldError(t('errors.generic'))
       return
     }
@@ -231,7 +214,7 @@ export default function PublicContactPage() {
             <DeliveryOutcome
               status={deliveryStatus ?? 'SENT'}
               waiting={waitingForConfirmation && deliveryStatus === 'SENT'}
-              method={t(`contact.${done.method.toLowerCase()}`)}
+              method={done.method}
             />
             {!(waitingForConfirmation && deliveryStatus === 'SENT') && (
               <Button className="mt-6 w-full" onClick={resetForm}>
@@ -350,7 +333,7 @@ export default function PublicContactPage() {
             ) : (
               <p className="mt-1.5 text-end text-xs text-muted-fg tabular-nums">{message.length}/500</p>
             )}
-            {activeChannel === 'SMS' && (
+            {channels.includes('SMS') && (
               <p className="mt-2 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-relaxed text-muted-fg">
                 {selectedReason ? t('contact.smsLimit.hint') : t('contact.smsLimit.pickReason')}
               </p>
@@ -358,31 +341,12 @@ export default function PublicContactPage() {
           </div>
         </div>
 
-        {/* Delivery: a choice only when the backend offers several channels */}
-        {channels.length > 1 ? (
-          <div className="mt-5">
-            <h2 className="text-sm font-bold text-heading mb-2">{t('contact.method')}</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {channels.map((c) => (
-                <ChannelButton
-                  key={c}
-                  active={activeChannel === c}
-                  onClick={() => setChannel(c)}
-                  label={t(CHANNEL_UI[c].labelKey)}
-                  icon={CHANNEL_UI[c].icon}
-                  className={CHANNEL_UI[c].className}
-                  activeClass={CHANNEL_UI[c].activeClass}
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          activeChannel && (
-            <p className="mt-4 flex items-center gap-2 rounded-xl bg-primary-soft/60 px-4 py-3 text-sm text-foreground">
-              <Smartphone className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-              {t('contact.deliveredBy', { method: t(CHANNEL_UI[activeChannel].labelKey) })}
-            </p>
-          )
+        {/* How the owner is reached: every listed channel, no choice to make */}
+        {channels.length > 0 && (
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-primary-soft/60 px-4 py-3 text-sm text-foreground">
+            <Smartphone className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+            {t('contact.deliveredBy', { method: methodLabel })}
+          </p>
         )}
 
         {captcha.widget}
@@ -390,7 +354,7 @@ export default function PublicContactPage() {
           size="lg"
           className="w-full mt-5"
           loading={contactMutation.isPending}
-          disabled={!activeChannel || (captcha.required && !captcha.token)}
+          disabled={channels.length === 0 || (captcha.required && !captcha.token)}
           onClick={handleSubmit}
         >
           {t('contact.sendContact')}
@@ -458,37 +422,6 @@ function Shell({ children }: { children: React.ReactNode }) {
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-surface rounded-2xl border border-border shadow-card p-6 sm:p-7">{children}</div>
-  )
-}
-
-function ChannelButton({
-  active,
-  onClick,
-  label,
-  icon,
-  className,
-  activeClass,
-}: {
-  active: boolean
-  onClick: () => void
-  label: string
-  icon: React.ReactNode
-  className: string
-  activeClass: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={
-        'flex items-center justify-center gap-2 h-12 rounded-xl border-2 font-semibold text-sm transition-all touch-target ' +
-        (active ? activeClass : className)
-      }
-    >
-      {icon}
-      {label}
-    </button>
   )
 }
 

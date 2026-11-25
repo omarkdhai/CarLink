@@ -15,7 +15,7 @@ Primary threats:
 |--------|-----------|
 | QR token enumeration | 32-byte CSPRNG tokens; SHA-256 stored only |
 | Phone number leakage | Phone serialized only to the owner who holds the account JWT (login / refresh / `/users/me`); never in QR/URL/HTML/logs or any third-party/public DTO |
-| Spam / abuse on `/c/{token}` | Redis rate limit per IP + per token, CAPTCHA abstraction, message length cap |
+| Spam / abuse on `/c/{token}` | Redis rate limit per IP + per token, CAPTCHA abstraction, message length cap, links removed, off-topic notes refused (`NOTE_OFF_TOPIC`, deployment.md §14) |
 | Credential stuffing | BCrypt(12), account lockout/backoff, generic error messages |
 | Token theft | Short-lived access JWT; refresh token rotation + revocation; hashed at rest |
 | Enumeration via registration | 400 `EMAIL_ALREADY_REGISTERED` with a clear "already registered" message — the 400 status already leaked existence under the old generic-message design; this trades enumeration theatre for honest UX |
@@ -45,6 +45,14 @@ still omit it.
   only URL carrying a token is the QR's own `/c/{token}` page; nginx's
   `carlink` log format masks it in the request line *and* in the Referer of
   the API calls made from that page (security plan S-08).
+- WhatsApp (docs/whatsapp.md): the owner's number goes to Meta only in the JSON
+  body of the send, never in a URL or a log; Meta's replies and webhook calls
+  carry it (`wa_id`, `recipient_id`) and are never logged or stored. The
+  webhook `POST /api/v1/public/webhooks/whatsapp` reads only calls signed with
+  the app secret (`X-Hub-Signature-256`, constant-time check; else 401), and
+  logs counts and error codes only. Messages owners send to the CarLink number
+  are ignored. The owner's WhatsApp opt-out is never revealed to visitors: the
+  public page lists the configured channels, not the owner's.
 - IP addresses are logged only for rate-limit/audit purposes.
 - Error responses never include stack traces or internal identifiers.
 - The order-confirmation email is the one place customer PII (name, phone,

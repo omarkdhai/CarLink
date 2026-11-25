@@ -48,7 +48,9 @@ development-grade default if omitted.
 | `CONTACT_PROVIDER` | `mock` (default) logs instead of sending real SMS. **`tunisiesms`** sends the owner alerts by SMS through TunisieSMS (production in Tunisia); `telnyx` is kept as an alternative. |
 | `TUNISIESMS_API_KEY` | TunisieSMS API key (client area app.tunisiesms.tn). Required when `CONTACT_PROVIDER=tunisiesms`; startup fails fast if blank. Sent only in a POST body, never in a URL or a log. |
 | `TUNISIESMS_SENDER` | Sender name authorized on the account (default `CarLink`). A sender that is not authorized makes every SMS fail with code 442. |
-| `CONTACT_ENABLED_CHANNELS` | Channels advertised and accepted. Defaults to `SMS`; WhatsApp is deliberately not enabled (needs a Meta template outside the 24-hour window). |
+| `WHATSAPP_PROVIDER` | `off` (default, SMS only), `mock` (logs) or `meta`: every alert also goes to the owner's WhatsApp through Meta's WhatsApp Cloud API, unless the owner turned it off in their profile. Setup: `docs/whatsapp.md`. |
+| `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN` | Required when `WHATSAPP_PROVIDER=meta`; startup fails fast if one is blank. The token and app secret are secrets. |
+| `WHATSAPP_TEMPLATE_NAME`, `WHATSAPP_TEMPLATE_LANG` | The approved Utility template (default `carlink_alert`, `ar`). |
 | `TELNYX_API_KEY` | Telnyx API key. Required when `CONTACT_PROVIDER=telnyx`; startup fails fast if it is blank. |
 | `TELNYX_SMS_FROM` | SMS-enabled number in E.164, attached to a messaging profile. Required for SMS relay. |
 | `TELNYX_VOICE_FROM` | Caller ID for the alert call. |
@@ -348,11 +350,12 @@ Not yet automated, listed so they are not mistaken for oversights:
   Watch the balance in the TunisieSMS client area: at zero every alert fails
   (log line `[TUNISIESMS] insufficient balance (402)`). Telnyx (`telnyx` and the
   `TELNYX_*` variables) remains available for SMS + alert calls.
-- **WhatsApp is unsupported by design.** Telnyx delivers WhatsApp free-text only
-  inside a 24-hour window opened by the recipient; a QR scan never opens it, so
-  WhatsApp would need a Meta-approved template. `CONTACT_ENABLED_CHANNELS`
-  defaults to `SMS` and both the page and the API honour it (a disabled channel
-  is a 400).
+- **WhatsApp needs Meta's setup.** With `WHATSAPP_PROVIDER=meta` every alert is
+  also sent as the approved `carlink_alert` template (docs/whatsapp.md). Its
+  delivered/read status arrives on the webhook
+  `/api/v1/public/webhooks/whatsapp`, which needs the public HTTPS domain; until
+  the webhook is configured in Meta, the WhatsApp channel stays "Sent". The alert
+  counts as delivered when either channel reaches the owner.
 - **The alert call plays a static clip.** `TELNYX_VOICE_AUDIO_URL` is fixed at
   deploy time; the outbound dial API cannot speak the visitor's dynamic message.
   Speaking it would require hosting a Call Control `speak` webhook, which this
@@ -372,6 +375,33 @@ tunable under `carlink.throttle.*` (`max` / `window-seconds`):
 
 Links in a visitor's note are replaced by `[link removed]` before the note is
 stored or relayed (no phishing through a trusted sender).
+
+**Off-topic notes are refused** by a small classifier built into the backend
+(`NoteClassifier`, logistic regression over character fragments and words; no
+library, no outside service — the note never leaves the server, nothing to pay
+or keep running). Before anything is saved or sent, a note the model judges
+not about the car (ads, scams, dating, insults, threats, unrelated chat,
+gibberish) with probability ≥ `CONTACT_SPAM_FILTER_THRESHOLD` (default 0.8)
+gets 400 `NOTE_OFF_TOPIC`, and the page asks the visitor to change it. Phone
+numbers and e-mail addresses are welcome; an empty note always passes. The
+answer never repeats the note; the log line has only the score.
+
+- **Training data:** `backend/src/main/resources/spam/notes-train.tsv`, one
+  labelled note per line (`A` = allowed, `B` = blocked) in Derja (Arabic and
+  Latin letters), Arabic, French and English. The model is trained from it at
+  startup (deterministic). To fix a mistake, add the note (or a similar one)
+  with the right label and redeploy — never with a real phone number or name.
+- **Quality gate:** `NoteClassifierEvaluationTest` measures the model on
+  held-out notes (`src/test/resources/spam/notes-test.tsv`) and by 5-fold
+  cross-validation, and fails the build if it starts blocking honest notes
+  (more than 1 held-out, more than 2% in cross-validation) or catching too
+  little spam. Measured at 0.8 when it shipped: honest notes wrongly blocked
+  0/52 held-out and 1.3% in cross-validation; spam caught 18/32 held-out
+  (the word lists it replaced caught 12/32) and 35% in cross-validation.
+- **Threshold:** lower catches more spam but blocks more honest notes (0.7:
+  about 3% honest notes blocked in cross-validation, 49% of spam caught).
+  Blocking a real alert is the worse mistake, hence 0.8.
+- `CONTACT_SPAM_FILTER_ENABLED=false` turns the filter off.
 
 **Also configure, in the Telnyx portal** (cannot be done from this repo): a
 low-balance / spend alert on the account and a daily spend limit on the

@@ -26,6 +26,7 @@ public class ProductionProviderGuard {
 
     private final CarLinkProperties properties;
     private final com.carlink.security.captcha.CaptchaProperties captcha;
+    private final com.carlink.notification.whatsapp.WhatsAppProperties whatsapp;
 
     @PostConstruct
     void check() {
@@ -46,6 +47,12 @@ public class ProductionProviderGuard {
                     + "reports) are protected by rate limits only. Configure Turnstile (security plan S-11).");
         } else if (captcha.getSecretKey() == null || captcha.getSecretKey().isBlank()) {
             throw new IllegalStateException("CAPTCHA_ENABLED=true but CAPTCHA_SECRET_KEY is empty.");
+        }
+        if ("mock".equalsIgnoreCase(whatsapp.getProvider() == null ? "" : whatsapp.getProvider().trim())) {
+            // The mock reports every WhatsApp alert delivered: the visitor would be
+            // told the owner got it even when the SMS failed.
+            throw new IllegalStateException("WHATSAPP_PROVIDER=mock is not allowed in the prod profile: "
+                    + "set it to meta (docs/whatsapp.md) or off.");
         }
         if (isMock(properties.contact().provider())) {
             log.warn("CONTACT_PROVIDER=mock in production: visitor alerts are recorded but NOT delivered "

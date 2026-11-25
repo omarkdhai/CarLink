@@ -1,8 +1,13 @@
 package com.carlink.notification.contact;
 
+import com.carlink.conversation.model.Channel;
 import com.carlink.conversation.model.Conversation;
+import com.carlink.conversation.model.ConversationDelivery;
 import com.carlink.conversation.model.ConversationStatus;
+import com.carlink.conversation.model.DeliveryStatus;
+import com.carlink.conversation.repository.ConversationDeliveryRepository;
 import com.carlink.conversation.repository.ConversationRepository;
+import com.carlink.conversation.service.ConversationDeliveryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -23,85 +28,119 @@ import static org.mockito.Mockito.when;
 class DeliveryStatusServiceTest {
 
     private final DeliveryReportClient client = mock(DeliveryReportClient.class);
-    private final ConversationRepository repository = mock(ConversationRepository.class);
+    private final ConversationRepository conversations = mock(ConversationRepository.class);
+    private final ConversationDeliveryRepository deliveryRepository = mock(ConversationDeliveryRepository.class);
+    private final ConversationDeliveryService deliveries = mock(ConversationDeliveryService.class);
 
     @SuppressWarnings("unchecked")
     private DeliveryStatusService service(DeliveryReportClient reportClient) {
+        when(client.provider()).thenReturn("tunisiesms");
         ObjectProvider<DeliveryReportClient> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(reportClient);
-        return new DeliveryStatusService(provider, repository);
+        return new DeliveryStatusService(provider, conversations, deliveryRepository, deliveries);
     }
 
-    private static Conversation sent(String providerId, Instant createdAt) {
-        return Conversation.builder().id(UUID.randomUUID()).status(ConversationStatus.SENT)
-                .providerMessageId(providerId).createdAt(createdAt).build();
+    private static Conversation conversation(ConversationStatus status, Instant createdAt) {
+        return Conversation.builder().id(UUID.randomUUID()).status(status).createdAt(createdAt).build();
+    }
+
+    private static ConversationDelivery delivery(UUID conversationId, Channel channel, String provider,
+                                                 String messageId, DeliveryStatus status) {
+        return ConversationDelivery.builder().id(UUID.randomUUID()).conversationId(conversationId)
+                .channel(channel).provider(provider).providerMessageId(messageId).status(status)
+                .createdAt(Instant.now()).updatedAt(Instant.now()).build();
     }
 
     @Test
-    void delivrdReportMakesItDelivered() {
-        Conversation c = sent("m1", Instant.now());
+    void delivrdReportMarksTheSmsDeliveredAndReturnsTheNewAggregate() {
+        Conversation c = conversation(ConversationStatus.SENT, Instant.now());
+        ConversationDelivery sms = delivery(c.getId(), Channel.SMS, "tunisiesms", "m1", DeliveryStatus.SENT);
+        when(deliveryRepository.findAllByConversationId(c.getId())).thenReturn(List.of(sms));
         when(client.report("m1")).thenReturn(Optional.of(new DeliveryReportClient.DeliveryReport(true, "DELIVRD")));
-        when(repository.applyDeliveryReport(c.getId(), ConversationStatus.DELIVERED, null)).thenReturn(1);
+        Conversation updated = conversation(ConversationStatus.DELIVERED, Instant.now());
+        when(conversations.findById(c.getId())).thenReturn(Optional.of(updated));
 
         assertThat(service(client).refresh(c)).isEqualTo(ConversationStatus.DELIVERED);
+        verify(deliveries).applyReport(sms, DeliveryStatus.DELIVERED, null);
     }
 
     @Test
-    void rejectedReportMakesItFailedWithTheOperatorCode() {
-        Conversation c = sent("m2", Instant.now());
+    void rejectedReportMarksTheSmsFailedWithTheOperatorCode() {
+        Conversation c = conversation(ConversationStatus.SENT, Instant.now());
+        ConversationDelivery sms = delivery(c.getId(), Channel.SMS, "tunisiesms", "m2", DeliveryStatus.SENT);
+        when(deliveryRepository.findAllByConversationId(c.getId())).thenReturn(List.of(sms));
         when(client.report("m2")).thenReturn(Optional.of(new DeliveryReportClient.DeliveryReport(false, "REJECTED")));
-        when(repository.applyDeliveryReport(c.getId(), ConversationStatus.FAILED, "REJECTED")).thenReturn(1);
+        when(conversations.findById(c.getId())).thenReturn(Optional.of(c));
 
-        assertThat(service(client).refresh(c)).isEqualTo(ConversationStatus.FAILED);
+        service(client).refresh(c);
+
+        verify(deliveries).applyReport(sms, DeliveryStatus.FAILED, "REJECTED");
     }
 
     @Test
     void noReportYetKeepsItSent() {
-        Conversation c = sent("m3", Instant.now());
+        Conversation c = conversation(ConversationStatus.SENT, Instant.now());
+        ConversationDelivery sms = delivery(c.getId(), Channel.SMS, "tunisiesms", "m3", DeliveryStatus.SENT);
+        when(deliveryRepository.findAllByConversationId(c.getId())).thenReturn(List.of(sms));
         when(client.report("m3")).thenReturn(Optional.empty());
 
         assertThat(service(client).refresh(c)).isEqualTo(ConversationStatus.SENT);
-        verify(repository, never()).applyDeliveryReport(any(), any(), any());
+        verify(deliveries, never()).applyReport(any(), any(), any());
     }
 
     @Test
-    void finalStatusesOldAlertsAndProvidersWithoutReportsAreLeftAlone() {
-        Conversation delivered = sent("m4", Instant.now());
-        delivered.setStatus(ConversationStatus.DELIVERED);
-        Conversation old = sent("m5", Instant.now().minus(DeliveryStatusService.REPORT_WINDOW).minus(Duration.ofMinutes(1)));
-        Conversation noId = sent(null, Instant.now());
+    void whatsAppDeliveriesAreNotPolled() {
+        Conversation c = conversation(ConversationStatus.SENT, Instant.now());
+        ConversationDelivery wa = delivery(c.getId(), Channel.WHATSAPP, "meta", "wamid.1", DeliveryStatus.SENT);
+        when(deliveryRepository.findAllByConversationId(c.getId())).thenReturn(List.of(wa));
 
-        assertThat(service(client).refresh(delivered)).isEqualTo(ConversationStatus.DELIVERED);
-        assertThat(service(client).refresh(old)).isEqualTo(ConversationStatus.SENT);
-        assertThat(service(client).refresh(noId)).isEqualTo(ConversationStatus.SENT);
-        assertThat(service(null).refresh(sent("m6", Instant.now()))).isEqualTo(ConversationStatus.SENT);
+        assertThat(service(client).refresh(c)).isEqualTo(ConversationStatus.SENT);
         verify(client, never()).report(anyString());
     }
 
     @Test
-    void aReportArrivingAfterAnotherUpdateRereadsTheStatus() {
-        Conversation c = sent("m7", Instant.now());
-        when(client.report("m7")).thenReturn(Optional.of(new DeliveryReportClient.DeliveryReport(true, "DELIVRD")));
-        when(repository.applyDeliveryReport(c.getId(), ConversationStatus.DELIVERED, null)).thenReturn(0);
-        Conversation expired = sent("m7", Instant.now());
-        expired.setStatus(ConversationStatus.EXPIRED);
-        when(repository.findById(c.getId())).thenReturn(Optional.of(expired));
+    void finalStatusesOldAlertsAndProvidersWithoutReportsAreLeftAlone() {
+        Conversation delivered = conversation(ConversationStatus.DELIVERED, Instant.now());
+        Conversation old = conversation(ConversationStatus.SENT,
+                Instant.now().minus(DeliveryStatusService.REPORT_WINDOW).minus(Duration.ofMinutes(1)));
 
-        assertThat(service(client).refresh(c)).isEqualTo(ConversationStatus.EXPIRED);
+        assertThat(service(client).refresh(delivered)).isEqualTo(ConversationStatus.DELIVERED);
+        assertThat(service(client).refresh(old)).isEqualTo(ConversationStatus.SENT);
+        assertThat(service(null).refresh(conversation(ConversationStatus.SENT, Instant.now())))
+                .isEqualTo(ConversationStatus.SENT);
+        verify(client, never()).report(anyString());
     }
 
     @Test
-    void backgroundPassChecksEveryWaitingAlertAndSurvivesErrors() {
-        Conversation a = sent("a", Instant.now());
-        Conversation b = sent("b", Instant.now());
-        when(repository.findTop100ByStatusAndProviderMessageIdIsNotNullAndCreatedAtAfterOrderByCreatedAtAsc(
-                any(), any())).thenReturn(List.of(a, b));
+    void backgroundPassChecksEveryWaitingSmsAndSurvivesErrors() {
+        ConversationDelivery a = delivery(UUID.randomUUID(), Channel.SMS, "tunisiesms", "a", DeliveryStatus.SENT);
+        ConversationDelivery b = delivery(UUID.randomUUID(), Channel.SMS, "tunisiesms", "b", DeliveryStatus.SENT);
+        DeliveryStatusService service = service(client);
+        when(deliveryRepository
+                .findTop100ByChannelAndProviderAndStatusAndProviderMessageIdIsNotNullAndCreatedAtAfterOrderByCreatedAtAsc(
+                        any(), any(), any(), any())).thenReturn(List.of(a, b));
         when(client.report("a")).thenThrow(new IllegalStateException("boom"));
         when(client.report("b")).thenReturn(Optional.of(new DeliveryReportClient.DeliveryReport(true, "DELIVRD")));
-        when(repository.applyDeliveryReport(b.getId(), ConversationStatus.DELIVERED, null)).thenReturn(1);
 
-        service(client).refreshPending();
+        service.refreshPending();
 
-        verify(repository).applyDeliveryReport(b.getId(), ConversationStatus.DELIVERED, null);
+        verify(deliveries).applyReport(b, DeliveryStatus.DELIVERED, null);
+    }
+
+    @Test
+    void pushedReportIsAppliedToTheMatchingDelivery() {
+        ConversationDelivery wa = delivery(UUID.randomUUID(), Channel.WHATSAPP, "meta", "wamid.9", DeliveryStatus.SENT);
+        when(deliveryRepository.findByProviderAndProviderMessageId("meta", "wamid.9")).thenReturn(Optional.of(wa));
+
+        assertThat(service(client).applyPushedReport("meta", "wamid.9", DeliveryStatus.READ, null)).isTrue();
+        verify(deliveries).applyReport(wa, DeliveryStatus.READ, null);
+    }
+
+    @Test
+    void pushedReportForAnUnknownMessageIsIgnored() {
+        when(deliveryRepository.findByProviderAndProviderMessageId("meta", "other")).thenReturn(Optional.empty());
+
+        assertThat(service(client).applyPushedReport("meta", "other", DeliveryStatus.DELIVERED, null)).isFalse();
+        verify(deliveries, never()).applyReport(any(), any(), any());
     }
 }
