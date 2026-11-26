@@ -39,7 +39,7 @@ import {
   TN_DIAL_CODE,
   type OrderDetailsValues,
 } from '@/features/order/orderSchemas'
-import stickerImage from '@/assets/CarLink-Sticker.png'
+import stickerImage from '@/assets/carlink-sticker-light.png'
 import { cn } from '@/lib/cn'
 import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
 import { GOVERNORATES } from '@/types'
@@ -773,7 +773,7 @@ function StickerArt({ className }: { className?: string }) {
     <img
       src={stickerImage}
       alt=""
-      className={cn('h-[48%] w-[48%] object-contain', className)}
+      className={cn('w-auto object-contain', className)}
       aria-hidden="true"
     />
   )
@@ -804,8 +804,8 @@ function OrderSummaryAside({
       aria-label={t('order.summary')}
     >
       <div className="text-center">
-        <div className="mb-4 grid min-h-[200px] place-items-center">
-          <StickerArt className="-rotate-[8deg]" />
+        <div className="mb-6 flex justify-center pt-2">
+          <StickerArt className="h-[min(340px,42vh)] -rotate-[4deg] rounded-[18px] drop-shadow-[0_18px_32px_rgba(15,23,42,0.22)]" />
         </div>
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
           {t('order.summaryEyebrow')}
