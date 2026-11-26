@@ -103,8 +103,9 @@ public class MetaWhatsAppSender implements ContactChannelSender {
         String messageId = body.path("messages").path(0).path("id").asString("");
         boolean ok = reply.status() / 100 == 2;
         if (ok && !messageId.isBlank()) {
-            log.info("[WHATSAPP] accepted id={} (owner hash={})", messageId, ownerHash);
-            return SendResult.accepted(messageId);
+            // The wamid embeds the owner's number: never logged, stored only as a fingerprint.
+            log.info("[WHATSAPP] accepted (owner hash={})", ownerHash);
+            return SendResult.accepted(WhatsAppMessageIds.fingerprint(messageId));
         }
         if (ok) {
             log.warn("[WHATSAPP] accepted with no message id (owner hash={})", ownerHash);

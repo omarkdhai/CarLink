@@ -6,6 +6,9 @@ import com.carlink.notification.contact.ContactDelivery;
 import com.carlink.notification.contact.SendResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +26,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+@ExtendWith(OutputCaptureExtension.class)
 class MetaWhatsAppSenderTest {
 
     private static final String URL = "https://graph.facebook.com/v25.0/1234567890/messages";
@@ -70,7 +74,7 @@ class MetaWhatsAppSenderTest {
                 .andRespond(withSuccess("{\"messaging_product\":\"whatsapp\",\"contacts\":[{\"input\":\"21612345678\","
                         + "\"wa_id\":\"21612345678\"}],\"messages\":[{\"id\":\"wamid.ABC\"}]}", MediaType.APPLICATION_JSON));
 
-        assertThat(sender.send(alert("Garé au café,\nmerci"))).isEqualTo(SendResult.accepted("wamid.ABC"));
+        assertThat(sender.send(alert("Garé au café,\nmerci"))).isEqualTo(SendResult.accepted(WhatsAppMessageIds.fingerprint("wamid.ABC")));
         server.verify();
     }
 
@@ -80,7 +84,7 @@ class MetaWhatsAppSenderTest {
                 .andExpect(jsonPath("$.template.components[0].parameters[1].text").value("—"))
                 .andRespond(withSuccess("{\"messages\":[{\"id\":\"wamid.X\"}]}", MediaType.APPLICATION_JSON));
 
-        assertThat(sender.send(alert("  "))).isEqualTo(SendResult.accepted("wamid.X"));
+        assertThat(sender.send(alert("  "))).isEqualTo(SendResult.accepted(WhatsAppMessageIds.fingerprint("wamid.X")));
     }
 
     @Test
@@ -98,6 +102,21 @@ class MetaWhatsAppSenderTest {
         server.expect(requestTo(URL)).andRespond(withStatus(HttpStatus.BAD_GATEWAY));
 
         assertThat(sender.send(alert("hi"))).isEqualTo(SendResult.failed("WA_502"));
+    }
+
+    @Test
+    void messageIdIsNeverLoggedAndOnlyItsFingerprintIsKept(CapturedOutput output) {
+        // A real wamid is Base64 that embeds the recipient's number (here 21612345678).
+        String wamid = "wamid.HBgLMjE2MTIzNDU2NzgVAgARGBI3MzRENzNDNTUxOTg1OEJCRTIA";
+        server.expect(requestTo(URL))
+                .andRespond(withSuccess("{\"messages\":[{\"id\":\"" + wamid + "\"}]}", MediaType.APPLICATION_JSON));
+
+        SendResult result = sender.send(alert("ok"));
+
+        assertThat(result.providerMessageId())
+                .isEqualTo(WhatsAppMessageIds.fingerprint(wamid))
+                .hasSize(64).matches("[0-9a-f]+");
+        assertThat(output.getAll()).doesNotContain(wamid).doesNotContain("HBgLMjE2MTIzNDU2Nzg");
     }
 
     @Test

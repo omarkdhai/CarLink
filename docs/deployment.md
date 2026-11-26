@@ -395,13 +395,28 @@ answer never repeats the note; the log line has only the score.
   held-out notes (`src/test/resources/spam/notes-test.tsv`) and by 5-fold
   cross-validation, and fails the build if it starts blocking honest notes
   (more than 1 held-out, more than 2% in cross-validation) or catching too
-  little spam. Measured at 0.8 when it shipped: honest notes wrongly blocked
-  0/52 held-out and 1.3% in cross-validation; spam caught 18/32 held-out
-  (the word lists it replaced caught 12/32) and 35% in cross-validation.
+  little spam. Measured at 0.8 with the Derja insult data (2026-11-26):
+  honest notes wrongly blocked 0/52 held-out and 1.0% (6/619) in
+  cross-validation; spam caught 18/32 held-out and 70% in cross-validation;
+  unseen Derja insults refused 47/47.
 - **Threshold:** lower catches more spam but blocks more honest notes (0.7:
   about 3% honest notes blocked in cross-validation, 49% of spam caught).
   Blocking a real alert is the worse mistake, hence 0.8.
 - `CONTACT_SPAM_FILTER_ENABLED=false` turns the filter off.
+- **Vulgar Derja never reaches the operator.** TunisieSMS refuses vulgar or
+  insulting content and can block the sender account, so the model is trained
+  on Derja insults in Latin and Arabic letters (`zebi`, `nikomk`, `3asba`,
+  `sorm`, `9a7ba`…), alone and inside polite car sentences, and reads each word
+  a second time with disguises undone (`NoteClassifier.fold`: `z.e.b.i`,
+  `k@hba`, `3a$ba`, `9a7ba`, `mibboun`). A stricter gate,
+  `derjaInsultsAreAlwaysRefused` (`src/test/resources/spam/insults-test.tsv`),
+  fails the build unless **every** unseen insult is refused and every
+  look-alike honest note passes. A new insult spelling that gets through: add
+  it (and a few variants) as `B` to the training file and redeploy.
+- **Testing spam notes safely:** never test insults or spam against the live
+  SMS provider. Set `CONTACT_PROVIDER=mock` (and `WHATSAPP_PROVIDER=mock`) in
+  `.env` and restart the backend: the filter behaves the same, and nothing is
+  sent to TunisieSMS or Meta.
 - **Second line of defence:** if a note the classifier missed is refused by the
   phone operator for its content (TunisieSMS report `UNAUTHORIZED`), the alert
   is hidden from the owner (`conversations.hidden_at`, V13: not in the list,

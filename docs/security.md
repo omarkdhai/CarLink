@@ -49,7 +49,10 @@ still omit it.
   the API calls made from that page (security plan S-08).
 - WhatsApp (docs/whatsapp.md): the owner's number goes to Meta only in the JSON
   body of the send, never in a URL or a log; Meta's replies and webhook calls
-  carry it (`wa_id`, `recipient_id`) and are never logged or stored. The
+  carry it (`wa_id`, `recipient_id`) and are never logged or stored. Meta's
+  message id (`wamid.…`) is Base64 that embeds the recipient's number, so it is
+  never logged and only its SHA-256 is stored (`WhatsAppMessageIds`, migration
+  V14); the webhook fingerprints the id it receives before matching. The
   webhook `POST /api/v1/public/webhooks/whatsapp` reads only calls signed with
   the app secret (`X-Hub-Signature-256`, constant-time check; else 401), and
   logs counts and error codes only. Messages owners send to the CarLink number
