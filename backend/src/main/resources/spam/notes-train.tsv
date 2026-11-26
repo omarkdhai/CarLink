@@ -696,3 +696,621 @@ B	nkasser el blar mta3 karhbtek
 B	nfaccha3lek el rwayed
 B	سأكسر زجاج سيارتك
 B	نكسرلك البلار متاع الكرهبة
+
+# ---------------------------------------------------------------- blocked, Derja vulgar words and insults (Latin + Arabic letters)
+# The operator refuses these outright and may block the sender account.
+B	zebi
+B	zeby
+B	zbi
+B	zabi
+B	ya zebi
+B	zebi fik
+B	zebi fi karhbtek
+B	zebi aalik w aal karhebtek
+B	karhbtek zebi
+B	zebi ya mibboun
+B	nikomk
+B	nikommek
+B	nik omek
+B	nik ommek
+B	nayek
+B	ya nayek
+B	nayek omek
+B	nayek bouk
+B	naykek
+B	ya mnayek
+B	nik karhbtek
+B	nikomk ya mibboun
+B	nikomk zah karhbtek
+B	nikomk ija baad karhebtek
+B	3asba
+B	asba
+B	3sba
+B	ya 3asba
+B	3asba aalik
+B	3asba fi karhbtek
+B	asba fik w fi karhbtek
+B	3asba ya mibboun
+B	sorm
+B	sormek
+B	sorm omek
+B	sorm bouk
+B	ya sorm
+B	sorm karhbtek
+B	sormek ya bhim
+B	kahba
+B	9a7ba
+B	9ahba
+B	qahba
+B	ka7ba
+B	ya weld el kahba
+B	weld el 9a7ba
+B	omek kahba
+B	ya ben el kahba
+B	mibboun
+B	mibon
+B	ya mibboun
+B	ya miboun ija na7i karhbtek
+B	miboun ma ta3rafch tparki
+B	zok
+B	zokomk
+B	zok omek
+B	zokk ommek
+B	termtek
+B	terma
+B	termet omek
+B	ya zamel
+B	zamel
+B	ya ta7an
+B	tahan
+B	ya t7an
+B	khra
+B	khra fik
+B	khra aal karhbtek
+B	ya bhim
+B	ya bhima
+B	ya 7mar
+B	ya hmar parkit kima el 7mar
+B	ya kelb
+B	weld el kelb
+B	ya wled zna
+B	weld zna
+B	yel3an bouk
+B	yel3an omek
+B	yal3an din omek
+B	nalaan bouk
+B	ija nayek baad karhbtek ha zebi
+B	karhbtek sakkret aalia ya 3asba
+B	na7i karhebtek ya nayek
+B	parkit kima el zebi
+B	chbik ya sorm sakkert el thneya
+B	ya mibboun ija ne7i karhbtek
+B	khalit dhaw ya 3asba
+B	eli parka hna zebi
+B	nikomk 3al parking
+B	zebi fel parking mte3ek
+B	ya kahba ne7i karhbtek
+B	زبي
+B	زب
+B	يا زبي
+B	زبي فيك
+B	زبي في كرهبتك
+B	نيك
+B	نيكمك
+B	نيك امك
+B	نايك
+B	يا نايك
+B	نايك امك
+B	يا منيك
+B	عصبة
+B	يا عصبة
+B	عصبة عليك
+B	عصبة في كرهبتك
+B	صرم
+B	صرمك
+B	صرم امك
+B	يا صرم
+B	قحبة
+B	يا قحبة
+B	ولد القحبة
+B	امك قحبة
+B	ميبون
+B	يا ميبون نحي كرهبتك
+B	زك
+B	زكمك
+B	زك امك
+B	ترمتك
+B	يا زامل
+B	زامل
+B	يا طحان
+B	خرا
+B	خرا عليك
+B	يا بهيم
+B	يا كلب
+B	ولد الكلب
+B	يا ولد الزنا
+B	يلعن امك
+B	يلعن دين امك
+B	نحي كرهبتك يا عصبة
+B	كرهبتك سادة عليا يا منيك
+B	زبي في الباركينغ متاعك
+B	z.e.b.i
+B	z e b i
+B	z3bi
+B	zeeeebi
+B	n!komk
+B	n1komk
+B	3a$ba
+B	s0rm
+B	k@hba
+B	9a7ba fik
+
+# ---------------------------------------------------------------- allowed, look-alikes of vulgar words (must stay allowed)
+A	sbeh el khir, karhbtek sakra aalia
+A	sbe7 el khir ya khoya, ne7i karhbtek aaychek
+A	salem ya khouya, karhebtek sadda el bab
+A	ya khoya chbik parkit hna
+A	ya sidi karhbtek mazelet dhaw
+A	ya madame karhebtek mahloula
+A	ya akhi karhbtek sakkret el garage
+A	ya 3ammi ne7i karhbtek brabi
+A	zid chwaya l9oddem brabi
+A	zid ta9a3ed chwaya bech nokhrej
+A	asbab el parking: ena bech nokhrej
+A	nissan grise mahloula
+A	zebda w khobz? la, karhbtek sakra el thneya
+A	Nissan noire, feux allumés
+A	kahwa w nji ne7i karhbtek
+A	khrajt? karhebtek mazelet hna
+A	el bab mte3 karhbtek mahloul
+A	الكلب متاعي يستنى في الكرهبة؟ لا، كرهبتك سادة الباب
+A	صباح الخير كرهبتك سادة عليا
+A	يا خويا نحي كرهبتك عيشك
+A	يا سيدي كرهبتك ضوها شاعل
+A	يا مدام الشبابك محلولين
+A	زيد شوية لقدام بربي
+A	عسلامة، كرهبتك سادة الثنية
+
+# ---------------------------------------------------------------- blocked, a polite car sentence with one vulgar word (still refused)
+B	karhbtek sakra el bab ya zebi
+B	ya zebi, karhbtek sakra el bab
+B	karhbtek sakra el bab ya zamel
+B	ya zamel, karhbtek sakra el bab
+B	karhbtek sakra el bab zebi fik
+B	zebi fik, karhbtek sakra el bab
+B	karhbtek sakra el bab ya 3asba
+B	ya 3asba, karhbtek sakra el bab
+B	ne7i karhbtek mel garage ya mibboun
+B	ya mibboun, ne7i karhbtek mel garage
+B	ne7i karhbtek mel garage ya zamel
+B	ya zamel, ne7i karhbtek mel garage
+B	ne7i karhbtek mel garage nikomk
+B	nikomk, ne7i karhbtek mel garage
+B	ne7i karhbtek mel garage sorm omek
+B	sorm omek, ne7i karhbtek mel garage
+B	el karhba mte3ek sadda el parking ya zamel
+B	ya zamel, el karhba mte3ek sadda el parking
+B	el karhba mte3ek sadda el parking ya sorm
+B	ya sorm, el karhba mte3ek sadda el parking
+B	el karhba mte3ek sadda el parking zok omek
+B	zok omek, el karhba mte3ek sadda el parking
+B	el karhba mte3ek sadda el parking ya nayek
+B	ya nayek, el karhba mte3ek sadda el parking
+B	dhaw karhbtek yechaal zok omek
+B	zok omek, dhaw karhbtek yechaal
+B	dhaw karhbtek yechaal ya weld el kahba
+B	ya weld el kahba, dhaw karhbtek yechaal
+B	dhaw karhbtek yechaal nikomk
+B	nikomk, dhaw karhbtek yechaal
+B	dhaw karhbtek yechaal ya kahba
+B	ya kahba, dhaw karhbtek yechaal
+B	khalit el chobbek mahloul zebi fik
+B	zebi fik, khalit el chobbek mahloul
+B	khalit el chobbek mahloul ya zebi
+B	ya zebi, khalit el chobbek mahloul
+B	khalit el chobbek mahloul ya weld el kahba
+B	ya weld el kahba, khalit el chobbek mahloul
+B	khalit el chobbek mahloul ya mnayek
+B	ya mnayek, khalit el chobbek mahloul
+B	parkit fi blasti nikomk
+B	nikomk, parkit fi blasti
+B	parkit fi blasti zebi fik
+B	zebi fik, parkit fi blasti
+B	parkit fi blasti ya weld el kahba
+B	ya weld el kahba, parkit fi blasti
+B	parkit fi blasti zok omek
+B	zok omek, parkit fi blasti
+B	karhbtek msakra el kays ya 9a7ba
+B	ya 9a7ba, karhbtek msakra el kays
+B	karhbtek msakra el kays sorm omek
+B	sorm omek, karhbtek msakra el kays
+B	karhbtek msakra el kays ya 3asba
+B	ya 3asba, karhbtek msakra el kays
+B	karhbtek msakra el kays ya zebi
+B	ya zebi, karhbtek msakra el kays
+B	ija harrek karhbtek sorm omek
+B	sorm omek, ija harrek karhbtek
+B	ija harrek karhbtek ya 3asba
+B	ya 3asba, ija harrek karhbtek
+B	ija harrek karhbtek zebi fik
+B	zebi fik, ija harrek karhbtek
+B	ija harrek karhbtek ya 9a7ba
+B	ya 9a7ba, ija harrek karhbtek
+B	sakkert aalia el khrouj ya mnayek
+B	ya mnayek, sakkert aalia el khrouj
+B	sakkert aalia el khrouj ya nayek
+B	ya nayek, sakkert aalia el khrouj
+B	sakkert aalia el khrouj sorm omek
+B	sorm omek, sakkert aalia el khrouj
+B	sakkert aalia el khrouj ya sorm
+B	ya sorm, sakkert aalia el khrouj
+B	el thneya msakra bel karhba mte3ek ya 3asba
+B	ya 3asba, el thneya msakra bel karhba mte3ek
+B	el thneya msakra bel karhba mte3ek 3asba aalik
+B	3asba aalik, el thneya msakra bel karhba mte3ek
+B	el thneya msakra bel karhba mte3ek ya zamel
+B	ya zamel, el thneya msakra bel karhba mte3ek
+B	el thneya msakra bel karhba mte3ek ya nayek
+B	ya nayek, el thneya msakra bel karhba mte3ek
+B	كرهبتك سادة الباب يا قحبة
+B	يا قحبة, كرهبتك سادة الباب
+B	كرهبتك سادة الباب يا نايك
+B	يا نايك, كرهبتك سادة الباب
+B	كرهبتك سادة الباب زك امك
+B	زك امك, كرهبتك سادة الباب
+B	كرهبتك سادة الباب زبي فيك
+B	زبي فيك, كرهبتك سادة الباب
+B	نحي كرهبتك من قدام الباراج زك امك
+B	زك امك, نحي كرهبتك من قدام الباراج
+B	نحي كرهبتك من قدام الباراج نيكمك
+B	نيكمك, نحي كرهبتك من قدام الباراج
+B	نحي كرهبتك من قدام الباراج صرم امك
+B	صرم امك, نحي كرهبتك من قدام الباراج
+B	نحي كرهبتك من قدام الباراج زبي فيك
+B	زبي فيك, نحي كرهبتك من قدام الباراج
+B	ضو كرهبتك شاعل زك امك
+B	زك امك, ضو كرهبتك شاعل
+B	ضو كرهبتك شاعل يا زامل
+B	يا زامل, ضو كرهبتك شاعل
+B	ضو كرهبتك شاعل يا عصبة
+B	يا عصبة, ضو كرهبتك شاعل
+B	ضو كرهبتك شاعل صرم امك
+B	صرم امك, ضو كرهبتك شاعل
+B	سكرت عليا الثنية يا صرم
+B	يا صرم, سكرت عليا الثنية
+B	سكرت عليا الثنية يا نايك
+B	يا نايك, سكرت عليا الثنية
+B	سكرت عليا الثنية يا عصبة
+B	يا عصبة, سكرت عليا الثنية
+B	سكرت عليا الثنية زبي فيك
+B	زبي فيك, سكرت عليا الثنية
+
+# ---------------------------------------------------------------- allowed, the same car sentences said politely (the vulgar word is what refuses)
+A	karhbtek sakra el bab ya khoya
+A	ya khoya, karhbtek sakra el bab
+A	karhbtek sakra el bab brabi
+A	brabi, karhbtek sakra el bab
+A	karhbtek sakra el bab aaychek
+A	aaychek, karhbtek sakra el bab
+A	karhbtek sakra el bab ya sidi
+A	ya sidi, karhbtek sakra el bab
+A	karhbtek sakra el bab ya madame
+A	ya madame, karhbtek sakra el bab
+A	karhbtek sakra el bab merci
+A	merci, karhbtek sakra el bab
+A	ne7i karhbtek mel garage ya khoya
+A	ya khoya, ne7i karhbtek mel garage
+A	ne7i karhbtek mel garage brabi
+A	brabi, ne7i karhbtek mel garage
+A	ne7i karhbtek mel garage aaychek
+A	aaychek, ne7i karhbtek mel garage
+A	ne7i karhbtek mel garage ya sidi
+A	ya sidi, ne7i karhbtek mel garage
+A	ne7i karhbtek mel garage ya madame
+A	ya madame, ne7i karhbtek mel garage
+A	ne7i karhbtek mel garage merci
+A	merci, ne7i karhbtek mel garage
+A	el karhba mte3ek sadda el parking ya khoya
+A	ya khoya, el karhba mte3ek sadda el parking
+A	el karhba mte3ek sadda el parking brabi
+A	brabi, el karhba mte3ek sadda el parking
+A	el karhba mte3ek sadda el parking aaychek
+A	aaychek, el karhba mte3ek sadda el parking
+A	el karhba mte3ek sadda el parking ya sidi
+A	ya sidi, el karhba mte3ek sadda el parking
+A	el karhba mte3ek sadda el parking ya madame
+A	ya madame, el karhba mte3ek sadda el parking
+A	el karhba mte3ek sadda el parking merci
+A	merci, el karhba mte3ek sadda el parking
+A	dhaw karhbtek yechaal ya khoya
+A	ya khoya, dhaw karhbtek yechaal
+A	dhaw karhbtek yechaal brabi
+A	brabi, dhaw karhbtek yechaal
+A	dhaw karhbtek yechaal aaychek
+A	aaychek, dhaw karhbtek yechaal
+A	dhaw karhbtek yechaal ya sidi
+A	ya sidi, dhaw karhbtek yechaal
+A	dhaw karhbtek yechaal ya madame
+A	ya madame, dhaw karhbtek yechaal
+A	dhaw karhbtek yechaal merci
+A	merci, dhaw karhbtek yechaal
+A	khalit el chobbek mahloul ya khoya
+A	ya khoya, khalit el chobbek mahloul
+A	khalit el chobbek mahloul brabi
+A	brabi, khalit el chobbek mahloul
+A	khalit el chobbek mahloul aaychek
+A	aaychek, khalit el chobbek mahloul
+A	khalit el chobbek mahloul ya sidi
+A	ya sidi, khalit el chobbek mahloul
+A	khalit el chobbek mahloul ya madame
+A	ya madame, khalit el chobbek mahloul
+A	khalit el chobbek mahloul merci
+A	merci, khalit el chobbek mahloul
+A	parkit fi blasti ya khoya
+A	ya khoya, parkit fi blasti
+A	parkit fi blasti brabi
+A	brabi, parkit fi blasti
+A	parkit fi blasti aaychek
+A	aaychek, parkit fi blasti
+A	parkit fi blasti ya sidi
+A	ya sidi, parkit fi blasti
+A	parkit fi blasti ya madame
+A	ya madame, parkit fi blasti
+A	parkit fi blasti merci
+A	merci, parkit fi blasti
+A	karhbtek msakra el kays ya khoya
+A	ya khoya, karhbtek msakra el kays
+A	karhbtek msakra el kays brabi
+A	brabi, karhbtek msakra el kays
+A	karhbtek msakra el kays aaychek
+A	aaychek, karhbtek msakra el kays
+A	karhbtek msakra el kays ya sidi
+A	ya sidi, karhbtek msakra el kays
+A	karhbtek msakra el kays ya madame
+A	ya madame, karhbtek msakra el kays
+A	karhbtek msakra el kays merci
+A	merci, karhbtek msakra el kays
+A	ija harrek karhbtek ya khoya
+A	ya khoya, ija harrek karhbtek
+A	ija harrek karhbtek brabi
+A	brabi, ija harrek karhbtek
+A	ija harrek karhbtek aaychek
+A	aaychek, ija harrek karhbtek
+A	ija harrek karhbtek ya sidi
+A	ya sidi, ija harrek karhbtek
+A	ija harrek karhbtek ya madame
+A	ya madame, ija harrek karhbtek
+A	ija harrek karhbtek merci
+A	merci, ija harrek karhbtek
+A	sakkert aalia el khrouj ya khoya
+A	ya khoya, sakkert aalia el khrouj
+A	sakkert aalia el khrouj brabi
+A	brabi, sakkert aalia el khrouj
+A	sakkert aalia el khrouj aaychek
+A	aaychek, sakkert aalia el khrouj
+A	sakkert aalia el khrouj ya sidi
+A	ya sidi, sakkert aalia el khrouj
+A	sakkert aalia el khrouj ya madame
+A	ya madame, sakkert aalia el khrouj
+A	sakkert aalia el khrouj merci
+A	merci, sakkert aalia el khrouj
+A	el thneya msakra bel karhba mte3ek ya khoya
+A	ya khoya, el thneya msakra bel karhba mte3ek
+A	el thneya msakra bel karhba mte3ek brabi
+A	brabi, el thneya msakra bel karhba mte3ek
+A	el thneya msakra bel karhba mte3ek aaychek
+A	aaychek, el thneya msakra bel karhba mte3ek
+A	el thneya msakra bel karhba mte3ek ya sidi
+A	ya sidi, el thneya msakra bel karhba mte3ek
+A	el thneya msakra bel karhba mte3ek ya madame
+A	ya madame, el thneya msakra bel karhba mte3ek
+A	el thneya msakra bel karhba mte3ek merci
+A	merci, el thneya msakra bel karhba mte3ek
+A	كرهبتك سادة الباب يا خويا
+A	يا خويا، كرهبتك سادة الباب
+A	كرهبتك سادة الباب بربي
+A	بربي، كرهبتك سادة الباب
+A	كرهبتك سادة الباب عيشك
+A	عيشك، كرهبتك سادة الباب
+A	كرهبتك سادة الباب يعيشك
+A	يعيشك، كرهبتك سادة الباب
+A	كرهبتك سادة الباب يا سيدي
+A	يا سيدي، كرهبتك سادة الباب
+A	كرهبتك سادة الباب يا مدام
+A	يا مدام، كرهبتك سادة الباب
+A	نحي كرهبتك من قدام الباراج يا خويا
+A	يا خويا، نحي كرهبتك من قدام الباراج
+A	نحي كرهبتك من قدام الباراج بربي
+A	بربي، نحي كرهبتك من قدام الباراج
+A	نحي كرهبتك من قدام الباراج عيشك
+A	عيشك، نحي كرهبتك من قدام الباراج
+A	نحي كرهبتك من قدام الباراج يعيشك
+A	يعيشك، نحي كرهبتك من قدام الباراج
+A	نحي كرهبتك من قدام الباراج يا سيدي
+A	يا سيدي، نحي كرهبتك من قدام الباراج
+A	نحي كرهبتك من قدام الباراج يا مدام
+A	يا مدام، نحي كرهبتك من قدام الباراج
+A	ضو كرهبتك شاعل يا خويا
+A	يا خويا، ضو كرهبتك شاعل
+A	ضو كرهبتك شاعل بربي
+A	بربي، ضو كرهبتك شاعل
+A	ضو كرهبتك شاعل عيشك
+A	عيشك، ضو كرهبتك شاعل
+A	ضو كرهبتك شاعل يعيشك
+A	يعيشك، ضو كرهبتك شاعل
+A	ضو كرهبتك شاعل يا سيدي
+A	يا سيدي، ضو كرهبتك شاعل
+A	ضو كرهبتك شاعل يا مدام
+A	يا مدام، ضو كرهبتك شاعل
+A	سكرت عليا الثنية يا خويا
+A	يا خويا، سكرت عليا الثنية
+A	سكرت عليا الثنية بربي
+A	بربي، سكرت عليا الثنية
+A	سكرت عليا الثنية عيشك
+A	عيشك، سكرت عليا الثنية
+A	سكرت عليا الثنية يعيشك
+A	يعيشك، سكرت عليا الثنية
+A	سكرت عليا الثنية يا سيدي
+A	يا سيدي، سكرت عليا الثنية
+A	سكرت عليا الثنية يا مدام
+A	يا مدام، سكرت عليا الثنية
+A	karhbtek sakra el bab
+A	ne7i karhbtek mel garage
+A	el karhba mte3ek sadda el parking
+A	dhaw karhbtek yechaal
+A	khalit el chobbek mahloul
+A	parkit fi blasti
+A	karhbtek msakra el kays
+A	ija harrek karhbtek
+A	sakkert aalia el khrouj
+A	el thneya msakra bel karhba mte3ek
+A	كرهبتك سادة الباب
+A	نحي كرهبتك من قدام الباراج
+A	ضو كرهبتك شاعل
+A	سكرت عليا الثنية
+
+# ---------------------------------------------------------------- allowed, short neutral notes (waiting, call me, ok, where are you)
+A	d'accord
+A	okay thanks
+A	behi
+A	behi ya khoya
+A	mrigel
+A	nestannek
+A	ena nestanna fik l9odem el karhba
+A	appelle-moi stp
+A	appelez-moi svp
+A	appelle-moi au 22 333 444
+A	call me please
+A	call me when you see this
+A	kallamni
+A	kallamni aaychek
+A	كلمني
+A	tu en as pour longtemps ?
+A	9addech bech tabta?
+A	قداش باش تبطى؟
+A	no rush
+A	pas de souci, prenez votre temps
+A	win inti ya khoya?
+A	وينك؟
+A	ou êtes-vous ?
+A	your car is charging, can I charge after you?
+A	karhbtek tcharji, najem ncharji ba3dek?
+A	j'attends la borne de recharge
+A	your windshield wiper is broken
+A	el blar mte3 karhbtek mkasser
+
+# ---------------------------------------------------------------- blocked, car sentence + vulgar word + a polite word (politeness does not excuse it)
+B	karhbtek sakra el bab ya mnayek merci
+B	karhbtek sakra el bab ya weld el kahba merci
+B	karhbtek sakra el bab zebi aaychek
+B	karhbtek sakra el bab nikomk aaychek
+B	ne7i karhbtek mel garage ya weld el kahba svp
+B	ne7i karhbtek mel garage ya mnayek ya khoya
+B	ne7i karhbtek mel garage ya 3asba aaychek
+B	ne7i karhbtek mel garage ya sorm brabi
+B	dhaw karhbtek yechaal ya weld el kahba merci
+B	dhaw karhbtek yechaal ya nayek aaychek
+B	dhaw karhbtek yechaal ya zamel merci
+B	dhaw karhbtek yechaal ya mnayek brabi
+B	khalit el chobbek mahloul ya weld el kahba aaychek
+B	khalit el chobbek mahloul ya sorm aaychek
+B	khalit el chobbek mahloul ya nayek merci
+B	khalit el chobbek mahloul zebi brabi
+B	parkit fi blasti ya mnayek merci
+B	parkit fi blasti ya mibboun aaychek
+B	parkit fi blasti zebi ya khoya
+B	parkit fi blasti ya zebi svp
+B	ija harrek karhbtek ya nayek svp
+B	ija harrek karhbtek ya sorm merci
+B	ija harrek karhbtek ya mnayek brabi
+B	ija harrek karhbtek ya kahba ya khoya
+B	sakkert aalia el khrouj ya mibboun brabi
+B	sakkert aalia el khrouj ya zebi brabi
+B	sakkert aalia el khrouj ya weld el kahba merci
+B	sakkert aalia el khrouj ya kahba brabi
+B	karhbtek sakra aalia ya zamel brabi
+B	karhbtek sakra aalia ya kahba brabi
+B	karhbtek sakra aalia zebi aaychek
+B	كرهبتك سادة الباب يا عصبة عيشك
+B	كرهبتك سادة الباب يا صرم يا خويا
+B	كرهبتك سادة الباب يا زامل عيشك
+B	ضو كرهبتك شاعل يا قحبة يا خويا
+B	ضو كرهبتك شاعل يا صرم بربي
+B	ضو كرهبتك شاعل يا نايك يا خويا
+B	سكرت عليا الثنية يا نايك عيشك
+B	سكرت عليا الثنية يا زامل عيشك
+B	سكرت عليا الثنية يا صرم بربي
+
+# ---------------------------------------------------------------- blocked, Arabic letters: car sentence + vulgar word (+ polite word)
+B	كرهبتك سادة الباب يا ميبون بربي
+B	كرهبتك سادة الباب يا ميبون
+B	كرهبتك سادة الباب يا منيك عيشك
+B	كرهبتك سادة الباب زبي يا خويا
+B	كرهبتك سادة الباب زبي
+B	كرهبتك سادة الباب يا بهيم يعيشك
+B	كرهبتك سادة الباب يا كلب بربي
+B	كرهبتك سادة الباب يا كلب
+B	كرهبتك سادة الباب يا ولد القحبة عيشك
+B	كرهبتك سادة الباب يا زبي يا خويا
+B	كرهبتك سادة الباب يا زبي
+B	كرهبتك سادة الباب نيكمك يعيشك
+B	ضو كرهبتك شاعل يا ميبون عيشك
+B	ضو كرهبتك شاعل يا منيك يا خويا
+B	ضو كرهبتك شاعل يا منيك
+B	ضو كرهبتك شاعل زبي يعيشك
+B	ضو كرهبتك شاعل يا بهيم بربي
+B	ضو كرهبتك شاعل يا بهيم
+B	ضو كرهبتك شاعل يا كلب عيشك
+B	ضو كرهبتك شاعل يا ولد القحبة يا خويا
+B	ضو كرهبتك شاعل يا ولد القحبة
+B	ضو كرهبتك شاعل يا زبي يعيشك
+B	ضو كرهبتك شاعل نيكمك بربي
+B	ضو كرهبتك شاعل نيكمك
+B	سكرت عليا الثنية يا ميبون يا خويا
+B	سكرت عليا الثنية يا ميبون
+B	سكرت عليا الثنية يا منيك يعيشك
+B	سكرت عليا الثنية زبي بربي
+B	سكرت عليا الثنية زبي
+B	سكرت عليا الثنية يا بهيم عيشك
+B	سكرت عليا الثنية يا كلب يا خويا
+B	سكرت عليا الثنية يا كلب
+B	سكرت عليا الثنية يا ولد القحبة يعيشك
+B	سكرت عليا الثنية يا زبي بربي
+B	سكرت عليا الثنية يا زبي
+B	سكرت عليا الثنية نيكمك عيشك
+B	نحي كرهبتك من قدام الباراج يا ميبون يعيشك
+B	نحي كرهبتك من قدام الباراج يا منيك بربي
+B	نحي كرهبتك من قدام الباراج يا منيك
+B	نحي كرهبتك من قدام الباراج زبي عيشك
+B	نحي كرهبتك من قدام الباراج يا بهيم يا خويا
+B	نحي كرهبتك من قدام الباراج يا بهيم
+B	نحي كرهبتك من قدام الباراج يا كلب يعيشك
+B	نحي كرهبتك من قدام الباراج يا ولد القحبة بربي
+B	نحي كرهبتك من قدام الباراج يا ولد القحبة
+B	نحي كرهبتك من قدام الباراج يا زبي عيشك
+B	نحي كرهبتك من قدام الباراج نيكمك يا خويا
+B	نحي كرهبتك من قدام الباراج نيكمك
+B	كرهبتك سادة الباركينغ يا ميبون بربي
+B	كرهبتك سادة الباركينغ يا ميبون
+B	كرهبتك سادة الباركينغ يا منيك عيشك
+B	كرهبتك سادة الباركينغ زبي يا خويا
+B	كرهبتك سادة الباركينغ زبي
+B	كرهبتك سادة الباركينغ يا بهيم يعيشك
+B	كرهبتك سادة الباركينغ يا كلب بربي
+B	كرهبتك سادة الباركينغ يا كلب
+B	كرهبتك سادة الباركينغ يا ولد القحبة عيشك
+B	كرهبتك سادة الباركينغ يا زبي يا خويا
+B	كرهبتك سادة الباركينغ يا زبي
+B	كرهبتك سادة الباركينغ نيكمك يعيشك
+B	الشبابك محلولين يا ميبون عيشك
+B	الشبابك محلولين يا منيك يا خويا
+B	الشبابك محلولين يا منيك
+B	الشبابك محلولين زبي يعيشك
+B	الشبابك محلولين يا بهيم بربي
+B	الشبابك محلولين يا بهيم
+B	الشبابك محلولين يا كلب عيشك
+B	الشبابك محلولين يا ولد القحبة يا خويا
+B	الشبابك محلولين يا ولد القحبة
+B	الشبابك محلولين يا زبي يعيشك
+B	الشبابك محلولين نيكمك بربي
+B	الشبابك محلولين نيكمك

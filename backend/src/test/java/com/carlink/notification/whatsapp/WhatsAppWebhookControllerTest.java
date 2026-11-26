@@ -40,9 +40,9 @@ class WhatsAppWebhookControllerTest {
         assertThat(post(statusCall("wamid.2", "failed", ",\"errors\":[{\"code\":131026,\"title\":\"x\"}]"), true))
                 .isEqualTo(HttpStatus.OK);
 
-        verify(statuses).applyPushedReport("meta", "wamid.1", DeliveryStatus.DELIVERED, null);
-        verify(statuses).applyPushedReport("meta", "wamid.1", DeliveryStatus.READ, null);
-        verify(statuses).applyPushedReport("meta", "wamid.2", DeliveryStatus.FAILED, "WA_131026");
+        verify(statuses).applyPushedReport("meta", WhatsAppMessageIds.fingerprint("wamid.1"), DeliveryStatus.DELIVERED, null);
+        verify(statuses).applyPushedReport("meta", WhatsAppMessageIds.fingerprint("wamid.1"), DeliveryStatus.READ, null);
+        verify(statuses).applyPushedReport("meta", WhatsAppMessageIds.fingerprint("wamid.2"), DeliveryStatus.FAILED, "WA_131026");
     }
 
     @Test

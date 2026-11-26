@@ -46,6 +46,25 @@ class NoteClassifierEvaluationTest {
         assertThat(caught).as("held-out spam caught").isGreaterThanOrEqualTo(blocked * 50 / 100);
     }
 
+    /**
+     * Vulgar or insulting Derja (any spelling) must never reach the SMS operator:
+     * it refuses such content and can block the sender account. Every unseen
+     * insult must be refused, and every look-alike honest note must pass.
+     */
+    @Test
+    void derjaInsultsAreAlwaysRefused() {
+        NoteClassifier classifier = NoteClassifier.fromBundledExamples();
+        List<String> mistakes = new ArrayList<>();
+        for (NoteClassifier.Example e : NoteClassifier.load("spam/insults-test.tsv")) {
+            double p = classifier.blockProbability(e.note());
+            if ((p >= THRESHOLD) != e.blocked()) {
+                mistakes.add(String.format("%.2f | expected %s | %s", p, e.blocked() ? "BLOCK" : "ALLOW", e.note()));
+            }
+        }
+        mistakes.forEach(m -> System.out.println("insult check miss " + m));
+        assertThat(mistakes).as("insults let through or honest notes blocked").isEmpty();
+    }
+
     @Test
     void crossValidation() {
         List<NoteClassifier.Example> all = new ArrayList<>(NoteClassifier.load(NoteClassifier.TRAINING_FILE));

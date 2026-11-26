@@ -116,7 +116,9 @@ public class WhatsAppWebhookController {
             }
         }
         try {
-            return deliveryStatusService.applyPushedReport("meta", id, outcome, error);
+            // Deliveries keep only the wamid's fingerprint (it embeds the phone number).
+            return deliveryStatusService.applyPushedReport(
+                    "meta", WhatsAppMessageIds.fingerprint(id), outcome, error);
         } catch (RuntimeException e) {
             // Answer 200 anyway: a retry would hit the same error.
             log.warn("[WHATSAPP] status update failed: {}", e.getClass().getSimpleName());

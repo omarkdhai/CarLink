@@ -52,6 +52,14 @@ public final class NoteClassifier {
     private static final Pattern ARABIC = Pattern.compile("\\p{IsArabic}");
     private static final String[] ARABIC_PREFIXES = {"وال", "بال", "فال", "لل", "ال", "و", "ف", "ب", "ل"};
 
+    // Disguised spellings ("z.e.b.i", "k@hba", "9a7ba"), see fold().
+    private static final Pattern SPACED_LETTERS =
+            Pattern.compile("(?<![\\p{L}\\p{N}])\\p{L}(?:[.\\s*_-]\\p{L}(?![\\p{L}\\p{N}])){2,}");
+    private static final Pattern SPACERS = Pattern.compile("[.\\s*_-]");
+    private static final Pattern INNER_SYMBOL = Pattern.compile("(?<=[\\p{L}\\p{N}])[@$!*](?=[\\p{L}\\p{N}])");
+    private static final Pattern LETTER = Pattern.compile("\\p{L}");
+    private static final Pattern DOUBLES = Pattern.compile("(\\p{L})\\1+");
+
     private final Map<String, Double> weights;
     private final double bias;
 
@@ -208,6 +216,23 @@ public final class NoteClassifier {
                 }
             }
         }
+        // The same words with disguises undone ("z.e.b.i", "k@hba", "9a7ba",
+        // "mibboun"), so a vulgar word is recognised however it is spelt.
+        java.util.Set<String> seen = new java.util.HashSet<>(words);
+        Matcher fm = WORD.matcher(fold(text));
+        while (fm.find()) {
+            String word = fm.group();
+            if (DIGITS.matcher(word).matches() || !seen.add(word)) {
+                continue;
+            }
+            f.put("w:" + word, 1.0);
+            String padded = "<" + word + ">";
+            for (int n = 2; n <= 4; n++) {
+                for (int i = 0; i + n <= padded.length(); i++) {
+                    f.put("c:" + padded.substring(i, i + n), 1.0);
+                }
+            }
+        }
         Matcher s = SYMBOLS.matcher(text);
         while (s.find()) {
             f.put("s:" + s.group(), 1.0);
@@ -219,6 +244,49 @@ public final class NoteClassifier {
         double norm = Math.sqrt(f.size());
         f.replaceAll((k, v) -> v / norm);
         return f;
+    }
+
+    /**
+     * Undoes the usual disguises of a word: letters spaced or dotted out
+     * ("z e b i"), symbols inside it ("k@hba", "3a$ba", "n!komk"), Arabizi
+     * digits inside a word that has letters (3 a, 7 h, 9 k, 5 kh, 0 o, 1 i...;
+     * a plain number is left alone), then doubled letters squeezed
+     * ("mibboun" -> "miboun"). Input is already {@link #normalise normalised}.
+     */
+    static String fold(String text) {
+        StringBuilder joined = new StringBuilder();
+        Matcher spaced = SPACED_LETTERS.matcher(text);
+        while (spaced.find()) {
+            spaced.appendReplacement(joined, Matcher.quoteReplacement(SPACERS.matcher(spaced.group()).replaceAll("")));
+        }
+        spaced.appendTail(joined);
+
+        StringBuilder symbols = new StringBuilder();
+        Matcher inner = INNER_SYMBOL.matcher(joined);
+        while (inner.find()) {
+            String r = switch (inner.group()) {
+                case "@" -> "a";
+                case "$" -> "s";
+                case "!" -> "i";
+                default -> "";
+            };
+            inner.appendReplacement(symbols, r);
+        }
+        inner.appendTail(symbols);
+
+        StringBuilder out = new StringBuilder();
+        Matcher word = WORD.matcher(symbols);
+        while (word.find()) {
+            String w = word.group();
+            if (LETTER.matcher(w).find() && !DIGITS.matcher(w).matches()) {
+                w = w.replace("3", "a").replace("7", "h").replace("9", "k").replace("5", "kh")
+                        .replace("2", "a").replace("8", "gh").replace("0", "o").replace("1", "i")
+                        .replace("4", "a");
+            }
+            word.appendReplacement(out, Matcher.quoteReplacement(DOUBLES.matcher(w).replaceAll("$1")));
+        }
+        word.appendTail(out);
+        return out.toString();
     }
 
     private static double sigmoid(double z) {
