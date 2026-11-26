@@ -33,7 +33,7 @@ carlink:
     expiry-hours: 24
 
   qr:
-    token-bytes: 32
+    token-bytes: 12
 
   ratelimit:
     ip-per-minute: 100

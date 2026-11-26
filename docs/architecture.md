@@ -43,9 +43,11 @@ Controller → Service → Repository
 ## Key design decisions
 
 ### QR tokens
-- Public token = 32 bytes from a `SecureRandom`, rendered as 32 characters from
-  a 64-symbol URL-safe alphabet (`TokenGenerator.generateUrlSafe`). The nominal
-  66-symbol alphabet is masked down to 64 so the modulo is bias-free.
+- Public token = 12 bytes (96 bits) from a `SecureRandom`, rendered as 16
+  unpadded Base64URL characters (`TokenGenerator.generateUrlSafe`,
+  `carlink.qr.token-bytes`), so the QR link is short and the code less dense.
+  Tokens issued earlier (32 bytes, 43 characters) stay valid: only the hash is
+  stored, whatever the length.
 - Only `SHA-256(token)` is stored (hex digest). Raw tokens are returned once at
   generation.
 - QR encodes `{baseUrl}/c/{token}` only.

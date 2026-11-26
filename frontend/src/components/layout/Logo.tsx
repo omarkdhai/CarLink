@@ -5,27 +5,18 @@ import { useAuth } from '@/features/auth/AuthContext'
 
 type LogoSize = 'sm' | 'md'
 
-/** Fixed sizes for the app shell: `sm` for 56px mobile bars, `md` for the sidebar. */
-const SIZES: Record<LogoSize, { mark: string; word: string }> = {
-  sm: { mark: 'h-6', word: 'text-xl' },
-  md: { mark: 'h-7', word: 'text-2xl' },
+/** Fixed heights for the app shell: `sm` for 56px mobile bars, `md` for the sidebar. */
+const SIZES: Record<LogoSize, string> = {
+  sm: 'h-7',
+  md: 'h-8',
 }
 
+/** The horizontal CarLink lockup (symbol + wordmark in one SVG). */
 export function Logo({ className, link = true, size }: { className?: string; link?: boolean; size?: LogoSize }) {
   const { isAuthenticated } = useAuth()
-  const s = size ? SIZES[size] : null
   const mark = (
-    <span className={cn('inline-flex items-center gap-1 sm:gap-1.5', className)}>
-      <img src={carlinkLogo} alt="" className={cn('w-auto', s ? s.mark : 'h-6 sm:h-8')} aria-hidden />
-      <span
-        className={cn(
-          'font-display font-black leading-none tracking-[-0.028em]',
-          s ? s.word : 'text-3xl',
-        )}
-      >
-        <span className="text-[#0F172A]">Car</span>
-        <span className="text-[#2563EB]">Link.</span>
-      </span>
+    <span className={cn('inline-flex items-center', className)}>
+      <img src={carlinkLogo} alt="CarLink" className={cn('w-auto', size ? SIZES[size] : 'h-8 sm:h-9')} />
     </span>
   )
   return link ? (
