@@ -166,8 +166,10 @@ carlink:
 
   # QR code
   qr:
-    # Number of random bytes for the public token (64 hex chars)
-    token-bytes: 32
+    # Random bytes in a new QR/sticker token: 12 bytes = 96 bits = 16 Base64URL
+    # chars, so the QR link stays short and easy to scan. Older, longer tokens
+    # stay valid (only SHA-256 hashes are stored).
+    token-bytes: 12
 
   # Rate limiting (Redis-backed)
   ratelimit:

@@ -28,6 +28,14 @@ class TokenGeneratorTest {
     }
 
     @Test
+    void qrTokensAreSixteenCharacters() {
+        // carlink.qr.token-bytes = 12 -> 16 Base64URL chars, 96 random bits.
+        String token = generator.generateUrlSafe(12);
+        assertThat(token).hasSize(16).matches("[A-Za-z0-9_-]+");
+        assertThat(java.util.Base64.getUrlDecoder().decode(token)).hasSize(12);
+    }
+
+    @Test
     void sha256IsStableAndHidesInput() {
         String hash1 = generator.sha256("secret-value");
         String hash2 = generator.sha256("secret-value");

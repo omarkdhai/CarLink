@@ -13,7 +13,7 @@ Primary threats:
 
 | Threat | Mitigation |
 |--------|-----------|
-| QR token enumeration | 32-byte CSPRNG tokens; SHA-256 stored only |
+| QR token enumeration | 96-bit CSPRNG tokens (12 bytes, 16 chars; older 32-byte tokens stay valid); SHA-256 stored only; with the per-IP rate limit, guessing a live token is out of reach |
 | Phone number leakage | Phone serialized only to the owner who holds the account JWT (login / refresh / `/users/me`); never in QR/URL/HTML/logs or any third-party/public DTO |
 | Spam / abuse on `/c/{token}` | Redis rate limit per IP + per token, CAPTCHA abstraction, message length cap, links removed, off-topic notes refused (`NOTE_OFF_TOPIC`, deployment.md §14) |
 | Credential stuffing | BCrypt(12), account lockout/backoff, generic error messages |
