@@ -31,6 +31,7 @@ const VehiclesPage = lazy(() => import('@/features/vehicles/VehiclesPage'))
 const VehicleFormPage = lazy(() => import('@/features/vehicles/VehicleFormPage'))
 const VehicleDetailPage = lazy(() => import('@/features/vehicles/VehicleDetailPage'))
 const StickersPage = lazy(() => import('@/features/stickers/StickersPage'))
+const MyOrdersPage = lazy(() => import('@/features/order/MyOrdersPage'))
 const MessagesPage = lazy(() => import('@/features/conversations/MessagesPage'))
 const ConversationDetailPage = lazy(() => import('@/features/conversations/ConversationDetailPage'))
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'))
@@ -215,6 +216,7 @@ export function AppRouter() {
       >
         <Route path="/dashboard" element={withLoader(<DashboardPage />)} />
         <Route path="/stickers" element={withLoader(<StickersPage />)} />
+        <Route path="/orders" element={withLoader(<MyOrdersPage />)} />
         <Route path="/vehicles" element={withLoader(<VehiclesPage />)} />
         <Route path="/vehicles/new" element={withLoader(<VehicleFormPage />)} />
         <Route path="/vehicles/:id/edit" element={withLoader(<VehicleFormPage />)} />

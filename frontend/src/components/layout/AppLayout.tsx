@@ -11,6 +11,7 @@ import {
   QrCode,
   LogOut,
   House,
+  Receipt,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -26,6 +27,7 @@ type NavItem = { to: string; key: string; icon: typeof Car; badge?: 'messages' |
 const ownerNav: NavItem[] = [
   { to: '/dashboard', key: 'nav.dashboard', icon: LayoutGrid },
   { to: '/stickers', key: 'nav.stickers', icon: QrCode },
+  { to: '/orders', key: 'nav.orders', icon: Receipt },
   { to: '/vehicles', key: 'nav.vehicles', icon: Car },
   { to: '/messages', key: 'nav.messages', icon: MessageSquareText, badge: 'messages' },
   { to: '/notifications', key: 'nav.notifications', icon: Bell, badge: 'notifications' },
@@ -39,7 +41,7 @@ const accountNav: NavItem[] = [
 /** Phone tab bar: five top-level destinations, always labelled. */
 const tabNav: (NavItem & { short: string; match?: string[] })[] = [
   { to: '/dashboard', key: 'nav.dashboard', short: 'nav.home', icon: LayoutGrid },
-  { to: '/stickers', key: 'nav.stickers', short: 'nav.stickersShort', icon: QrCode },
+  { to: '/stickers', key: 'nav.stickers', short: 'nav.stickersShort', icon: QrCode, match: ['/stickers', '/orders'] },
   { to: '/vehicles', key: 'nav.vehicles', short: 'nav.vehiclesShort', icon: Car },
   { to: '/messages', key: 'nav.messages', short: 'nav.messages', icon: MessageSquareText, badge: 'messages' },
   { to: '/profile', key: 'nav.account', short: 'nav.account', icon: UserCircle, match: ['/profile', '/settings'] },

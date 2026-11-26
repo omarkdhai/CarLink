@@ -77,7 +77,8 @@
     "badge_many": "{{count}} جداد",
     "badge_other": "{{count}} جداد",
     "badge_one": "{{count}} جديد",
-    "backToSite": "رجوع للموقع"
+    "backToSite": "رجوع للموقع",
+    "orders": "مشترياتي"
   },
   "auth": {
     "loginTitle": "ادخل لحسابك",
@@ -617,6 +618,34 @@
       "step3": "توصلك التنبيهات",
       "step3Hint": "اللي يسكانيه ينجم يتواصل معاك بالـ SMS من غير ما يشوف نومروك."
     }
+  },
+  "orders": {
+    "title": "مشترياتي",
+    "subtitle": "طلبات الملصقات متاعك، حالة التوصيل وقدّاش من ملصق فعّلت",
+    "historyLink": "تاريخ المشتريات",
+    "status": {
+      "PLACED": "في الطريق · الدفع عند الاستلام",
+      "DELIVERED": "توصلت",
+      "CANCELLED": "ملغاة"
+    },
+    "stickersCount_zero": "{{count}} ملصق",
+    "stickersCount_one": "ملصق واحد",
+    "stickersCount_two": "ملصقين",
+    "stickersCount_few": "{{count}} ملصقات",
+    "stickersCount_many": "{{count}} ملصق",
+    "stickersCount_other": "{{count}} ملصق",
+    "activated": "{{done}} من {{total}} مفعّلين",
+    "allActive": "الكل مفعّل",
+    "activateCta": "فعّل",
+    "total": "المجموع",
+    "cancelledHint": "الطلب هذا تلغى. ما تخلّص حتى شي.",
+    "statOrders": "الطلبات",
+    "statStickers": "ملصقات مشرية",
+    "statSpent": "المصروف",
+    "empty": "ما عندك حتى شراء للتوّ",
+    "emptyHint": "الطلبات اللي تعملها بإيميل حسابك، والملصقات اللي تفعّلها، يظهروا هوني.",
+    "whichHint": "يظهروا هوني: الطلبات اللي تعملت بإيميل حسابك، والطلبات اللي فعّلت ملصقاتها. تفاصيل التوصيل ما تظهرش أبدًا.",
+    "verifyHint": "أكّد الإيميل متاعك باش تشوف زادة الطلبات اللي عملتها بيه. الطلبات اللي فعّلت ملصقاتها ظاهرة من توّا."
   },
   "registerSticker": {
     "title": "سجّل الملصق متاعك",

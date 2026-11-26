@@ -1,6 +1,7 @@
 import apiClient from '@/services/apiClient'
 import type {
   Governorate,
+  MyOrderResponse,
   OrderCreateRequest,
   OrderItemRequest,
   OrderResponse,
@@ -20,11 +21,17 @@ export const orderApi = {
   getOrder(reference: string): Promise<OrderSummaryResponse> {
     return apiClient.get<OrderSummaryResponse>(`${BASE}/${reference}`).then((r) => r.data)
   },
+
+  /** The signed-in owner's sticker purchases, newest first. */
+  listMine(): Promise<MyOrderResponse[]> {
+    return apiClient.get<MyOrderResponse[]>('/orders/me').then((r) => r.data)
+  },
 }
 
 export const orderQueryKeys = {
   create: ['order', 'create'] as const,
   summary: (reference: string) => ['order', 'summary', reference] as const,
+  mine: ['orders', 'mine'] as const,
 }
 
 /** Local package pricing (must match StickerPackage enum server-side). */

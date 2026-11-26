@@ -72,7 +72,8 @@
     "skipToContent": "Aller au contenu",
     "badge_one": "{{count}} nouveau",
     "badge_other": "{{count}} nouveaux",
-    "backToSite": "Retour au site"
+    "backToSite": "Retour au site",
+    "orders": "Mes achats"
   },
   "auth": {
     "loginTitle": "Connexion",
@@ -603,6 +604,30 @@
       "step3": "Recevoir les alertes",
       "step3Hint": "Toute personne qui le scanne peut vous joindre par SMS, sans voir votre numéro."
     }
+  },
+  "orders": {
+    "title": "Mes achats",
+    "subtitle": "Vos commandes de stickers, leur livraison et le nombre de stickers activés",
+    "historyLink": "Historique d’achats",
+    "status": {
+      "PLACED": "En route · paiement à la livraison",
+      "DELIVERED": "Livrée",
+      "CANCELLED": "Annulée"
+    },
+    "stickersCount_one": "{{count}} sticker",
+    "stickersCount_other": "{{count}} stickers",
+    "activated": "{{done}} sur {{total}} activés",
+    "allActive": "Tous actifs",
+    "activateCta": "Activer",
+    "total": "Total",
+    "cancelledHint": "Cette commande a été annulée. Rien n’a été payé.",
+    "statOrders": "Commandes",
+    "statStickers": "Stickers achetés",
+    "statSpent": "Dépensé",
+    "empty": "Aucun achat pour l’instant",
+    "emptyHint": "Les commandes passées avec l’e-mail de votre compte, et les stickers que vous activez, apparaissent ici.",
+    "whichHint": "Affichées ici : les commandes passées avec l’e-mail de votre compte et celles dont vous avez activé les stickers. Les détails de livraison ne sont jamais affichés.",
+    "verifyHint": "Vérifiez votre e-mail pour voir aussi les commandes passées avec. Celles dont vous avez activé les stickers sont déjà affichées."
   },
   "registerSticker": {
     "title": "Enregistrez votre sticker",

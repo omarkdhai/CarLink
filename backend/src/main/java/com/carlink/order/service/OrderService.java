@@ -20,6 +20,8 @@ import com.carlink.notification.email.EmailSender;
 import com.carlink.qr.service.QrImageGenerator;
 import com.carlink.sticker.model.Sticker;
 import com.carlink.sticker.repository.StickerRepository;
+import com.carlink.order.dto.MyOrderResponse;
+import com.carlink.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -61,6 +63,10 @@ public class OrderService {
     private final CarLinkProperties properties;
     private final EmailSender emailSender;
     private final OrderConfirmationEmailComposer confirmationEmailComposer;
+    private final UserRepository userRepository;
+
+    /** Most recent purchases shown in an owner's history. */
+    private static final int HISTORY_LIMIT = 100;
 
     /**
      * Creates a new COD order. Returns the full response with sticker tokens
@@ -131,6 +137,39 @@ public class OrderService {
                 order.getCurrency(),
                 stickerCount,
                 order.getCreatedAt());
+    }
+
+    /**
+     * The signed-in owner's purchase history, newest first. An order belongs to
+     * the account when it was placed with the account's e-mail (only once that
+     * e-mail is verified, so nobody can claim someone else's orders by typing
+     * their address at sign-up) or when it contains a sticker the account owns.
+     * PII-free: buyer name, mobile, address and notes are never returned.
+     */
+    public List<MyOrderResponse> listForAccount(java.util.UUID userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        String email = user.isEmailVerified() ? user.getEmail() : null;
+        List<Order> orders = orderRepository.findForAccount(
+                email, userId, org.springframework.data.domain.PageRequest.of(0, HISTORY_LIMIT));
+        if (orders.isEmpty()) {
+            return List.of();
+        }
+        List<java.util.UUID> ids = orders.stream().map(Order::getId).toList();
+        java.util.Map<java.util.UUID, List<OrderItem>> items = orderItemRepository.findAllByOrderIdIn(ids).stream()
+                .collect(java.util.stream.Collectors.groupingBy(i -> i.getOrder().getId()));
+        java.util.Map<java.util.UUID, Long> activated = new java.util.HashMap<>();
+        for (Object[] row : stickerRepository.countBoundByOrderIds(userId, ids)) {
+            activated.put((java.util.UUID) row[0], (Long) row[1]);
+        }
+        return orders.stream().map(o -> {
+            List<OrderItem> own = items.getOrDefault(o.getId(), List.of());
+            return new MyOrderResponse(
+                    o.getReference(), o.getStatus().name(), o.getTotalAmount(), o.getCurrency(), o.getCreatedAt(),
+                    own.stream().map(OrderItemView::from).toList(),
+                    own.stream().mapToInt(i -> i.getQuantity() * i.getStickersPerPack()).sum(),
+                    activated.getOrDefault(o.getId(), 0L).intValue());
+        }).toList();
     }
 
     // ————————— internal —————————

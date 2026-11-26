@@ -96,8 +96,9 @@ by TunisieSMS.
 ## Security
 
 - The owner's number goes to Meta only in the JSON body of the send (never in a
-  URL), and it is never logged. Logs show the owner as a SHA-256 hash, the
-  `wamid` id and error codes only.
+  URL), and it is never logged. Logs show the owner as a SHA-256 hash and
+  error codes only. The `wamid` id embeds the number, so it is never logged and
+  only its SHA-256 is stored.
 - Meta's replies and webhook calls carry the number (`wa_id`, `recipient_id`).
   CarLink never logs or stores them.
 - The access token and the app secret live only in `.env`.

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { KeyRound, MessageSquareText, ScanLine, ShoppingBag, Sticker } from 'lucide-react'
+import { KeyRound, MessageSquareText, Receipt, ScanLine, ShoppingBag, Sticker } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -42,6 +42,10 @@ export default function StickersPage() {
         subtitle={t('stickers.subtitle')}
         actions={
           <>
+            <Link to="/orders" className={buttonClasses({ variant: 'ghost' })}>
+              <Receipt className="h-4 w-4" aria-hidden />
+              {t('orders.historyLink')}
+            </Link>
             {orderLink('outline')}
             <Button onClick={() => setActivating(true)}>
               <KeyRound className="h-4 w-4" aria-hidden />
