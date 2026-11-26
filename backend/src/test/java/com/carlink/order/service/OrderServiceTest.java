@@ -55,6 +55,7 @@ class OrderServiceTest {
     @Mock private StickerRepository stickerRepository;
     @Mock private QrImageGenerator imageGenerator;
     @Mock private EmailSender emailSender;
+    @Mock private com.carlink.user.repository.UserRepository userRepository;
 
     private final TokenGenerator tokenGenerator = new TokenGenerator();
     private final CarLinkProperties properties = TestProperties.minimal();
@@ -66,7 +67,7 @@ class OrderServiceTest {
     void setUp() {
         orderService = new OrderService(orderRepository, orderItemRepository,
                 stickerRepository, tokenGenerator, imageGenerator, properties,
-                emailSender, confirmationEmailComposer);
+                emailSender, confirmationEmailComposer, userRepository);
     }
 
     private OrderCreateRequest orderRequest(List<OrderItemRequest> items) {

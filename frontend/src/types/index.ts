@@ -218,6 +218,19 @@ export interface OrderSummaryResponse {
   createdAt: ISOInstant
 }
 
+/** One purchase in the signed-in owner's history (no buyer PII, no tokens). */
+export interface MyOrderResponse {
+  reference: string
+  status: OrderStatus
+  totalAmount: string
+  currency: string
+  createdAt: ISOInstant
+  items: OrderItemResponse[]
+  stickerCount: number
+  /** How many of this order's stickers this account has activated. */
+  activatedCount: number
+}
+
 // ---------- Stickers ----------
 
 export type StickerStatus = 'UNBOUND' | 'BOUND' | 'DEACTIVATED'

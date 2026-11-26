@@ -124,6 +124,11 @@ with a `Retry-After` header.
 - Qr / refresh / reset / verification tokens: SHA-256 **hashed**.
 - Sticker tokens: stored as SHA-256 hashes only; the raw token is returned **exactly once** on the order creation response.
 - Licence plates are stored but never returned in public payloads.
+- Owner purchase history (`GET /api/v1/orders/me`, authenticated): an order is shown to an account
+  only when it was placed with the account's e-mail **once that e-mail is verified** (so nobody can
+  claim someone else's orders by registering with their address), or when it contains a sticker the
+  account owns. The response carries reference, status, items, totals and activation counts only —
+  never buyer name, mobile, address, notes, tokens or activation codes.
 
 ## Sticker token one-time exception
 

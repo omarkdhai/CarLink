@@ -44,6 +44,16 @@ public interface StickerRepository extends JpaRepository<Sticker, UUID> {
 
     List<Sticker> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
 
+    /** BOUND stickers of {@code ownerId} per order, as {@code [orderId, count]} rows. */
+    @Query("""
+            select s.order.id, count(s) from Sticker s
+             where s.owner.id = :ownerId
+               and s.status = com.carlink.sticker.model.StickerStatus.BOUND
+               and s.order.id in :orderIds
+             group by s.order.id""")
+    List<Object[]> countBoundByOrderIds(@Param("ownerId") UUID ownerId,
+                                        @Param("orderIds") Collection<UUID> orderIds);
+
     /** Shared WHERE clause of {@link #adminSearch}; o/u/v are the order, owner and vehicle aliases. */
     String ADMIN_FILTER = """
             where (:q is null

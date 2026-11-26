@@ -72,7 +72,8 @@
     "skipToContent": "Skip to content",
     "badge_one": "{{count}} new",
     "badge_other": "{{count}} new",
-    "backToSite": "Back to the website"
+    "backToSite": "Back to the website",
+    "orders": "My purchases"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -603,6 +604,30 @@
       "step3": "Get alerts",
       "step3Hint": "Anyone who scans it can reach you by SMS, without seeing your number."
     }
+  },
+  "orders": {
+    "title": "My purchases",
+    "subtitle": "Your sticker orders, their delivery status and how many stickers you have activated",
+    "historyLink": "Purchase history",
+    "status": {
+      "PLACED": "On its way · pay on delivery",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled"
+    },
+    "stickersCount_one": "{{count}} sticker",
+    "stickersCount_other": "{{count}} stickers",
+    "activated": "{{done}} of {{total}} activated",
+    "allActive": "All active",
+    "activateCta": "Activate",
+    "total": "Total",
+    "cancelledHint": "This order was cancelled. Nothing was charged.",
+    "statOrders": "Orders",
+    "statStickers": "Stickers bought",
+    "statSpent": "Spent",
+    "empty": "No purchases yet",
+    "emptyHint": "Orders you place with your account e-mail, and stickers you activate, show up here.",
+    "whichHint": "Shown here: orders placed with your account e-mail, and orders whose stickers you activated. Delivery details are never displayed.",
+    "verifyHint": "Verify your e-mail to also see the orders you placed with it. Orders whose stickers you activated are already shown."
   },
   "admin": {
     "title": "Administration",

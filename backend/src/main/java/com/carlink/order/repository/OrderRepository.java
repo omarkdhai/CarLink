@@ -37,6 +37,19 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Optional<Order> findByReference(String reference);
 
+    /**
+     * An owner's purchases: orders placed with their (verified) e-mail, or that
+     * contain a sticker they own. {@code email} is null when it isn't verified.
+     */
+    @Query("""
+            select o from Order o
+            where (cast(:email as text) is not null and lower(o.email) = lower(cast(:email as text)))
+               or exists (select 1 from Sticker s where s.order = o and s.owner.id = :ownerId)
+            order by o.createdAt desc""")
+    List<Order> findForAccount(@org.springframework.data.repository.query.Param("email") String email,
+                               @org.springframework.data.repository.query.Param("ownerId") UUID ownerId,
+                               Pageable pageable);
+
 
     long countByStatus(OrderStatus status);
 
