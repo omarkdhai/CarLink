@@ -28,7 +28,7 @@ import {
 import { buttonClasses } from '@/components/ui/Button'
 import { useMagnetic } from '@/hooks/useMagnetic'
 import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
-import heroImage from '@/assets/Sticker-Windshield.png'
+import heroImage from '@/assets/carlink-windshield-real.png'
 
 /**
  * Hero entrance + scroll depth (GSAP). One timeline choreographs the headline,
