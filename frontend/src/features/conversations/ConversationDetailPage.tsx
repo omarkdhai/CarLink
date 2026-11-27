@@ -6,7 +6,7 @@ import { ArrowLeft, Smartphone, Clock } from 'lucide-react'
 import { conversationApi, conversationQueryKeys } from '@/services/conversationApi'
 import { ChannelBadge, ConversationStatusBadge, DeliveryBadges } from '@/features/conversations/ConversationBadges'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { formatDateTime, formatRelative } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 import type { ConversationDetailResponse } from '@/types'
 
 export default function ConversationDetailPage() {
@@ -87,7 +87,7 @@ export default function ConversationDetailPage() {
               </div>
               <p className="text-sm text-muted-fg mt-1 flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" aria-hidden />
-                {t('message.expires')} {formatRelative(conv.expiresAt)}
+                {t('message.expires')} {formatDateTime(conv.expiresAt)}
               </p>
             </div>
           </div>
