@@ -30,11 +30,12 @@ public final class AlertSms {
 
     static {
         LINES.put(ContactReason.BLOCKING, "🚧 كرهبتك سادّة عليّ");
-        LINES.put(ContactReason.LIGHTS, "💡 ضو كرهبتك شاعل");
-        LINES.put(ContactReason.LEFT_OPEN, "🔓 كرهبتك محلولة");
+        LINES.put(ContactReason.LIGHTS, "💡 ضو كرهبتك مازال شاعل");
+        LINES.put(ContactReason.LEFT_OPEN, "🔓 كرهبتك موش مسكّرة");
         LINES.put(ContactReason.HIT_CAR, "💥 ضربت كرهبتك بلاش ما نقصد");
         LINES.put(ContactReason.WINDOWS_OPEN, "☔ شبابك كرهبتك محلولين");
-        LINES.put(ContactReason.EV_CHARGE, "🔋 كرهبتك شحنت، نحب نشحن كرهبتي");
+        LINES.put(ContactReason.CHILD_OR_PET, "🚨 طفل ولا حيوان مسكّر في كرهبتك");
+        LINES.put(ContactReason.OTHER, "❓ فما مشكل آخر في كرهبتك");
     }
 
     /** Unknown reason (should not happen: the API validates it). */

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { AlertTriangle, AppWindow, BatteryCharging, CarFront, Check, Clock, DoorOpen, Flag, Lightbulb, Loader2, ShieldAlert, Smartphone, Lock } from 'lucide-react'
+import { AlertTriangle, AppWindow, Baby, CarFront, Check, CircleHelp, Clock, DoorOpen, Flag, Lightbulb, Loader2, ShieldAlert, Smartphone, Lock } from 'lucide-react'
 import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
@@ -17,7 +17,7 @@ import { SuccessMark } from '@/components/shared/SuccessMark'
 import { useCaptcha } from '@/components/shared/useCaptcha'
 import { fitNote } from '@/lib/sms'
 
-const REASONS = ['BLOCKING', 'LIGHTS', 'LEFT_OPEN', 'HIT_CAR', 'WINDOWS_OPEN', 'EV_CHARGE'] as const
+const REASONS = ['BLOCKING', 'LIGHTS', 'LEFT_OPEN', 'HIT_CAR', 'WINDOWS_OPEN', 'CHILD_OR_PET', 'OTHER'] as const
 type ReasonKey = (typeof REASONS)[number]
 
 const REASON_ICON: Record<ReasonKey, typeof CarFront> = {
@@ -26,7 +26,8 @@ const REASON_ICON: Record<ReasonKey, typeof CarFront> = {
   LEFT_OPEN: DoorOpen,
   HIT_CAR: AlertTriangle,
   WINDOWS_OPEN: AppWindow,
-  EV_CHARGE: BatteryCharging,
+  CHILD_OR_PET: Baby,
+  OTHER: CircleHelp,
 }
 
 const REPORT_REASONS: ReportReason[] = ['SPAM', 'ABUSE', 'OTHER']
@@ -136,6 +137,9 @@ export default function PublicContactPage() {
   const vehicle = view.data?.vehicle
   const color = useCarColor(vehicle?.color ?? null)
 
+  // "Other problem" means nothing on its own: the note becomes mandatory.
+  const noteRequired = selectedReason === 'OTHER'
+
   function pickReason(reason: ReasonKey) {
     setSelectedReason((prev) => (prev === reason ? null : reason))
   }
@@ -144,6 +148,11 @@ export default function PublicContactPage() {
     setFieldError(null)
     if (!selectedReason) {
       setFieldError(t('contact.reasonRequired'))
+      return
+    }
+    if (noteRequired && !message.trim()) {
+      setFieldError(t('contact.noteRequired'))
+      document.getElementById('pub-msg')?.focus()
       return
     }
     if (channels.length === 0) {
@@ -317,17 +326,19 @@ export default function PublicContactPage() {
           </div>
         </fieldset>
 
-        {/* Step 2 — optional note */}
+        {/* Step 2 — note (required for "Other problem") */}
         <div className="mt-6">
           <label className="mb-3 flex items-center gap-2 text-base font-bold text-heading" htmlFor="pub-msg">
             <StepNumber n={2} />
-            {t('contact.note')}
+            {t(noteRequired ? 'contact.noteRequiredLabel' : 'contact.note')}
           </label>
           <Textarea
             id="pub-msg"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder={t('contact.notePlaceholder')}
+            placeholder={t(noteRequired ? 'contact.noteRequiredPlaceholder' : 'contact.notePlaceholder')}
+            required={noteRequired}
+            aria-required={noteRequired}
             maxLength={500}
             rows={3}
             aria-describedby="pub-msg-sms"

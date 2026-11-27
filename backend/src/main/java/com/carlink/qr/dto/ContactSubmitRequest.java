@@ -16,6 +16,6 @@ public record ContactSubmitRequest(
         String channel,
         @Size(max = 500, message = "message must be at most 500 characters")
         String message,
-        @NotBlank @Pattern(regexp = "BLOCKING|LIGHTS|LEFT_OPEN|HIT_CAR|WINDOWS_OPEN|EV_CHARGE", message = "invalid reason")
+        @NotBlank @Pattern(regexp = "BLOCKING|LIGHTS|LEFT_OPEN|HIT_CAR|WINDOWS_OPEN|CHILD_OR_PET|OTHER", message = "invalid reason")
         String reason
 ) {}

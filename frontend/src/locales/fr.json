@@ -324,11 +324,13 @@
     "vehicleSelect": "Sélectionnez un motif",
     "reason": "Motif du contact",
     "reasons": {
-      "BLOCKING": "Votre voiture me bloque",
-      "LIGHTS": "Vos phares sont allumés",
-      "LEFT_OPEN": "Votre voiture est laissée ouverte",
-      "HIT_CAR": "J'ai accidentellement cogné votre voiture",
-      "WINDOWS_OPEN": "Vos fenêtres sont ouvertes",
+      "BLOCKING": "Votre voiture bloque la mienne",
+      "LIGHTS": "Vos phares sont restés allumés",
+      "LEFT_OPEN": "Votre voiture n'est pas verrouillée",
+      "HIT_CAR": "J'ai heurté votre voiture par accident",
+      "WINDOWS_OPEN": "Vos vitres sont restées ouvertes",
+      "CHILD_OR_PET": "Un enfant ou un animal est enfermé dans votre voiture",
+      "OTHER": "Un autre problème avec votre voiture",
       "EV_CHARGE": "Votre voiture est complètement chargée et j'ai besoin de charger mon véhicule électrique"
     },
     "method": "Méthode de contact",
@@ -427,7 +429,10 @@
       "refusedHint": "L’opérateur a refusé de livrer ce message à cause du contenu de la note. Modifiez votre note et renvoyez l’alerte.",
       "changeNote": "Modifier ma note"
     },
-    "smsAndWhatsapp": "SMS et WhatsApp"
+    "smsAndWhatsapp": "SMS et WhatsApp",
+    "noteRequiredLabel": "Décrivez le problème (obligatoire)",
+    "noteRequiredPlaceholder": "Quel est le problème avec la voiture ?",
+    "noteRequired": "Veuillez décrire le problème dans la note."
   },
   "message": {
     "title": "Messages",
@@ -1308,7 +1313,8 @@
     "captchaRequired": "Par sécurité, complétez la vérification ci-dessous puis reconnectez-vous.",
     "loginSlowedDown": "Trop de tentatives échouées sur ce compte. Patientez 30 secondes puis réessayez.",
     "orderLimitReached": "Cette adresse e-mail ou ce numéro a atteint la limite de commandes du jour. Contactez-nous s’il vous faut plus d’autocollants.",
-    "noteOffTopic": "Votre note ne semble pas concerner ce véhicule. Modifiez-la."
+    "noteOffTopic": "Votre note ne semble pas concerner ce véhicule. Modifiez-la.",
+    "noteRequired": "Veuillez décrire le problème dans la note."
   },
   "validation": {
     "email": "Adresse e-mail invalide",

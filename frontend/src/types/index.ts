@@ -297,7 +297,7 @@ export interface QrPublicView {
   smsNoteLimits?: Record<string, number>
 }
 
-export type ContactReason = 'BLOCKING' | 'LIGHTS' | 'LEFT_OPEN' | 'HIT_CAR' | 'WINDOWS_OPEN' | 'EV_CHARGE'
+export type ContactReason = 'BLOCKING' | 'LIGHTS' | 'LEFT_OPEN' | 'HIT_CAR' | 'WINDOWS_OPEN' | 'CHILD_OR_PET' | 'OTHER'
 
 export interface ContactSubmitRequest {
   /** Ignored by the server (alerts go on every channel); kept for older servers. */

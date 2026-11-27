@@ -113,6 +113,12 @@ public class PublicQrService {
         // Off-topic notes (ads, scams, insults, gibberish) are refused before
         // anything is saved: the visitor is asked to change the note.
         noteSpamFilter.requireOnTopic(request.message());
+        // "Other problem" says nothing by itself: the visitor must describe it.
+        if (com.carlink.qr.model.ContactReason.OTHER.name().equals(request.reason())
+                && (request.message() == null || request.message().isBlank())) {
+            throw new com.carlink.common.exception.BadRequestException("NOTE_REQUIRED",
+                    "Please describe the problem in the note.");
+        }
 
         Prepared alert = transactionTemplate.execute(tx -> {
             String tokenHash = tokenGenerator.sha256(rawToken);

@@ -147,6 +147,32 @@ class PublicContactFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void otherProblemNeedsANote() throws Exception {
+        String[] creds = ownerWithQr();
+        String rawToken = creds[1];
+        long before = messageRepository.count();
+
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("message", "   ", "reason", "OTHER"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("NOTE_REQUIRED"));
+        assertThat(messageRepository.count()).isEqualTo(before);
+
+        // The removed EV-charge reason is refused.
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("message", "", "reason", "EV_CHARGE"))))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/v1/public/qr/contact").header("X-CarLink-Token", rawToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("message", "Votre pneu arrière est crevé", "reason", "OTHER"))))
+                .andExpect(status().isOk());
+        assertThat(messageRepository.count()).isEqualTo(before + 1);
+    }
+
+    @Test
     void offTopicNoteIsRefusedWithItsCodeAndNothingIsSaved() throws Exception {
         String[] creds = ownerWithQr();
         String rawToken = creds[1];
