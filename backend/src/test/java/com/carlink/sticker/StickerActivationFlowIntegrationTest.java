@@ -162,8 +162,8 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                                 "deliveryAddress", "1 Place de la République"))))
                 .andExpect(status().isOk())
                 .andReturn();
-        return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("rawToken").asString();
+        return issuedStickers(objectMapper.readTree(r.getResponse().getContentAsString()))
+                .get(0).get("rawToken").asString();
     }
 
     /** Orders a SINGLE sticker as a guest and returns the printed activation code. */
@@ -179,8 +179,8 @@ class StickerActivationFlowIntegrationTest extends AbstractIntegrationTest {
                                 "deliveryAddress", "1 Place de la République"))))
                 .andExpect(status().isOk())
                 .andReturn();
-        return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asString();
+        return issuedStickers(objectMapper.readTree(r.getResponse().getContentAsString()))
+                .get(0).get("activationCode").asString();
     }
 
     private String[] registerAndLogin(String email) throws Exception {

@@ -49,7 +49,7 @@ class OrderFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.currency").value("TND"))
                 .andExpect(jsonPath("$.items[0].stickerPackage").value("DOUBLE"))
                 .andExpect(jsonPath("$.items[0].quantity").value(2))
-                .andExpect(jsonPath("$.stickers.length()").value(4))
+                .andExpect(jsonPath("$.stickers").doesNotExist())
                 .andReturn();
 
         JsonNode node = objectMapper.readTree(result.getResponse().getContentAsString());
@@ -60,13 +60,82 @@ class OrderFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(new java.math.BigDecimal(node.get("totalAmount").asString()))
                 .isEqualByComparingTo("77.00");
 
-        // Exactly Σ(quantity × stickers_per_pack) = 4 raw tokens, each with a QR.
-        assertThat(node.get("stickers")).hasSize(4);
-        for (JsonNode s : node.get("stickers")) {
-            String rawToken = s.get("rawToken").asString();
-            assertThat(s.get("publicUrl").asString()).isEqualTo("http://localhost:8080/c/" + rawToken);
+        // The buyer receives no QR token or activation code.
+        String raw = result.getResponse().getContentAsString();
+        assertThat(raw).doesNotContain("rawToken", "activationCode", "imageDataUri", "/c/");
+
+        // Exactly Σ(quantity × stickers_per_pack) = 4 stickers were minted.
+        assertThat(issuedStickers(node)).hasSize(4);
+    }
+
+    @Test
+    void adminSeesEachStickersQrAndActivationCodeAndTheReadIsAudited() throws Exception {
+        JsonNode order = objectMapper.readTree(mockMvc.perform(post("/api/v1/public/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of(
+                                "items", List.of(Map.of("stickerPackage", "DOUBLE", "quantity", 1)),
+                                "customerName", "Aymen Ben Ali",
+                                "mobile", "+21655123456",
+                                "email", "buyer" + (++seq) + "@example.com",
+                                "governorate", "TUNIS",
+                                "deliveryAddress", "12 Rue de Carthage, Tunis"))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        String reference = order.get("reference").asString();
+        JsonNode stored = issuedStickers(order);
+
+        String admin = adminToken();
+        JsonNode list = objectMapper.readTree(mockMvc.perform(get("/api/v1/admin/orders/{ref}/stickers", reference)
+                        .header("Authorization", "Bearer " + admin))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(list).hasSize(2);
+        for (int i = 0; i < 2; i++) {
+            JsonNode s = list.get(i);
+            assertThat(s.get("codesAvailable").asBoolean()).isTrue();
+            assertThat(s.get("status").asString()).isEqualTo("UNBOUND");
+            assertThat(s.get("publicUrl").asString()).isEqualTo(stored.get(i).get("publicUrl").asString());
+            assertThat(s.get("activationCode").asString()).isEqualTo(stored.get(i).get("activationCode").asString());
             assertThat(s.get("imageDataUri").asString()).startsWith("data:image/png;base64,");
         }
+
+        // The admin's read is in the audit log (with no code in it).
+        Integer audited = jdbc.queryForObject("""
+                SELECT count(*) FROM audit_logs WHERE action = 'ORDER_STICKER_CODES_VIEW'
+                   AND details::text LIKE ?""", Integer.class, "%" + reference + "%");
+        assertThat(audited).isEqualTo(1);
+        String details = jdbc.queryForObject("""
+                SELECT details FROM audit_logs WHERE action = 'ORDER_STICKER_CODES_VIEW'
+                   AND details::text LIKE ?""", String.class, "%" + reference + "%");
+        assertThat(details).doesNotContain(stored.get(0).get("activationCode").asString());
+
+        // Not for owners, not for anonymous callers.
+        mockMvc.perform(get("/api/v1/admin/orders/{ref}/stickers", reference))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/v1/admin/orders/{ref}/stickers", "CL-NOPE0000")
+                        .header("Authorization", "Bearer " + admin))
+                .andExpect(status().isNotFound());
+    }
+
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @Autowired private com.carlink.user.repository.UserRepository userRepository;
+    @Autowired private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    private String adminToken() throws Exception {
+        String email = "order-admin" + (++seq) + "@carlink.test";
+        userRepository.save(com.carlink.user.model.User.builder()
+                .id(java.util.UUID.randomUUID())
+                .email(email)
+                .passwordHash(passwordEncoder.encode("Admin123"))
+                .firstName("Root").lastName("Admin")
+                .role(com.carlink.user.model.Role.ADMIN)
+                .active(true).emailVerified(true)
+                .build());
+        return objectMapper.readTree(mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", email, "password", "Admin123"))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).get("accessToken").asString();
     }
 
     @Test

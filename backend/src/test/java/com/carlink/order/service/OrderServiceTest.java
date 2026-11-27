@@ -56,6 +56,10 @@ class OrderServiceTest {
     @Mock private QrImageGenerator imageGenerator;
     @Mock private EmailSender emailSender;
     @Mock private com.carlink.user.repository.UserRepository userRepository;
+    @Mock private com.carlink.admin.service.AuditLogService auditLogService;
+
+    private final com.carlink.privacy.PhoneCipher cipher = new com.carlink.privacy.PhoneCipher(
+            "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f");
 
     private final TokenGenerator tokenGenerator = new TokenGenerator();
     private final CarLinkProperties properties = TestProperties.minimal();
@@ -67,7 +71,7 @@ class OrderServiceTest {
     void setUp() {
         orderService = new OrderService(orderRepository, orderItemRepository,
                 stickerRepository, tokenGenerator, imageGenerator, properties,
-                emailSender, confirmationEmailComposer, userRepository);
+                emailSender, confirmationEmailComposer, userRepository, cipher, auditLogService);
     }
 
     private OrderCreateRequest orderRequest(List<OrderItemRequest> items) {
@@ -86,7 +90,6 @@ class OrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
         when(orderItemRepository.saveAll(any())).thenAnswer(inv -> inv.getArgument(0));
         when(stickerRepository.save(any(Sticker.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(imageGenerator.pngDataUri(anyString(), anyInt())).thenReturn("data:image/png;base64,QR");
     }
 
     // ---------- create ----------
@@ -106,19 +109,20 @@ class OrderServiceTest {
         assertThat(response.status()).isEqualTo("PLACED");
         assertThat(response.items()).hasSize(1);
         assertThat(response.items().get(0).unitPrice()).isEqualByComparingTo("35.00");
-        assertThat(response.stickers()).hasSize(4);
-        response.stickers().forEach(s -> {
-            assertThat(s.rawToken()).isNotBlank();
-            assertThat(s.publicUrl()).startsWith("http://localhost:8080/c/");
-            assertThat(s.imageDataUri()).isEqualTo("data:image/png;base64,QR");
-        });
+        // The buyer gets no token, QR or activation code.
+        assertThat(response.toString()).doesNotContain("rawToken", "activationCode", "/c/");
 
-        // Only SHA-256 hashes are stored — the raw tokens never reach the repo.
+        // Hashes for lookup; raw values only AES-GCM encrypted, matching the hashes.
         ArgumentCaptor<Sticker> saved = ArgumentCaptor.forClass(Sticker.class);
         verify(stickerRepository, times(4)).save(saved.capture());
         saved.getAllValues().forEach(sticker -> {
-            assertThat(sticker.getTokenHash()).hasSize(64);
             assertThat(sticker.getTokenHash()).matches("[0-9a-f]{64}");
+            assertThat(sticker.getTokenEnc()).startsWith("v1:");
+            assertThat(sticker.getActivationCodeEnc()).startsWith("v1:");
+            assertThat(tokenGenerator.sha256(cipher.decrypt(sticker.getTokenEnc())))
+                    .isEqualTo(sticker.getTokenHash());
+            assertThat(tokenGenerator.sha256(tokenGenerator.normalizeActivationCode(
+                    cipher.decrypt(sticker.getActivationCodeEnc())))).isEqualTo(sticker.getActivationCodeHash());
         });
 
         // Confirmation email is sent to the buyer with the reference and totals.
@@ -160,7 +164,6 @@ class OrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
         when(orderItemRepository.saveAll(any())).thenAnswer(inv -> inv.getArgument(0));
         when(stickerRepository.save(any(Sticker.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(imageGenerator.pngDataUri(anyString(), anyInt())).thenReturn("data:img");
 
         OrderResponse response = orderService.create(orderRequest(
                 List.of(new OrderItemRequest(StickerPackage.SINGLE, 1))));

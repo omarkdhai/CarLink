@@ -632,8 +632,8 @@ class AdminFlowIntegrationTest extends AbstractIntegrationTest {
                                 "deliveryAddress", "1 Place de la République"))))
                 .andExpect(status().isOk())
                 .andReturn();
-        return objectMapper.readTree(r.getResponse().getContentAsString())
-                .get("stickers").get(0).get("activationCode").asString();
+        return issuedStickers(objectMapper.readTree(r.getResponse().getContentAsString()))
+                .get(0).get("activationCode").asString();
     }
 
     private record Admin(String auth, UUID userId, String email) {}

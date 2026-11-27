@@ -76,7 +76,7 @@ class PublicOrderControllerTest {
                 eq(10), eq(60))).thenReturn(true);
         OrderResponse expected = new OrderResponse(
                 "CL-ABC12345", "PLACED", new BigDecimal("20.00"), "TND",
-                Instant.now(), List.of(), List.of());
+                Instant.now(), List.of());
         when(orderService.create(validBody())).thenReturn(expected);
 
         OrderResponse response = controller.placeOrder(validBody(), null, request);

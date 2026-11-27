@@ -152,7 +152,7 @@ class AccountDeletionIntegrationTest extends AbstractIntegrationTest {
                                 "email", "buyer@example.com", "governorate", "TUNIS",
                                 "deliveryAddress", "1 Place de la République"))))
                 .andExpect(status().isOk()).andReturn();
-        var sticker = objectMapper.readTree(order.getResponse().getContentAsString()).get("stickers").get(0);
+        var sticker = issuedStickers(objectMapper.readTree(order.getResponse().getContentAsString())).get(0);
         String code = sticker.get("activationCode").asString();
 
         MvcResult registered = mockMvc.perform(post("/api/v1/auth/register")

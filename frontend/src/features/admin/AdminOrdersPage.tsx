@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import type { AdminOrderView, OrderStatus } from '@/types'
+import { OrderStickerCodes } from './OrderStickerCodes'
 import {
   DataList,
   DateCell,
@@ -306,6 +307,8 @@ export default function AdminOrdersPage() {
                 )}
               </ul>
             </DetailSection>
+
+            <OrderStickerCodes reference={selected.reference} />
           </>
         )}
       </DetailDialog>

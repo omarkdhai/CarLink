@@ -88,8 +88,8 @@ class PublicStickerControllerIntegrationTest extends AbstractIntegrationTest {
                 .andReturn();
         JsonNode root = objectMapper.readTree(r.getResponse().getContentAsString());
         return new String[]{
-                root.get("stickers").get(0).get("rawToken").asString(),
-                root.get("stickers").get(0).get("activationCode").asString(),
+                issuedStickers(root).get(0).get("rawToken").asString(),
+                issuedStickers(root).get(0).get("activationCode").asString(),
         };
     }
 

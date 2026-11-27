@@ -1,5 +1,6 @@
 import apiClient from '@/services/apiClient'
 import type {
+  AdminOrderStickerView,
   AdminDashboardResponse,
   AdminContactView,
   DashboardDays,
@@ -128,6 +129,12 @@ export const adminApi = {
       return apiClient
         .patch<void>(`${ADMIN}/orders/${reference}/status`, { status })
         .then(() => undefined)
+    },
+    /** QR and activation code of each sticker in the order (audited server-side). */
+    stickers(reference: string): Promise<AdminOrderStickerView[]> {
+      return apiClient
+        .get<AdminOrderStickerView[]>(`${ADMIN}/orders/${reference}/stickers`)
+        .then((r) => r.data)
     },
   },
 

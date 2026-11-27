@@ -106,7 +106,6 @@ public class StickerService {
                         user.getId(), VehicleStatus.ACTIVE, plate)
                 .orElseGet(() -> createVehicle(user, request, plate));
 
-        user.setBirthDate(request.birthDate());
         sticker.bind(user, vehicle);
         stickerRepository.save(sticker);
     }

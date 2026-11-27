@@ -66,7 +66,7 @@ still omit it.
   length — never the HTML — and a delivery failure logs just the order
   reference and exception type, so a broken SMTP setup cannot dump a customer's
   address into the log file. Raw QR/sticker tokens are never included in the
-  email: they are shown exactly once in the checkout response.
+  email or in the checkout response: only an admin reads them (see below).
 
 ## JWT lifecycle
 
@@ -122,7 +122,9 @@ with a `Retry-After` header.
   `_TOO_COMMON`, `PASSWORD_BREACHED`). Login input is capped, and a > 72-byte login is a plain 401.
   Existing passwords are not forced to change; the rule applies whenever one is chosen.
 - Qr / refresh / reset / verification tokens: SHA-256 **hashed**.
-- Sticker tokens: stored as SHA-256 hashes only; the raw token is returned **exactly once** on the order creation response.
+- Sticker tokens and activation codes: looked up by SHA-256 hash; the raw values are also kept
+  AES-256-GCM encrypted (`token_enc`, `activation_code_enc`, same key as phone numbers) so an admin
+  can print them. Never returned to the buyer.
 - Licence plates are stored but never returned in public payloads.
 - Owner purchase history (`GET /api/v1/orders/me`, authenticated): an order is shown to an account
   only when it was placed with the account's e-mail **once that e-mail is verified** (so nobody can
@@ -130,9 +132,24 @@ with a `Retry-After` header.
   account owns. The response carries reference, status, items, totals and activation counts only —
   never buyer name, mobile, address, notes, tokens or activation codes.
 
-## Sticker token one-time exception
+## Sticker codes: admin-only exception
 
-The guest order endpoint (`POST /api/v1/public/orders`) returns the raw sticker token(s) in its response (`StickerIssuedResponse.rawToken`) **exactly once**. This is a deliberate exception to "raw tokens are never persisted or returned" — the raw value exists only in this HTTP response and is never stored, logged, or re-sent. The same response includes the QR `imageDataUri` so the buyer can save/download their codes immediately. After this, only the SHA-256 hash exists in the `stickers` table and the only way to resolve the sticker is through the authenticated activation flow.
+The buyer never receives a sticker's QR token or activation code: the checkout response
+(`POST /api/v1/public/orders`) carries only the reference, status, items and total. The codes are
+printed on the physical stickers and reach the owner with the delivery.
+
+To print them, `GET /api/v1/admin/orders/{reference}/stickers` (`ROLE_ADMIN` only) decrypts each
+sticker's token and activation code and returns its public URL, QR image and code. This is a
+deliberate exception to "raw tokens are never returned":
+
+- the raw values are stored only AES-256-GCM encrypted (`PHONE_ENCRYPTION_KEY`), so a database dump
+  without the key reveals nothing; the SHA-256 columns stay the lookup keys;
+- every read writes an `ORDER_STICKER_CODES_VIEW` audit entry (actor, IP, reference, count — never a
+  code);
+- the values are never logged.
+
+Stickers sold before migration V15 have only hashes; their codes cannot be recovered and the admin
+page marks them "codes not available".
 
 ## Message content exceptions
 

@@ -1,6 +1,13 @@
 package com.carlink;
 
+import com.carlink.common.config.CarLinkProperties;
+import com.carlink.privacy.PhoneCipher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,6 +34,32 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected MockMvc mockMvc;
+
+    @Autowired private JdbcTemplate issuedStickersJdbc;
+    @Autowired private PhoneCipher issuedStickersCipher;
+    @Autowired private CarLinkProperties issuedStickersProperties;
+
+    /**
+     * The stickers minted for a checkout response, read from the database the
+     * way the admin order page gets them (the buyer no longer receives them).
+     * Each entry has {@code rawToken}, {@code activationCode}, {@code publicUrl}.
+     */
+    protected JsonNode issuedStickers(JsonNode orderResponse) {
+        ArrayNode out = JsonNodeFactory.instance.arrayNode();
+        issuedStickersJdbc.query("""
+                        SELECT s.token_enc, s.activation_code_enc FROM stickers s
+                          JOIN orders o ON o.id = s.order_id
+                         WHERE o.reference = ? ORDER BY s.created_at, s.id""",
+                rs -> {
+                    String token = issuedStickersCipher.decrypt(rs.getString(1));
+                    ObjectNode n = out.addObject();
+                    n.put("rawToken", token);
+                    n.put("activationCode", issuedStickersCipher.decrypt(rs.getString(2)));
+                    n.put("publicUrl", issuedStickersProperties.baseUrl() + "/c/" + token);
+                },
+                orderResponse.get("reference").asString());
+        return out;
+    }
 
     /**
      * Container holder. {@code static {} } starts both containers exactly once

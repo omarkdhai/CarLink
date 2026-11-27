@@ -23,7 +23,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,7 +49,7 @@ class StickerServiceTest {
             .id(userId).email("owner@example.com").role(Role.USER).build();
     private final String rawToken = "sticker-token-abc";
     private final ActivateStickerRequest request = new ActivateStickerRequest(
-            LocalDate.of(1990, 5, 4), "AB-123-CD", "My Car", "Toyota", "Corolla", "Blue");
+            "AB-123-CD", "My Car", "Toyota", "Corolla", "Blue");
 
     @BeforeEach
     void setUp() {
@@ -78,7 +77,6 @@ class StickerServiceTest {
 
         stickerService.activate(userId, rawToken, request);
 
-        assertThat(user.getBirthDate()).isEqualTo(LocalDate.of(1990, 5, 4));
         verify(stickerRepository).save(any(Sticker.class));
         verify(vehicleRepository, never()).save(any(Vehicle.class));
     }

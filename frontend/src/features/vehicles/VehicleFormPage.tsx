@@ -137,7 +137,7 @@ export default function VehicleFormPage() {
               </Field>
               <Field label={t('vehicle.licensePlate')} error={errors.licensePlate?.message}>
                 <Input
-                  placeholder={t('vehicle.licensePlatePlaceholder')}
+                  dir="ltr" placeholder={t('vehicle.licensePlatePlaceholder')}
                   maxLength={20}
                   autoCapitalize="characters"
                   error={Boolean(errors.licensePlate)}

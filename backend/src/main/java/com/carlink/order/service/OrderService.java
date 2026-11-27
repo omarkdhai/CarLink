@@ -9,7 +9,10 @@ import com.carlink.order.dto.OrderItemRequest;
 import com.carlink.order.dto.OrderItemView;
 import com.carlink.order.dto.OrderResponse;
 import com.carlink.order.dto.OrderSummaryResponse;
-import com.carlink.order.dto.StickerIssuedResponse;
+import com.carlink.order.dto.AdminOrderStickerView;
+import com.carlink.admin.dto.AdminActor;
+import com.carlink.admin.service.AuditLogService;
+import com.carlink.privacy.PhoneCipher;
 import com.carlink.order.model.Order;
 import com.carlink.order.model.OrderItem;
 import com.carlink.order.model.OrderStatus;
@@ -32,7 +35,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -64,14 +66,16 @@ public class OrderService {
     private final EmailSender emailSender;
     private final OrderConfirmationEmailComposer confirmationEmailComposer;
     private final UserRepository userRepository;
+    private final PhoneCipher cipher;
+    private final AuditLogService auditLogService;
 
     /** Most recent purchases shown in an owner's history. */
     private static final int HISTORY_LIMIT = 100;
 
     /**
-     * Creates a new COD order. Returns the full response with sticker tokens
-     * (shown exactly once); re-fetching by reference returns the token-free
-     * summary.
+     * Creates a new COD order and mints its stickers. The response is
+     * token-free: QR tokens and activation codes are stored encrypted and only
+     * an admin can read them (to print the stickers).
      *
      * @throws BadRequestException if total stickers exceeds {@value MAX_TOTAL_STICKERS}
      */
@@ -107,7 +111,7 @@ public class OrderService {
                 .toList();
         orderItemRepository.saveAll(items);
 
-        List<StickerIssuedResponse> stickers = mintStickers(saved, request.items());
+        mintStickers(saved, request.items());
 
         sendConfirmationAfterCommit(saved, items);
 
@@ -117,8 +121,7 @@ public class OrderService {
                 order.getTotalAmount(),
                 order.getCurrency(),
                 order.getCreatedAt(),
-                items.stream().map(OrderItemView::from).toList(),
-                stickers);
+                items.stream().map(OrderItemView::from).toList());
     }
 
     /**
@@ -207,30 +210,53 @@ public class OrderService {
 
     /**
      * Mints one {@link Sticker} per slot in the order. Each sticker receives
-     * a fresh random token and a short activation code; both raw values are
-     * returned exactly once and stored only as SHA-256 hashes.
+     * a fresh random token and a short activation code. Lookups use their
+     * SHA-256 hashes; the raw values are kept only encrypted, for the admin
+     * who prints the sticker. Nothing is returned to the buyer.
      */
-    private List<StickerIssuedResponse> mintStickers(
-            Order order, List<OrderItemRequest> items) {
+    private void mintStickers(Order order, List<OrderItemRequest> items) {
 
-        List<com.carlink.order.dto.StickerIssuedResponse> out = new ArrayList<>();
         for (OrderItemRequest item : items) {
             int slots = item.stickerPackage().stickersPerPack() * item.quantity();
             for (int i = 0; i < slots; i++) {
                 String rawToken = tokenGenerator.generateUrlSafe(properties.qr().tokenBytes());
                 String tokenHash = tokenGenerator.sha256(rawToken);
-                String publicUrl = properties.baseUrl() + "/c/" + rawToken;
 
                 String activationCode = tokenGenerator.generateActivationCode();
                 String activationCodeHash = tokenGenerator.sha256(
                         tokenGenerator.normalizeActivationCode(activationCode));
 
-                stickerRepository.save(Sticker.newSticker(order, tokenHash, activationCodeHash));
-                out.add(new StickerIssuedResponse(
-                        rawToken, publicUrl, imageGenerator.pngDataUri(publicUrl, 300),
-                        activationCode));
+                Sticker sticker = Sticker.newSticker(order, tokenHash, activationCodeHash);
+                sticker.setTokenEnc(cipher.encrypt(rawToken));
+                sticker.setActivationCodeEnc(cipher.encrypt(activationCode));
+                stickerRepository.save(sticker);
             }
         }
+    }
+
+    /**
+     * Admin: the stickers of an order with their QR and activation code, to
+     * print and ship them. Decrypted on demand, never logged; every read is
+     * written to the audit log ({@code ORDER_STICKER_CODES_VIEW}).
+     */
+    @Transactional
+    public List<AdminOrderStickerView> stickerCodes(String reference, AdminActor actor) {
+        Order order = orderRepository.findByReference(reference)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+        List<AdminOrderStickerView> out = stickerRepository.findByOrderIdOrderByCreatedAtAscIdAsc(order.getId())
+                .stream()
+                .map(s -> {
+                    if (s.getTokenEnc() == null || s.getActivationCodeEnc() == null) {
+                        return new AdminOrderStickerView(s.getId(), s.getStatus().name(), false, null, null, null);
+                    }
+                    String publicUrl = properties.baseUrl() + "/c/" + cipher.decrypt(s.getTokenEnc());
+                    return new AdminOrderStickerView(s.getId(), s.getStatus().name(), true, publicUrl,
+                            imageGenerator.pngDataUri(publicUrl, 300), cipher.decrypt(s.getActivationCodeEnc()));
+                })
+                .toList();
+        auditLogService.record("ORDER_STICKER_CODES_VIEW", "ORDER", order.getId(),
+                actor.adminId(), actor.ipAddress(), actor.userAgent(),
+                java.util.Map.of("reference", order.getReference(), "stickers", out.size()));
         return out;
     }
 
