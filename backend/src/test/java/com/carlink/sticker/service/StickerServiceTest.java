@@ -68,7 +68,7 @@ class StickerServiceTest {
     // ---------- activate ----------
 
     @Test
-    void activateReusesExistingVehicleByPlateAndCapturesBirthDate() {
+    void activateReusesExistingVehicleByPlate() {
         when(userService.getUser(userId)).thenReturn(user);
         when(stickerRepository.findByTokenHashForUpdate(tokenGenerator.sha256(rawToken)))
                 .thenReturn(Optional.of(virginSticker()));
