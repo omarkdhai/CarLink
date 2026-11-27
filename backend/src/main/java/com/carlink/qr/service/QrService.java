@@ -55,8 +55,8 @@ public class QrService {
         QrCode qr = QrCode.newActive(vehicle, tokenGenerator.sha256(rawToken));
         qrCodeRepository.save(qr);
 
-        // The backend serves the public /c/{token} page, so the QR encodes the
-        // API host's route, not the Angular app. (See architecture doc.)
+        // The QR encodes the public /c/{token} page of the React app (served by
+        // nginx on the public base URL); the token never appears anywhere else.
         String publicUrl = properties.baseUrl() + "/c/" + rawToken;
         String image = imageGenerator.pngDataUri(publicUrl, 300);
         return QrIssuedResponse.of(rawToken, publicUrl, image, qr);

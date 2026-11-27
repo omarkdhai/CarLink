@@ -309,3 +309,4 @@ Each phase ends with: all tests green (`mvn verify`, `npm test`, `npm run build`
 | 2026-11-19 | **S-07 complete**: Spring Boot 4.1.2. Open: S-11 follow-ups, external penetration test. |
 | 2026-11-19 | **S-11 follow-ups complete** (order caps, per-account login challenge). Open: external penetration test. |
 | 2026-11-19 | Internal penetration test (docs/pentest-2026-11-19.md): PT-1 fixed; PT-2 (legacy QR page), PT-3 (e-mail in JWT), PT-4 (dev Swagger) open. External test pending. |
+| 2026-11-27 | PT-2 and PT-3 closed: the legacy `/c/{token}` controller is gone and the backend has no route there; access tokens carry no e-mail. PT-4 stays accepted (dev profile only). |
