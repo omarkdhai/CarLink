@@ -8,12 +8,14 @@ package com.carlink.qr.model;
  */
 public enum ContactReason {
 
-    BLOCKING("Your car is blocking me"),
-    LIGHTS("Your lights are on"),
-    LEFT_OPEN("Your car is left open"),
-    HIT_CAR("I accidentally hit your car"),
-    WINDOWS_OPEN("Your windows are left open"),
-    EV_CHARGE("Your car is fully charged and I need to charge my EV");
+    BLOCKING("Your car is blocking mine"),
+    LIGHTS("Your headlights are still on"),
+    LEFT_OPEN("Your car has been left unlocked"),
+    HIT_CAR("I accidentally bumped into your car"),
+    WINDOWS_OPEN("Your windows have been left open"),
+    CHILD_OR_PET("A child or an animal is locked in your car"),
+    /** Needs a note: the visitor must say what the problem is. */
+    OTHER("Another problem with your car");
 
     private final String label;
 

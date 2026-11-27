@@ -58,7 +58,7 @@ class TelnyxContactChannelSenderTest {
         assertThat(sent.from()).contains(properties.telnyx().smsFrom());
         assertThat(sent.text()).hasValueSatisfying(t -> {
             assertThat(t).contains("Is the car available?");
-            assertThat(t).contains("Your car is blocking me"); // ContactReason.BLOCKING label
+            assertThat(t).contains("Your car is blocking mine"); // ContactReason.BLOCKING label
         });
     }
 

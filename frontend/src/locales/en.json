@@ -324,11 +324,13 @@
     "vehicleSelect": "Select a reason",
     "reason": "Reason for contact",
     "reasons": {
-      "BLOCKING": "Your car is blocking me",
-      "LIGHTS": "Your lights are on",
-      "LEFT_OPEN": "Your car is left open",
-      "HIT_CAR": "I accidentally hit your car",
-      "WINDOWS_OPEN": "Your windows are left open",
+      "BLOCKING": "Your car is blocking mine",
+      "LIGHTS": "Your headlights are still on",
+      "LEFT_OPEN": "Your car has been left unlocked",
+      "HIT_CAR": "I accidentally bumped into your car",
+      "WINDOWS_OPEN": "Your windows have been left open",
+      "CHILD_OR_PET": "A child or an animal is locked in your car",
+      "OTHER": "Another problem with your car",
       "EV_CHARGE": "Your car is fully charged and I need to charge my EV"
     },
     "method": "Contact method",
@@ -427,7 +429,10 @@
       "refusedHint": "The phone operator refused to deliver this message because of what the note says. Change your note and send the alert again.",
       "changeNote": "Change my note"
     },
-    "smsAndWhatsapp": "SMS and WhatsApp"
+    "smsAndWhatsapp": "SMS and WhatsApp",
+    "noteRequiredLabel": "Describe the problem (required)",
+    "noteRequiredPlaceholder": "What is the problem with the car?",
+    "noteRequired": "Please describe the problem in the note."
   },
   "message": {
     "title": "Messages",
@@ -1288,7 +1293,8 @@
     "captchaRequired": "For your security, complete the check below, then sign in again.",
     "loginSlowedDown": "Too many failed sign-ins on this account. Wait 30 seconds and try again.",
     "orderLimitReached": "This e-mail address or mobile number has reached today's order limit. Contact us if you need more stickers.",
-    "noteOffTopic": "Your note doesn’t seem to be about this car. Change it."
+    "noteOffTopic": "Your note doesn’t seem to be about this car. Change it.",
+    "noteRequired": "Please describe the problem in the note."
   },
   "validation": {
     "email": "Invalid email address",

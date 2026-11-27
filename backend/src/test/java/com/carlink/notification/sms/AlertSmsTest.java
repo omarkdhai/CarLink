@@ -9,7 +9,7 @@ class AlertSmsTest {
     @Test
     void reasonInDerjaThenTheNoteExactlyAsTyped() {
         assertThat(AlertSms.compose("LIGHTS", "Je suis au café d'à côté"))
-                .isEqualTo("💡 ضو كرهبتك شاعل\n💬 Je suis au café d'à côté");   // accents kept as typed
+                .isEqualTo("💡 ضو كرهبتك مازال شاعل\n💬 Je suis au café d'à côté");   // accents kept as typed
         assertThat(AlertSms.compose("BLOCKING", " نستنى فيك قدام الباب "))
                 .isEqualTo("🚧 كرهبتك سادّة عليّ\n💬 نستنى فيك قدام الباب");
         assertThat(AlertSms.compose("HIT_CAR", "Sorry! I'm at the café 😅"))
@@ -18,7 +18,7 @@ class AlertSmsTest {
 
     @Test
     void withoutNoteTheSmsIsTheReasonLineOnly() {
-        assertThat(AlertSms.compose("EV_CHARGE", "   ")).isEqualTo("🔋 كرهبتك شحنت، نحب نشحن كرهبتي");
+        assertThat(AlertSms.compose("CHILD_OR_PET", "   ")).isEqualTo("🚨 طفل ولا حيوان مسكّر في كرهبتك");
         assertThat(AlertSms.compose("WINDOWS_OPEN", null)).isEqualTo("☔ شبابك كرهبتك محلولين");
     }
 
@@ -45,8 +45,8 @@ class AlertSmsTest {
     @Test
     void everyReasonLeavesRoomForANote() {
         assertThat(AlertSms.noteLimits())
-                .containsOnlyKeys("BLOCKING", "LIGHTS", "LEFT_OPEN", "HIT_CAR", "WINDOWS_OPEN", "EV_CHARGE")
-                .containsEntry("LIGHTS", 45)
+                .containsOnlyKeys("BLOCKING", "LIGHTS", "LEFT_OPEN", "HIT_CAR", "WINDOWS_OPEN", "CHILD_OR_PET", "OTHER")
+                .containsEntry("BLOCKING", 42)
                 .allSatisfy((reason, room) -> assertThat(room).as(reason).isGreaterThanOrEqualTo(30));
     }
 }

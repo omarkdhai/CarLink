@@ -69,7 +69,7 @@ class MetaWhatsAppSenderTest {
                 .andExpect(jsonPath("$.template.name").value("carlink_alert"))
                 .andExpect(jsonPath("$.template.language.code").value("ar"))
                 .andExpect(jsonPath("$.template.components[0].type").value("body"))
-                .andExpect(jsonPath("$.template.components[0].parameters[0].text").value("💡 ضو كرهبتك شاعل"))
+                .andExpect(jsonPath("$.template.components[0].parameters[0].text").value("💡 ضو كرهبتك مازال شاعل"))
                 .andExpect(jsonPath("$.template.components[0].parameters[1].text").value("Garé au café, merci"))
                 .andRespond(withSuccess("{\"messaging_product\":\"whatsapp\",\"contacts\":[{\"input\":\"21612345678\","
                         + "\"wa_id\":\"21612345678\"}],\"messages\":[{\"id\":\"wamid.ABC\"}]}", MediaType.APPLICATION_JSON));

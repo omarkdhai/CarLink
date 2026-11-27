@@ -63,7 +63,7 @@ class TunisieSmsContactChannelSenderTest {
                         "key", "test-key",
                         "mobile", "21612345678",
                         "sender", "CarLink",
-                        "sms", "💡 ضو كرهبتك شاعل\n💬 Garé au café",
+                        "sms", "💡 ضو كرهبتك مازال شاعل\n💬 Garé au café",
                         "content-type", "application/json")))
                 .andRespond(withSuccess("[{\"message_id\":\"12345\",\"status_mobile\":\"21612345678\","
                         + "\"status_msg\":\"OK\",\"status_code\":\"200\"}]", MediaType.APPLICATION_JSON));
@@ -133,8 +133,8 @@ class TunisieSmsContactChannelSenderTest {
 
     @Test
     void bodyIsTheDerjaReasonThenTheNoteAsTyped() {
-        assertThat(TunisieSmsContactChannelSender.buildBody(sms("  "))).isEqualTo("💡 ضو كرهبتك شاعل");
-        assertThat(TunisieSmsContactChannelSender.buildBody(sms("ok 👍"))).isEqualTo("💡 ضو كرهبتك شاعل\n💬 ok 👍");
+        assertThat(TunisieSmsContactChannelSender.buildBody(sms("  "))).isEqualTo("💡 ضو كرهبتك مازال شاعل");
+        assertThat(TunisieSmsContactChannelSender.buildBody(sms("ok 👍"))).isEqualTo("💡 ضو كرهبتك مازال شاعل\n💬 ok 👍");
     }
 
     @Test

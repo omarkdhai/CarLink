@@ -102,8 +102,8 @@ class PublicQrServiceTest {
         assertThat(view.vehicle().nickname()).isEqualTo("My Car");
         assertThat(view.vehicle().brand()).isEqualTo("Toyota");
         assertThat(view.channels()).containsExactly("SMS");
-        // "💡 ضو كرهبتك شاعل" + new line + "💬 " = 21 UTF-16 units: 45 left of the 66 TunisieSMS delivers.
-        assertThat(view.smsNoteLimits()).hasSize(6).containsEntry("LIGHTS", 45);
+        // "💡 ضو كرهبتك مازال شاعل" + new line + "💬 " = 27 UTF-16 units: 39 left of the 66 TunisieSMS delivers.
+        assertThat(view.smsNoteLimits()).hasSize(7).containsEntry("LIGHTS", 39);
     }
 
     @Test
