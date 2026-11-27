@@ -411,3 +411,9 @@
 /* Active tab icons pop slightly. */
 .tab-pop { transition: transform 0.35s var(--ease-premium); }
 [aria-current='page'] > .tab-pop { transform: translateY(-1px) scale(1.06); }
+
+/* Order page: the summary sticker swaps in when the design changes. */
+@keyframes sticker-swap {
+  from { opacity: 0; transform: translateY(10px) scale(0.94); }
+  to { opacity: 1; }
+}

@@ -61,6 +61,12 @@ public class Order {
     @Column(nullable = false, length = 20)
     private OrderStatus status;
 
+    /** Design printed on every sticker of the order. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sticker_style", nullable = false, length = 10)
+    @Builder.Default
+    private StickerStyle stickerStyle = StickerStyle.DARK;
+
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 

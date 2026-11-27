@@ -38,11 +38,12 @@ import {
   TN_DIAL_CODE,
   type OrderDetailsValues,
 } from '@/features/order/orderSchemas'
-import stickerImage from '@/assets/carlink-sticker-light.png'
+import stickerDark from '@/assets/carlink-sticker-dark.png'
+import stickerLight from '@/assets/carlink-sticker-light.png'
 import { cn } from '@/lib/cn'
 import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
 import { GOVERNORATES } from '@/types'
-import type { Governorate, OrderResponse, StickerPackage } from '@/types'
+import type { Governorate, OrderResponse, StickerPackage, StickerStyle } from '@/types'
 import { SuccessMark } from '@/components/shared/SuccessMark'
 import { useCaptcha } from '@/components/shared/useCaptcha'
 
@@ -50,6 +51,17 @@ import { useCaptcha } from '@/components/shared/useCaptcha'
 const MAX_TOTAL_STICKERS = 100
 
 const DRAFT_KEY = 'carlink.order.draft'
+
+const STYLE_OPTIONS: { key: StickerStyle; image: string; stage: string }[] = [
+  { key: 'DARK', image: stickerDark, stage: 'bg-primary-soft' },
+  { key: 'LIGHT', image: stickerLight, stage: 'bg-heading' },
+]
+const styleImage = (s: StickerStyle) => (s === 'LIGHT' ? stickerLight : stickerDark)
+/** `?style=dark|light` from the landing page buttons. */
+function parseStyle(v: string | null | undefined): StickerStyle | null {
+  const u = v?.toUpperCase()
+  return u === 'DARK' || u === 'LIGHT' ? u : null
+}
 const LAST_REF_KEY = 'carlink.order.lastReference'
 
 const SUBMIT_BTN =
@@ -60,6 +72,7 @@ interface OrderDraft {
   pkg: StickerPackage
   qty: number
   details: OrderDetailsValues | null
+  style: StickerStyle
 }
 
 function loadDraft(): OrderDraft | null {
@@ -68,7 +81,7 @@ function loadDraft(): OrderDraft | null {
     if (!raw) return null
     const d = JSON.parse(raw) as Partial<OrderDraft>
     if (d && packIsPreselect(d.pkg ?? null) && typeof d.qty === 'number' && d.qty > 0) {
-      return { step: d.step ?? 1, pkg: d.pkg!, qty: d.qty, details: d.details ?? null }
+      return { step: d.step ?? 1, pkg: d.pkg!, qty: d.qty, details: d.details ?? null, style: parseStyle(d.style) ?? 'DARK' }
     }
   } catch {
     /* corrupt draft — start fresh */
@@ -119,6 +132,7 @@ export default function OrderPage() {
   const [pkg, setPkg] = useState<StickerPackage>(preselect ?? initial?.pkg ?? 'SINGLE')
   const [qty, setQty] = useState(preselect ? 1 : (initial?.qty ?? 1))
   const [details, setDetails] = useState<OrderDetailsValues | null>(initial?.details ?? null)
+  const [style, setStyle] = useState<StickerStyle>(parseStyle(searchParams.get('style')) ?? initial?.style ?? 'DARK')
 
   // The full order response lives only in memory — never persisted (raw tokens).
   const [placed, setPlaced] = useState<OrderResponse | null>(null)
@@ -131,9 +145,9 @@ export default function OrderPage() {
   // Draft persistence — cleared once the order is placed.
   useEffect(() => {
     if (placed) return
-    const draft: OrderDraft = { step, pkg, qty, details }
+    const draft: OrderDraft = { step, pkg, qty, details, style }
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  }, [step, pkg, qty, details, placed])
+  }, [step, pkg, qty, details, style, placed])
 
   // Bring the confirmation screen into view on small screens.
   useEffect(() => {
@@ -166,6 +180,7 @@ export default function OrderPage() {
         governorate: details!.governorate as Governorate,
         deliveryAddress: details!.deliveryAddress,
         deliveryNotes: details?.deliveryNotes?.trim() || undefined,
+        stickerStyle: style,
       }, captcha.headers()),
     onSettled: () => captcha.reset(),
     onSuccess: (data) => {
@@ -192,6 +207,7 @@ export default function OrderPage() {
     setPkg('SINGLE')
     setQty(1)
     setDetails(null)
+    setStyle('DARK')
     setSubmissionError(null)
     setCopied(false)
     localStorage.removeItem(DRAFT_KEY)
@@ -269,6 +285,12 @@ export default function OrderPage() {
                       </dd>
                     </div>
                   ))}
+                  <div className="flex items-baseline justify-between gap-4">
+                    <dt className="text-muted-fg">{t('order.styleRow')}</dt>
+                    <dd className="font-semibold text-heading">
+                      {t(`order.style${placed.stickerStyle === 'LIGHT' ? 'Light' : 'Dark'}`)}
+                    </dd>
+                  </div>
                   <div className="flex items-baseline justify-between gap-4">
                     <dt className="text-muted-fg">{t('order.deliveryRow')}</dt>
                     <dd className="font-semibold tabular-nums text-heading">
@@ -397,6 +419,7 @@ export default function OrderPage() {
           qty={qty}
           subtotal={subtotal}
           total={total}
+          style={style}
         />
 
         <div
@@ -524,6 +547,57 @@ export default function OrderPage() {
                 {t('order.comparePlans')}
               </Link>
 
+              {/* Design */}
+              <div className="mt-4 border-t border-border pt-[18px]">
+                <span className="block text-sm font-semibold text-heading">{t('order.styleTitle')}</span>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-fg">{t('order.styleHint')}</p>
+                <div role="radiogroup" aria-label={t('order.styleTitle')} className="mt-3 grid grid-cols-2 gap-2.5">
+                  {STYLE_OPTIONS.map((o) => {
+                    const selected = style === o.key
+                    const name = o.key === 'DARK' ? 'Dark' : 'Light'
+                    return (
+                      <button
+                        key={o.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setStyle(o.key)}
+                        className={cn(
+                          'group relative flex items-center gap-3 rounded-[14px] border bg-white p-2.5 text-start transition-[transform,box-shadow,border-color,background-color] duration-300 ease-[cubic-bezier(.22,1,.36,1)] hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(15,23,42,0.08)]',
+                          selected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/60',
+                        )}
+                      >
+                        <span className={cn('grid h-[76px] w-[58px] shrink-0 place-items-center overflow-hidden rounded-[10px]', o.stage)}>
+                          <img
+                            src={o.image}
+                            alt=""
+                            aria-hidden="true"
+                            style={{ borderRadius: '7% / 3.8%' }}
+                            className={cn(
+                              'h-[62px] w-auto shadow-[0_6px_12px_rgba(15,23,42,0.25)] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:-rotate-6 group-hover:scale-110',
+                              selected && '-rotate-3',
+                            )}
+                          />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[15px] font-semibold text-heading">{t(`order.style${name}`)}</span>
+                          <span className="mt-0.5 block text-xs leading-5 text-muted-fg">{t(`order.style${name}Hint`)}</span>
+                        </span>
+                        <span
+                          className={cn(
+                            'absolute end-2 top-2 grid h-[18px] w-[18px] place-items-center rounded-full bg-primary text-white transition-transform duration-300 ease-[cubic-bezier(.34,1.56,.64,1)]',
+                            selected ? 'scale-100' : 'scale-0',
+                          )}
+                          aria-hidden="true"
+                        >
+                          <Check className="h-3 w-3" />
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
               {/* Quantity */}
               <div className="mt-4 border-t border-border pt-[18px]">
                 <div className="flex items-center justify-between gap-4">
@@ -574,7 +648,7 @@ export default function OrderPage() {
               </div>
 
               {/* Mobile totals (desktop uses the summary aside) */}
-              <MobileTotal pkg={pkg} qty={qty} subtotal={subtotal} total={total} />
+              <MobileTotal pkg={pkg} qty={qty} subtotal={subtotal} total={total} style={style} />
 
               <nav className="mt-5 flex justify-end">
                 <button type="button" className={SUBMIT_BTN} onClick={() => setStep(2)}>
@@ -632,6 +706,24 @@ export default function OrderPage() {
                   {details.deliveryNotes?.trim() ? `, ${details.deliveryNotes.trim()}` : ''}
                 </p>
                 <p className="text-sm text-muted-fg">{t(`order.governorates.${details.governorate}`)}</p>
+              </div>
+
+              {/* Chosen design */}
+              <div className="mt-5 flex items-center gap-3 rounded-2xl border border-border p-3">
+                <span className={cn('grid h-[60px] w-[46px] shrink-0 place-items-center rounded-lg', style === 'DARK' ? 'bg-primary-soft' : 'bg-heading')}>
+                  <img src={styleImage(style)} alt="" aria-hidden="true" style={{ borderRadius: '7% / 3.8%' }} className="h-[50px] w-auto" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs text-muted-fg">{t('order.styleRow')}</span>
+                  <span className="block text-sm font-semibold text-heading">{t(`order.style${style === 'DARK' ? 'Dark' : 'Light'}`)}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                >
+                  {t('order.styleChange')}
+                </button>
               </div>
 
               {/* Payment method */}
@@ -746,12 +838,13 @@ function PlacingOrderOverlay() {
 }
 
 /** Rounded sticker artwork used in the summary aside + mobile total. */
-function StickerArt({ className }: { className?: string }) {
+function StickerArt({ className, style }: { className?: string; style: StickerStyle }) {
   return (
     <img
-      src={stickerImage}
+      key={style}
+      src={styleImage(style)}
       alt=""
-      className={cn('w-auto object-contain', className)}
+      className={cn('w-auto object-contain animate-[sticker-swap_0.5s_cubic-bezier(.22,1,.36,1)]', className)}
       aria-hidden="true"
     />
   )
@@ -763,12 +856,14 @@ function OrderSummaryAside({
   subtotal,
   total,
   className,
+  style,
 }: {
   pkg: StickerPackage
   qty: number
   subtotal: number
   total: number
   className?: string
+  style: StickerStyle
 }) {
   const { t } = useTranslation()
   const planName = t(`landing.pricingPack${packNum(pkg)}Name`)
@@ -783,7 +878,7 @@ function OrderSummaryAside({
     >
       <div className="text-center">
         <div className="mb-6 flex justify-center pt-2">
-          <StickerArt className="h-[min(340px,42vh)] -rotate-[4deg] rounded-[18px] drop-shadow-[0_18px_32px_rgba(15,23,42,0.22)]" />
+          <StickerArt style={style} className="h-[min(340px,42vh)] -rotate-[4deg] rounded-[18px] drop-shadow-[0_18px_32px_rgba(15,23,42,0.22)]" />
         </div>
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
           {t('order.summaryEyebrow')}
@@ -837,11 +932,13 @@ function MobileTotal({
   qty,
   subtotal,
   total,
+  style,
 }: {
   pkg: StickerPackage
   qty: number
   subtotal: number
   total: number
+  style: StickerStyle
 }) {
   const { t } = useTranslation()
   const planName = t(`landing.pricingPack${packNum(pkg)}Name`)
@@ -849,7 +946,7 @@ function MobileTotal({
   return (
     <div className="mt-4 rounded-2xl border border-border bg-primary-soft p-3.5 lg:hidden">
       <div className="flex items-start gap-3">
-        <StickerArt className="h-14! w-11! shrink-0 -rotate-[7deg]" />
+        <StickerArt style={style} className="h-14! w-11! shrink-0 -rotate-[7deg]" />
         <div className="min-w-0 flex-1 space-y-2 text-sm">
           <div className="flex items-baseline justify-between gap-3">
             <span className="font-bold text-heading">

@@ -67,9 +67,18 @@ function OrderCard({ order }: { order: MyOrderResponse }) {
                 {t(`orders.status.${order.status}`)}
               </Badge>
             </div>
-            <p className="text-sm text-muted-fg mt-1 flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 shrink-0" aria-hidden />
-              {formatDate(order.createdAt)}
+            <p className="text-sm text-muted-fg mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 shrink-0" aria-hidden />
+                {formatDate(order.createdAt)}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className={cn('h-3 w-3 rounded-full', order.stickerStyle === 'LIGHT' ? 'bg-white ring-1 ring-heading/30' : 'bg-heading')}
+                  aria-hidden
+                />
+                {t(order.stickerStyle === 'LIGHT' ? 'order.styleLight' : 'order.styleDark')}
+              </span>
             </p>
           </div>
         </div>

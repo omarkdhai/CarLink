@@ -99,6 +99,8 @@ public class OrderService {
                 .governorate(request.governorate())
                 .deliveryAddress(request.deliveryAddress().trim())
                 .deliveryNotes(trimToNull(request.deliveryNotes()))
+                .stickerStyle(request.stickerStyle() == null
+                        ? com.carlink.order.model.StickerStyle.DARK : request.stickerStyle())
                 .status(OrderStatus.PLACED)
                 .totalAmount(computeTotal(request.items()))
                 .currency("TND")
@@ -121,7 +123,8 @@ public class OrderService {
                 order.getTotalAmount(),
                 order.getCurrency(),
                 order.getCreatedAt(),
-                items.stream().map(OrderItemView::from).toList());
+                items.stream().map(OrderItemView::from).toList(),
+                order.getStickerStyle().name());
     }
 
     /**
@@ -171,7 +174,8 @@ public class OrderService {
                     o.getReference(), o.getStatus().name(), o.getTotalAmount(), o.getCurrency(), o.getCreatedAt(),
                     own.stream().map(OrderItemView::from).toList(),
                     own.stream().mapToInt(i -> i.getQuantity() * i.getStickersPerPack()).sum(),
-                    activated.getOrDefault(o.getId(), 0L).intValue());
+                    activated.getOrDefault(o.getId(), 0L).intValue(),
+                    o.getStickerStyle().name());
         }).toList();
     }
 
@@ -325,7 +329,8 @@ public class OrderService {
                     o.getReference(), o.getStatus().name(), o.getTotalAmount(), o.getCurrency(),
                     own.stream().mapToInt(i -> i.getQuantity() * i.getStickersPerPack()).sum(),
                     o.getCustomerName(), o.getEmail(), o.getMobile(), o.getGovernorate().name(), o.getDeliveryAddress(), o.getDeliveryNotes(), o.getCreatedAt(),
-                    own.stream().map(com.carlink.order.dto.OrderItemView::from).toList());
+                    own.stream().map(com.carlink.order.dto.OrderItemView::from).toList(),
+                    o.getStickerStyle().name());
         });
     }
 

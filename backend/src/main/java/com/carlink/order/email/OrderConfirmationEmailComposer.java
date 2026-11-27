@@ -45,7 +45,7 @@ public class OrderConfirmationEmailComposer {
                 .replace("{{NAME}}", escape(name))
                 .replace("{{REFERENCE}}", escape(reference))
                 .replace("{{DATE}}", escape(DATE_FORMAT.format(order.getCreatedAt())))
-                .replace("{{ITEMS}}", itemRows(items, order.getCurrency()))
+                .replace("{{ITEMS}}", itemRows(items, order.getCurrency(), order.getStickerStyle()))
                 .replace("{{SUBTOTAL}}", money(itemsSubtotal, order.getCurrency()))
                 .replace("{{DELIVERY}}", money(delivery, order.getCurrency()))
                 .replace("{{TOTAL}}", money(order.getTotalAmount(), order.getCurrency()))
@@ -57,7 +57,8 @@ public class OrderConfirmationEmailComposer {
 
     // ————————— HTML parts —————————
 
-    private static String itemRows(List<OrderItem> items, String currency) {
+    private static String itemRows(List<OrderItem> items, String currency,
+                                   com.carlink.order.model.StickerStyle style) {
         StringBuilder rows = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {
             OrderItem item = items.get(i);
@@ -75,7 +76,7 @@ public class OrderConfirmationEmailComposer {
                     """.formatted(
                     INK,
                     last ? "" : "border-bottom:1px solid " + BORDER + ";",
-                    escape(packageLabel(item.getStickerPackage())),
+                    escape(packageLabel(item.getStickerPackage()) + " · " + styleLabel(style)),
                     SOFT,
                     stickerCount,
                     stickerCount == 1 ? "" : "s",
@@ -267,6 +268,7 @@ public class OrderConfirmationEmailComposer {
         for (OrderItem item : items) {
             int stickerCount = item.getStickersPerPack() * item.getQuantity();
             text.append(packageLabel(item.getStickerPackage()))
+                    .append(" · ").append(styleLabel(order.getStickerStyle()))
                     .append(" (").append(stickerCount).append(stickerCount == 1 ? " sticker" : " stickers")
                     .append(") x ").append(item.getQuantity())
                     .append(" at ").append(money(item.getUnitPrice(), currency))
@@ -292,6 +294,10 @@ public class OrderConfirmationEmailComposer {
     }
 
     // ————————— helpers —————————
+
+    private static String styleLabel(com.carlink.order.model.StickerStyle style) {
+        return style == com.carlink.order.model.StickerStyle.LIGHT ? "Light design" : "Dark design";
+    }
 
     private static String packageLabel(StickerPackage stickerPackage) {
         return switch (stickerPackage) {

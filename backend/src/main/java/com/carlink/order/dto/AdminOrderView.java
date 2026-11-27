@@ -17,5 +17,7 @@ public record AdminOrderView(
         String deliveryAddress,
         String deliveryNotes,
         Instant createdAt,
-        List<OrderItemView> items
+        List<OrderItemView> items,
+        /** DARK or LIGHT: the design to print. */
+        String stickerStyle
 ) {}

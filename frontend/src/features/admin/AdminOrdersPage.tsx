@@ -9,7 +9,7 @@ import { http } from '@/services/apiClient'
 import { Button } from '@/components/ui/Button'
 import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import type { AdminOrderView, OrderStatus } from '@/types'
+import type { AdminOrderView, OrderStatus, StickerStyle } from '@/types'
 import { OrderStickerCodes } from './OrderStickerCodes'
 import {
   DataList,
@@ -81,6 +81,7 @@ export default function AdminOrdersPage() {
   if (q.isError) return <ErrorState message={http.humanizeError(q.error)} onRetry={() => q.refetch()} />
 
   const statusLabel = (s: OrderStatus) => t(`admin.dash.orderStatus.${s}`)
+  const styleLabel = (s: StickerStyle) => t(s === 'LIGHT' ? 'admin.orders.styleLight' : 'admin.orders.styleDark')
   const governorate = (g: string) => t(`order.governorates.${g}`, g.replace(/_/g, ' '))
   const packageLabel = (p: string) => t(`admin.dash.packages.${p}`, p)
 
@@ -123,7 +124,7 @@ export default function AdminOrdersPage() {
       cell: (o) => (
         <Identity
           primary={<span className="font-mono">{o.reference}</span>}
-          secondary={o.items.map((i) => `${packageLabel(i.stickerPackage)} ×${i.quantity}`).join(', ')}
+          secondary={`${o.items.map((i) => `${packageLabel(i.stickerPackage)} ×${i.quantity}`).join(', ')} · ${styleLabel(o.stickerStyle)}`}
         />
       ),
     },
@@ -222,7 +223,20 @@ export default function AdminOrdersPage() {
         onClose={() => setSelected(null)}
         blockEscape={Boolean(confirmCancel)}
         title={selected ? <span className="font-mono">{selected.reference}</span> : ''}
-        badges={selected && <Badge tone={STATUS_TONE[selected.status]}>{statusLabel(selected.status)}</Badge>}
+        badges={
+          selected && (
+            <>
+              <Badge tone={STATUS_TONE[selected.status]}>{statusLabel(selected.status)}</Badge>
+              <Badge tone="neutral">
+                <span
+                  className={selected.stickerStyle === 'LIGHT' ? 'h-2.5 w-2.5 rounded-full bg-white ring-1 ring-heading/30' : 'h-2.5 w-2.5 rounded-full bg-heading'}
+                  aria-hidden
+                />
+                {styleLabel(selected.stickerStyle)}
+              </Badge>
+            </>
+          )
+        }
         subtitle={selected && f.dateTime(selected.createdAt)}
         footer={
           selected && (
@@ -308,7 +322,7 @@ export default function AdminOrdersPage() {
               </ul>
             </DetailSection>
 
-            <OrderStickerCodes reference={selected.reference} />
+            <OrderStickerCodes reference={selected.reference} style={selected.stickerStyle} />
           </>
         )}
       </DetailDialog>

@@ -1,9 +1,12 @@
 import { QRCodeDecoderErrorCorrectionLevel, QRCodeEncoder } from '@zxing/library'
-import templateUrl from '@/assets/carlink-sticker-dark.png'
+import darkTemplate from '@/assets/carlink-sticker-dark.png'
+import lightTemplate from '@/assets/carlink-sticker-light.png'
+import type { StickerStyle } from '@/types'
 
 /*
- * Prints a sticker's own QR and link into the CarLink sticker design
- * (assets/carlink-sticker-dark.png, 1417 × 2598). The template's sample QR and
+ * Prints a sticker's own QR and link into the CarLink sticker design the buyer
+ * chose (assets/carlink-sticker-dark.png or -light.png, both 1417 × 2598, same
+ * QR and footer geometry). The template's sample QR and
  * sample link are painted over; everything else (headline, banner, logo,
  * footer) is the design itself. All coordinates are template pixels, measured
  * from the design file.
@@ -13,7 +16,12 @@ const W = 1417
 const H = 2598
 const DARK = '#0f172a'
 const BLUE = '#2563eb'
-const LINK_HEAD = '#dbeafe'
+
+/** Per-design template and footer colours (link's first line, footer fill). */
+const THEMES: Record<StickerStyle, { template: string; footer: string; linkHead: string }> = {
+  DARK: { template: darkTemplate, footer: BLUE, linkHead: '#dbeafe' },
+  LIGHT: { template: lightTemplate, footer: DARK, linkHead: '#60a5fa' },
+}
 
 /** Square the QR modules are drawn in (33 modules × 27.5 px in the design). */
 const AREA = { x: 255, y: 973, size: 907.5 }
@@ -27,21 +35,23 @@ const LOGO_CLEAR_HALF = 136
 const LINK = { x: 879, maxWidth: 515, capHeight: 49, baselines: [2323, 2386, 2448] }
 const LINK_FILL = { x: 860, y: 2245, w: 540, h: 230 }
 
-let template: Promise<HTMLImageElement> | null = null
+const templates = new Map<StickerStyle, Promise<HTMLImageElement>>()
 
-function loadTemplate(): Promise<HTMLImageElement> {
-  if (!template) {
-    template = new Promise((resolve, reject) => {
+function loadTemplate(style: StickerStyle): Promise<HTMLImageElement> {
+  let pending = templates.get(style)
+  if (!pending) {
+    pending = new Promise((resolve, reject) => {
       const img = new Image()
       img.onload = () => resolve(img)
       img.onerror = () => {
-        template = null
+        templates.delete(style)
         reject(new Error('Sticker template failed to load'))
       }
-      img.src = templateUrl
+      img.src = THEMES[style].template
     })
+    templates.set(style, pending)
   }
-  return template
+  return pending
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, r: number, color: string) {
@@ -104,8 +114,8 @@ function linkLines(url: string): string[] {
   return [`${u.host}/c/`, token.slice(0, half), token.slice(half)]
 }
 
-function drawLink(ctx: CanvasRenderingContext2D, url: string) {
-  ctx.fillStyle = BLUE
+function drawLink(ctx: CanvasRenderingContext2D, url: string, theme: (typeof THEMES)[StickerStyle]) {
+  ctx.fillStyle = theme.footer
   ctx.fillRect(LINK_FILL.x, LINK_FILL.y, LINK_FILL.w, LINK_FILL.h)
 
   const lines = linkLines(url)
@@ -121,7 +131,7 @@ function drawLink(ctx: CanvasRenderingContext2D, url: string) {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   lines.forEach((line, i) => {
-    ctx.fillStyle = i === 0 ? LINK_HEAD : '#ffffff'
+    ctx.fillStyle = i === 0 ? theme.linkHead : '#ffffff'
     ctx.fillText(line, LINK.x, LINK.baselines[i])
   })
 }
@@ -130,9 +140,9 @@ function drawLink(ctx: CanvasRenderingContext2D, url: string) {
  * The full sticker artwork for one sticker, as a PNG blob at print size
  * (1417 × 2598 px).
  */
-export async function renderStickerArt(publicUrl: string): Promise<Blob> {
+export async function renderStickerArt(publicUrl: string, style: StickerStyle = 'DARK'): Promise<Blob> {
   const [img] = await Promise.all([
-    loadTemplate(),
+    loadTemplate(style),
     document.fonts.load('700 70px "Bricolage Grotesque"').catch(() => undefined),
   ])
   const canvas = document.createElement('canvas')
@@ -142,7 +152,7 @@ export async function renderStickerArt(publicUrl: string): Promise<Blob> {
   if (!ctx) throw new Error('Canvas unavailable')
   ctx.drawImage(img, 0, 0, W, H)
   drawQr(ctx, img, publicUrl)
-  drawLink(ctx, publicUrl)
+  drawLink(ctx, publicUrl, THEMES[style])
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG export failed'))), 'image/png'),
   )

@@ -313,7 +313,15 @@
     "next2": "التوصيل",
     "next2Hint": "تخلّص الليفرور كي يوصلوك.",
     "next3": "التفعيل",
-    "next3Hint": "اعمل حسابك واكتب الكود المطبوع تحت الـ QR."
+    "next3Hint": "اعمل حسابك واكتب الكود المطبوع تحت الـ QR.",
+    "styleTitle": "تصميم الملصق",
+    "styleHint": "الزوز قياسهم 6 × 12 صم. اختار اللي يبان خير على البلّار متاعك.",
+    "styleDark": "غامق",
+    "styleDarkHint": "أزرق غامق مع خانة QR بيضاء",
+    "styleLight": "فاتح",
+    "styleLightHint": "أبيض مع شريط أزرق غامق",
+    "styleRow": "التصميم",
+    "styleChange": "بدّل"
   },
   "contact": {
     "publicTitle": "كلّم مولى الكرهبة",
@@ -926,7 +934,9 @@
         "unavailable": "الأكواد موش متوفّرة: الملصق هذا تباع قبل ما نولّيو نحفظو الأكواد، ما ثمّاش كان البصمة متاعهم.",
         "downloadSticker": "نزّل الملصق (PNG)",
         "openFull": "افتح بالحجم الكامل"
-      }
+      },
+      "styleDark": "تصميم غامق",
+      "styleLight": "تصميم فاتح"
     },
     "contacts": {
       "subtitle": "الرسائل المرسلة عبر نموذج الاتصال",
@@ -1129,7 +1139,17 @@
     "pricingStickerCount_few": "{{count}} ملصق",
     "pricingStickerCount_many": "{{count}} ملصق",
     "pricingStickerCount_other": "{{count}} ملصق",
-    "pricingStickerCount_one": "ملصق واحد"
+    "pricingStickerCount_one": "ملصق واحد",
+    "stylesTitle": "غامق ولا فاتح، الملصق متاعك على ذوقك",
+    "stylesSubtitle": "زوز تصاميم، نفس الملصق 6 × 12 صم. اختار اللي يبان خير على البلّار متاعك.",
+    "styleDarkName": "غامق",
+    "styleDarkAlt": "ملصق CarLink الغامق، 6 × 12 صم",
+    "styleLightName": "فاتح",
+    "styleLightAlt": "ملصق CarLink الفاتح، 6 × 12 صم",
+    "stylesPick": "ستيل الملصق",
+    "stylesShow": "شوف {{name}}",
+    "stylesCtaDark": "اطلب الملصق الغامق",
+    "stylesCtaLight": "اطلب الملصق الفاتح"
   },
   "footer": {
     "pagesTitle": "الصفحات",

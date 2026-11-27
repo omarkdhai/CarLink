@@ -29,6 +29,7 @@ import { buttonClasses } from '@/components/ui/Button'
 import { useMagnetic } from '@/hooks/useMagnetic'
 import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
 import heroImage from '@/assets/carlink-windshield-real.png'
+import { StickerStyles } from './StickerStyles'
 
 /**
  * Hero entrance + scroll depth (GSAP). One timeline choreographs the headline,
@@ -686,6 +687,8 @@ export default function HomePage() {
 
       {/* Advantages — a boxed panel: copy and a masked-number card on top,
           the three advantages as divided columns underneath. */}
+      <StickerStyles />
+
       <section id="advantages" className="scroll-mt-20 py-14 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="rounded-[28px] border border-border bg-white p-6 sm:p-10 lg:p-[clamp(28px,4vw,52px)]">

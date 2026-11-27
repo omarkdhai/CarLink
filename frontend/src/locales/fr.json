@@ -308,7 +308,15 @@
     "next2": "Livraison",
     "next2Hint": "Vous payez le livreur à la réception.",
     "next3": "Activation",
-    "next3Hint": "Créez votre compte et saisissez le code imprimé sous le QR."
+    "next3Hint": "Créez votre compte et saisissez le code imprimé sous le QR.",
+    "styleTitle": "Design du sticker",
+    "styleHint": "Les deux font 6 × 12 cm. Choisissez celui qui ressort le mieux sur votre pare-brise.",
+    "styleDark": "Sombre",
+    "styleDarkHint": "Bleu nuit avec un panneau QR blanc",
+    "styleLight": "Clair",
+    "styleLightHint": "Blanc avec un bandeau bleu nuit",
+    "styleRow": "Design",
+    "styleChange": "Modifier"
   },
   "contact": {
     "publicTitle": "Contacter le propriétaire",
@@ -910,7 +918,9 @@
         "unavailable": "Codes indisponibles : ce sticker a été vendu avant que les codes soient conservés, seule leur empreinte existe.",
         "downloadSticker": "Télécharger le sticker (PNG)",
         "openFull": "Ouvrir en taille réelle"
-      }
+      },
+      "styleDark": "Design sombre",
+      "styleLight": "Design clair"
     },
     "contacts": {
       "subtitle": "Messages reçus via le formulaire de contact",
@@ -1208,7 +1218,17 @@
     "pricingPerSticker": "Prix par sticker",
     "pricingCtaPack": "Commander ce pack",
     "pricingDeliveryTitle": "Livraison : {{fee}} TND par commande",
-    "pricingDeliveryText": "Livré partout en Tunisie, avec un guide d'activation dans l'enveloppe."
+    "pricingDeliveryText": "Livré partout en Tunisie, avec un guide d'activation dans l'enveloppe.",
+    "stylesTitle": "Sombre ou clair, votre sticker, votre style",
+    "stylesSubtitle": "Deux designs, le même sticker de 6 × 12 cm. Choisissez celui qui ressort le mieux sur votre pare-brise.",
+    "styleDarkName": "Sombre",
+    "styleDarkAlt": "Le sticker CarLink sombre, 6 × 12 cm",
+    "styleLightName": "Clair",
+    "styleLightAlt": "Le sticker CarLink clair, 6 × 12 cm",
+    "stylesPick": "Style du sticker",
+    "stylesShow": "Voir {{name}}",
+    "stylesCtaDark": "Commander le sticker sombre",
+    "stylesCtaLight": "Commander le sticker clair"
   },
   "footer": {
     "pagesTitle": "Pages",

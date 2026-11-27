@@ -133,6 +133,9 @@ export const STICKER_PACKAGES: StickerPackage[] = ['SINGLE', 'DOUBLE', 'BUSINESS
 
 export type OrderStatus = 'PLACED' | 'DELIVERED' | 'CANCELLED'
 
+/** Sticker design chosen for the whole order (both 6 × 12 cm). */
+export type StickerStyle = 'DARK' | 'LIGHT'
+
 export type Governorate =
   | 'TUNIS'
   | 'ARIANA'
@@ -178,6 +181,8 @@ export interface OrderCreateRequest {
   governorate: Governorate
   deliveryAddress: string
   deliveryNotes?: string
+  /** Defaults to DARK on the server when omitted. */
+  stickerStyle?: StickerStyle
 }
 
 /** Single sticker minted by an order — the raw token is shown exactly once. */
@@ -209,6 +214,7 @@ export interface OrderResponse {
   currency: string
   createdAt: ISOInstant
   items: OrderItemResponse[]
+  stickerStyle: StickerStyle
 }
 
 /** Token-free, PII-free order summary used for status checks. */
@@ -232,6 +238,7 @@ export interface MyOrderResponse {
   stickerCount: number
   /** How many of this order's stickers this account has activated. */
   activatedCount: number
+  stickerStyle: StickerStyle
 }
 
 // ---------- Stickers ----------
@@ -389,6 +396,7 @@ export interface AdminOrderView {
   deliveryNotes: string | null
   createdAt: ISOInstant
   items: OrderItemResponse[]
+  stickerStyle: StickerStyle
 }
 
 export interface AdminContactView {
