@@ -15,5 +15,7 @@ public record OrderResponse(
         BigDecimal totalAmount,
         String currency,
         Instant createdAt,
-        List<OrderItemView> items
+        List<OrderItemView> items,
+        /** DARK or LIGHT. */
+        String stickerStyle
 ) {}

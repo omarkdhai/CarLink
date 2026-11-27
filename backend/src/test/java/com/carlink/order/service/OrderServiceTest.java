@@ -192,6 +192,9 @@ class OrderServiceTest {
         assertThat(orderCaptor.getValue().getEmail()).isEqualTo("buyer@example.com");
         assertThat(orderCaptor.getValue().getDeliveryNotes()).isNull();
         assertThat(orderCaptor.getValue().getGovernorate()).isEqualTo(Governorate.SFAX);
+        // No style sent (older clients): dark stickers.
+        assertThat(orderCaptor.getValue().getStickerStyle()).isEqualTo(com.carlink.order.model.StickerStyle.DARK);
+        assertThat(response.stickerStyle()).isEqualTo("DARK");
         assertThat(response.totalAmount()).isEqualByComparingTo("27.00");
     }
 

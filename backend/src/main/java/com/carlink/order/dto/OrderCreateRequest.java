@@ -1,6 +1,7 @@
 package com.carlink.order.dto;
 
 import com.carlink.order.model.Governorate;
+import com.carlink.order.model.StickerStyle;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,5 +27,13 @@ public record OrderCreateRequest(
         @NotBlank @Email @Size(max = 255) String email,
         @NotNull Governorate governorate,
         @NotBlank @Size(max = 255) String deliveryAddress,
-        @Size(max = 500) String deliveryNotes
-) {}
+        @Size(max = 500) String deliveryNotes,
+        /** DARK or LIGHT; null (older clients) means DARK. */
+        StickerStyle stickerStyle
+) {
+    /** The form without a style choice (older clients): dark stickers. */
+    public OrderCreateRequest(List<OrderItemRequest> items, String customerName, String mobile, String email,
+                              Governorate governorate, String deliveryAddress, String deliveryNotes) {
+        this(items, customerName, mobile, email, governorate, deliveryAddress, deliveryNotes, null);
+    }
+}

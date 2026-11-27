@@ -5,7 +5,7 @@ import { Check, Copy, Download, KeyRound, Lock, QrCode } from 'lucide-react'
 import { adminApi } from '@/services/adminApi'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/shared/Spinner'
-import type { AdminOrderStickerView, StickerStatus } from '@/types'
+import type { AdminOrderStickerView, StickerStatus, StickerStyle } from '@/types'
 import { DetailSection } from './components/AdminList'
 import { renderStickerArt } from './stickerArt'
 
@@ -16,13 +16,13 @@ const STATUS_TONE: Record<StickerStatus, 'success' | 'warning' | 'neutral'> = {
 }
 
 /** Renders the print-ready sticker for a URL; returns an object URL (revoked on change). */
-function useStickerArt(publicUrl: string | null) {
+function useStickerArt(publicUrl: string | null, style: StickerStyle) {
   const [art, setArt] = useState<{ url: string | null; failed: boolean }>({ url: null, failed: false })
   useEffect(() => {
     if (!publicUrl) return
     let objectUrl: string | null = null
     let cancelled = false
-    renderStickerArt(publicUrl)
+    renderStickerArt(publicUrl, style)
       .then((blob) => {
         if (cancelled) return
         objectUrl = URL.createObjectURL(blob)
@@ -33,14 +33,14 @@ function useStickerArt(publicUrl: string | null) {
       cancelled = true
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [publicUrl])
+  }, [publicUrl, style])
   return art
 }
 
-function CodeTile({ sticker, n, reference }: { sticker: AdminOrderStickerView; n: number; reference: string }) {
+function CodeTile({ sticker, n, reference, style }: { sticker: AdminOrderStickerView; n: number; reference: string; style: StickerStyle }) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
-  const art = useStickerArt(sticker.codesAvailable ? sticker.publicUrl : null)
+  const art = useStickerArt(sticker.codesAvailable ? sticker.publicUrl : null, style)
 
   async function copy() {
     if (!sticker.activationCode) return
@@ -134,7 +134,7 @@ function CodeTile({ sticker, n, reference }: { sticker: AdminOrderStickerView; n
  * The QR code and activation code of each sticker in an order, for printing.
  * Fetched only when the order is opened; every fetch is audited server-side.
  */
-export function OrderStickerCodes({ reference }: { reference: string }) {
+export function OrderStickerCodes({ reference, style }: { reference: string; style: StickerStyle }) {
   const { t } = useTranslation()
   const q = useQuery({
     queryKey: ['admin', 'orders', reference, 'stickers'],
@@ -155,7 +155,7 @@ export function OrderStickerCodes({ reference }: { reference: string }) {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {q.data.map((s, i) => (
-            <CodeTile key={s.id} sticker={s} n={i + 1} reference={reference} />
+            <CodeTile key={s.id} sticker={s} n={i + 1} reference={reference} style={style} />
           ))}
         </ul>
       )}

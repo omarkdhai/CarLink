@@ -18,5 +18,7 @@ public record MyOrderResponse(
         Instant createdAt,
         List<OrderItemView> items,
         int stickerCount,
-        int activatedCount
+        int activatedCount,
+        /** DARK or LIGHT. */
+        String stickerStyle
 ) {}

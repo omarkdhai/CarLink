@@ -78,13 +78,21 @@ class OrderFlowIntegrationTest extends AbstractIntegrationTest {
                                 "mobile", "+21655123456",
                                 "email", "buyer" + (++seq) + "@example.com",
                                 "governorate", "TUNIS",
-                                "deliveryAddress", "12 Rue de Carthage, Tunis"))))
+                                "deliveryAddress", "12 Rue de Carthage, Tunis",
+                                "stickerStyle", "LIGHT"))))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stickerStyle").value("LIGHT"))
                 .andReturn().getResponse().getContentAsString());
         String reference = order.get("reference").asString();
         JsonNode stored = issuedStickers(order);
 
         String admin = adminToken();
+        // The admin order list carries the chosen design.
+        mockMvc.perform(get("/api/v1/admin/orders").param("q", reference)
+                        .header("Authorization", "Bearer " + admin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].reference").value(reference))
+                .andExpect(jsonPath("$.content[0].stickerStyle").value("LIGHT"));
         JsonNode list = objectMapper.readTree(mockMvc.perform(get("/api/v1/admin/orders/{ref}/stickers", reference)
                         .header("Authorization", "Bearer " + admin))
                 .andExpect(status().isOk())

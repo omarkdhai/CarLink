@@ -308,7 +308,15 @@
     "next2": "Delivery",
     "next2Hint": "You pay the delivery agent when they arrive.",
     "next3": "Activate",
-    "next3Hint": "Create your account and enter the code printed under the QR."
+    "next3Hint": "Create your account and enter the code printed under the QR.",
+    "styleTitle": "Sticker design",
+    "styleHint": "Both are 6 × 12 cm. Pick the one that stands out best on your windscreen.",
+    "styleDark": "Dark",
+    "styleDarkHint": "Navy with a white QR panel",
+    "styleLight": "Light",
+    "styleLightHint": "White with a navy footer",
+    "styleRow": "Design",
+    "styleChange": "Change"
   },
   "contact": {
     "publicTitle": "Contact the owner",
@@ -890,7 +898,9 @@
         "unavailable": "Codes not available: this sticker was sold before codes were kept, so only its fingerprint exists.",
         "downloadSticker": "Download sticker (PNG)",
         "openFull": "Open full size"
-      }
+      },
+      "styleDark": "Dark design",
+      "styleLight": "Light design"
     },
     "contacts": {
       "subtitle": "Messages sent through the contact form",
@@ -1188,7 +1198,17 @@
     "pricingPerSticker": "Price per sticker",
     "pricingCtaPack": "Order this pack",
     "pricingDeliveryTitle": "Delivery: {{fee}} TND per order",
-    "pricingDeliveryText": "Delivered anywhere in Tunisia, with an activation guide in the envelope."
+    "pricingDeliveryText": "Delivered anywhere in Tunisia, with an activation guide in the envelope.",
+    "stylesTitle": "Dark or light, your sticker, your style",
+    "stylesSubtitle": "Two designs, the same 6 × 12 cm sticker. Choose the one that stands out best on your windscreen.",
+    "styleDarkName": "Dark",
+    "styleDarkAlt": "The dark CarLink sticker, 6 × 12 cm",
+    "styleLightName": "Light",
+    "styleLightAlt": "The light CarLink sticker, 6 × 12 cm",
+    "stylesPick": "Sticker style",
+    "stylesShow": "See {{name}}",
+    "stylesCtaDark": "Order the dark sticker",
+    "stylesCtaLight": "Order the light sticker"
   },
   "footer": {
     "pagesTitle": "Pages",
