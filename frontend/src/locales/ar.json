@@ -448,7 +448,7 @@
     "subtitle": "الطلبات اللي جاوك على كرهبتك",
     "empty": "ما فمّا حتى رسالة لتوّا",
     "emptyHint": "وقتلي حدّ يسكاني الـ QR متاعك، رسالتو تبان هنا",
-    "from": "رسالة من",
+    "from": "رسالة جاتك",
     "channel": "الطريقة",
     "vehicle": "الكرهبة",
     "time": "الوقت",
@@ -1030,10 +1030,6 @@
     "how2Text": "يسكاني الـ QR بتليفونو، يختار السبب و يبعث رسالة — و ما يشوفش نومروك.",
     "how3Title": "توصلك الرسالة",
     "how3Text": "يوصلك تنبيه SMS طول، و تلقى الرسالة في الحساب متاعك على CarLink.",
-    "howPhoneVehName": "Toyota RAV4",
-    "howPhoneVehCode": "TUN-24757E",
-    "howPhoneDoneEyebrow": "وصلت بالسلامة",
-    "howPhoneDoneCopy": "مولى الكرهبة وصلتو رسالتك",
     "howTrustTitle": "ما يلزمكش تنزّل تطبيق",
     "howTrustText": "الزائر ما يلزمو يركّب حتى شي. يسكاني و يبعث رسالة برك",
     "howEasyText": "ساهل للناس الكل",
@@ -1154,7 +1150,8 @@
     "stylesPick": "ستيل الملصق",
     "stylesShow": "شوف {{name}}",
     "stylesCtaDark": "اطلب الملصق الغامق",
-    "stylesCtaLight": "اطلب الملصق الفاتح"
+    "stylesCtaLight": "اطلب الملصق الفاتح",
+    "howPhoneNow": "توّا"
   },
   "footer": {
     "pagesTitle": "الصفحات",

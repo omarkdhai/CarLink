@@ -995,10 +995,6 @@
     "how2Text": "They scan the QR with their phone, pick a reason and send a message — without ever seeing your number.",
     "how3Title": "Receive the message",
     "how3Text": "You get an SMS alert right away, and the message is waiting in your CarLink space.",
-    "howPhoneVehName": "Toyota RAV4",
-    "howPhoneVehCode": "TUN-24757E",
-    "howPhoneDoneEyebrow": "DELIVERED",
-    "howPhoneDoneCopy": "The owner has received your message.",
     "howTrustTitle": "No app download required",
     "howTrustText": "Your visitors don't need to install anything. They just scan and send.",
     "howEasyText": "Easy for everyone",
@@ -1213,7 +1209,8 @@
     "stylesPick": "Sticker style",
     "stylesShow": "See {{name}}",
     "stylesCtaDark": "Order the dark sticker",
-    "stylesCtaLight": "Order the light sticker"
+    "stylesCtaLight": "Order the light sticker",
+    "howPhoneNow": "now"
   },
   "footer": {
     "pagesTitle": "Pages",

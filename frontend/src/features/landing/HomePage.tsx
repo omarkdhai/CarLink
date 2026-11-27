@@ -6,8 +6,6 @@ import {
   ShieldCheck,
   QrCode,
   ArrowRight,
-  DoorOpen,
-  BatteryFull,
   Lock,
   LockKeyhole,
   AlertTriangle,
@@ -30,6 +28,7 @@ import { useMagnetic } from '@/hooks/useMagnetic'
 import { canAnimate, gsap, MQ, useGSAP } from '@/lib/gsap'
 import heroImage from '@/assets/carlink-windshield-real.png'
 import { StickerStyles } from './StickerStyles'
+import { HowPhone, HOW_STEP_MS } from './HowPhone'
 
 /**
  * Hero entrance + scroll depth (GSAP). One timeline choreographs the headline,
@@ -108,14 +107,6 @@ const howSteps = [
   { title: 'landing.how3Title', text: 'landing.how3Text' },
 ] as const
 
-/** Reasons shown inside the phone mockup's contact form. */
-const phoneReasons = [
-  { key: 'contact.reasons.BLOCKING', icon: CarFront },
-  { key: 'contact.reasons.LIGHTS', icon: Lightbulb },
-  { key: 'contact.reasons.WINDOWS_OPEN', icon: DoorOpen },
-  { key: 'contact.reasons.HIT_CAR', icon: AlertTriangle },
-] as const
-
 /** The three advantages shown in the panel under "how it works". */
 const advantages = [
   { icon: Lock, title: 'landing.adv1Title', text: 'landing.adv1Text' },
@@ -155,7 +146,7 @@ export default function HomePage() {
   const [howAuto, setHowAuto] = useState(true)
   useEffect(() => {
     if (!howAuto) return
-    const id = window.setInterval(() => setHowStep((s) => (s + 1) % howSteps.length), 3200)
+    const id = window.setInterval(() => setHowStep((s) => (s + 1) % howSteps.length), HOW_STEP_MS)
     return () => window.clearInterval(id)
   }, [howAuto])
   const pickHowStep = (i: number) => {
@@ -163,7 +154,7 @@ export default function HomePage() {
     setHowStep(i)
   }
   // Auto-advance timer: a hairline under the active step fills in sync with
-  // the 3.2 s interval, so visitors see the demo is moving on by itself.
+  // the step interval, so visitors see the demo is moving on by itself.
   const howListRef = useRef<HTMLDivElement>(null)
   useGSAP(
     () => {
@@ -172,7 +163,7 @@ export default function HomePage() {
         const bars = gsap.utils.toArray<HTMLElement>('[data-how-timer]')
         gsap.set(bars, { scaleX: 0 })
         const active = bars[howStep]
-        if (howAuto && active) gsap.fromTo(active, { scaleX: 0 }, { scaleX: 1, duration: 3.2, ease: 'none' })
+        if (howAuto && active) gsap.fromTo(active, { scaleX: 0 }, { scaleX: 1, duration: HOW_STEP_MS / 1000, ease: 'none' })
       })
     },
     { dependencies: [howStep, howAuto], scope: howListRef, revertOnUpdate: true },
@@ -452,209 +443,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right — phone mockup */}
+            {/* Right — phone with real app screenshots */}
             <div className="relative mx-auto flex w-full justify-center">
-              <div className="relative">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[92%] w-[92%] -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  style={{
-                    background:
-                      'radial-gradient(circle, rgba(37,99,235,0.16) 0%, rgba(37,99,235,0.06) 55%, transparent 72%)',
-                  }}
-                />
-                <div className="relative w-[248px] rounded-[34px] bg-[#292724] p-[6px] shadow-[0_28px_70px_rgba(15,23,42,0.35)] sm:w-[268px]">
-                  <div className="relative h-[524px] overflow-hidden rounded-[29px] bg-white sm:h-[566px]">
-                    {/* Status bar */}
-                    <div className="flex h-8 items-center justify-between px-5 pt-2 text-[9px] font-semibold text-heading">
-                      <span dir="ltr">9:41</span>
-                      <span className="inline-flex items-center gap-[3px]">
-                        <Signal className="h-3 w-3" aria-hidden />
-                        <Wifi className="h-3 w-3" aria-hidden />
-                        <BatteryFull className="h-3.5 w-3.5" aria-hidden />
-                      </span>
-                    </div>
-
-                    {/* Dynamic island */}
-                    <span
-                      className="absolute left-1/2 top-2 h-5 w-[78px] -translate-x-1/2 rounded-full bg-[#080909]"
-                      aria-hidden
-                    >
-                      <span
-                        className="absolute right-2 top-1.5 h-2 w-2 rounded-full"
-                        style={{
-                          background:
-                            'radial-gradient(circle at 35% 30%, #526981 0%, #13202b 28%, #080c12 60%)',
-                        }}
-                      />
-                    </span>
-
-                    {/* Screen */}
-                    <div className="absolute inset-x-0 bottom-5 top-9 overflow-hidden">
-                      {/* Step 01 — the sticker on the windshield */}
-                      {howStep === 0 && (
-                        <div className="flex h-full flex-col gap-3 p-3">
-                          <div className="flex items-center gap-2 border-b border-border px-1 pb-2.5 pt-1">
-                            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-white">
-                              <QrCode className="h-4 w-4" aria-hidden />
-                            </span>
-                            <span className="text-[1.125rem] font-bold tracking-[-0.02em] text-heading">
-                              CarLink
-                            </span>
-                          </div>
-                          <div className="flex flex-1 flex-col items-center justify-center rounded-[1.4rem] border border-border bg-primary-soft p-4 text-center">
-                            <span className="grid h-28 w-28 place-items-center rounded-2xl border border-border bg-white shadow-sm">
-                              <QrCode className="h-20 w-20 text-heading" aria-hidden />
-                            </span>
-                            <p className="mt-4 text-[0.9rem] font-bold leading-snug text-heading">
-                              {t('landing.how1Title')}
-                            </p>
-                            <p className="mt-1.5 text-[0.65rem] leading-relaxed text-muted-fg">
-                              {t('landing.how1Text')}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-center gap-1.5 pb-1 text-[0.55rem] text-muted-fg">
-                            <ShieldCheck className="h-3 w-3 text-primary" aria-hidden />
-                            {t('landing.trust1')}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Step 02 — the passer-by scans and picks a reason */}
-                      {howStep === 1 && (
-                        <div className="flex h-full flex-col">
-                          {/* Vehicle panel */}
-                          <div className="flex-none border-b border-border p-2.5">
-                            <div className="relative overflow-hidden rounded-xl bg-primary p-2.5 pt-[1rem] text-white shadow-[0_9px_22px_rgba(37,99,235,0.25)]">
-                              <span
-                                aria-hidden
-                                className="pointer-events-none absolute -right-6 -top-7 h-[9rem] w-[9rem] rounded-full bg-white/10"
-                              />
-                              <span
-                                aria-hidden
-                                className="pointer-events-none absolute -bottom-10 -left-8 h-[8rem] w-[8rem] rounded-full bg-black/5"
-                              />
-                              <div className="relative">
-                                <p className="m-0 text-[1.125rem] font-bold leading-[1.2] tracking-[-0.025em]">
-                                  {t('contact.publicTitle')}
-                                </p>
-                                <p className="mt-1.5 max-w-[24rem] text-[0.625rem] leading-[1.5] text-white/85">
-                                  {t('contact.publicSubtitle')}
-                                </p>
-                                <div className="mt-2.5 flex min-w-0 items-center gap-2 rounded-xl border border-white/70 bg-white p-2 shadow-[0_2px_6px_rgba(15,23,42,0.08)]">
-                                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[0.75rem] bg-primary text-white ring-1 ring-primary/20">
-                                    <CarFront className="h-4 w-4" aria-hidden />
-                                  </span>
-                                  <span className="flex min-w-0 flex-col items-start">
-                                    <span className="max-w-full truncate text-[0.875rem] font-bold leading-[1.3] tracking-[-0.02em] text-heading">
-                                      {t('landing.howPhoneVehName')}
-                                    </span>
-                                    <span
-                                      dir="ltr"
-                                      className="mt-px block font-mono text-[0.5625rem] font-medium leading-none text-muted-fg"
-                                    >
-                                      {t('landing.howPhoneVehCode')}
-                                    </span>
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Form body */}
-                          <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden p-2.5 pt-2">
-                            <div className="grid gap-1.5">
-                              <p className="m-0 text-[0.82rem] font-bold text-heading">
-                                {t('contact.reason')}
-                              </p>
-                              <div className="grid gap-1">
-                                {phoneReasons.map(({ key, icon: RIcon }, i) => {
-                                  const chosen = i === 0
-                                  return (
-                                    <span
-                                      key={key}
-                                      className={`flex min-h-[2.05rem] items-center gap-[0.42rem] rounded-[0.85rem] border px-[0.42rem] py-[0.32rem] ${
-                                        chosen ? 'border-primary bg-primary/10' : 'border-border bg-white'
-                                      }`}
-                                    >
-                                      <span
-                                        className={`grid h-[1.55rem] w-[1.55rem] shrink-0 place-items-center rounded-[0.5rem] ${
-                                          chosen ? 'bg-primary text-white' : 'bg-muted text-primary'
-                                        }`}
-                                      >
-                                        <RIcon className="h-[0.85rem] w-[0.85rem]" aria-hidden />
-                                      </span>
-                                      <span
-                                        className={`min-w-0 flex-1 text-[0.6rem] leading-[1.3] ${
-                                          chosen ? 'font-semibold text-primary' : 'font-medium text-heading'
-                                        }`}
-                                      >
-                                        {t(key)}
-                                      </span>
-                                      <span
-                                        className={`grid h-[0.9rem] w-[0.9rem] shrink-0 place-items-center rounded-full border ${
-                                          chosen ? 'border-primary bg-primary text-white' : 'border-border bg-white'
-                                        }`}
-                                      >
-                                        {chosen && <Check className="h-3 w-3" aria-hidden />}
-                                      </span>
-                                    </span>
-                                  )
-                                })}
-                              </div>
-                            </div>
-
-                            <div className="grid gap-1">
-                              <p className="m-0 text-[0.82rem] font-bold text-heading">
-                                {t('contact.note')}
-                              </p>
-                              <div className="min-h-[2.15rem] rounded-[0.85rem] border border-border bg-white px-[0.55rem] py-[0.45rem]">
-                                <p className="m-0 text-[0.6rem] leading-[1.35] text-muted-fg">
-                                  {t('contact.notePlaceholder')}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Send bar */}
-                          <div className="mt-auto flex-none border-t border-border bg-white/95 px-3 pb-3 pt-2 backdrop-blur">
-                            <span className="flex h-[2.15rem] w-full items-center justify-center rounded-[0.85rem] bg-primary text-[0.72rem] font-semibold text-white shadow-[0_8px_18px_rgba(37,99,235,0.3)]">
-                              {t('contact.sendContact')}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Step 03 — the owner receives it */}
-                      {howStep === 2 && (
-                        <div className="flex h-full flex-col items-center justify-center bg-primary-soft px-6 text-center">
-                          <span
-                            className="grid h-14 w-14 place-items-center rounded-full text-white shadow-[0_10px_22px_rgba(5,150,105,0.35)]"
-                            style={{ background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)' }}
-                          >
-                            <Check className="h-7 w-7" aria-hidden />
-                          </span>
-                          <p className="mt-4 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-success">
-                            {t('landing.howPhoneDoneEyebrow')}
-                          </p>
-                          <p className="mt-1.5 max-w-[12.5rem] text-[1.12rem] font-bold leading-[1.3] text-heading">
-                            {t('contact.contactSuccess')}
-                          </p>
-                          <p className="mt-1.5 max-w-[13rem] text-[0.78rem] leading-[1.5] text-muted-fg">
-                            {t('landing.howPhoneDoneCopy')}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Home indicator */}
-                    <span
-                      className="absolute bottom-2 left-1/2 h-1 w-[92px] -translate-x-1/2 rounded-full bg-[#292929]"
-                      aria-hidden
-                    />
-                  </div>
-                </div>
-              </div>
+              <HowPhone step={howStep} />
             </div>
           </div>
 
