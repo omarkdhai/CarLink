@@ -141,7 +141,7 @@
     "color": "Couleur",
     "colorPlaceholder": "ex. Bleu",
     "licensePlate": "Plaque d'immatriculation",
-    "licensePlatePlaceholder": "AB-123-CD",
+    "licensePlatePlaceholder": "123 TUN 1234",
     "create": "Ajouter le véhicule",
     "save": "Enregistrer",
     "archive": "Archiver",
@@ -268,7 +268,6 @@
     },
     "increase": "Augmenter la quantité",
     "keepReference": "Conservez cette référence pour suivre votre commande.",
-    "label": "Sticker",
     "lastOrder": "Vous avez une commande en cours",
     "mobile": "Numéro de mobile",
     "mobileHint": "8 chiffres après le +216 — pour contacter le livreur uniquement. Jamais affiché publiquement.",
@@ -278,7 +277,6 @@
     "quantity": "Quantité",
     "reference": "Référence",
     "reviewPayment": "Vérifier et choisir le paiement",
-    "scanHint": "Scannez-le à la réception",
     "statusPlaced": "Commande passée",
     "stepConfirm": "Confirmer",
     "stepDetails": "Détails",
@@ -290,8 +288,6 @@
     "successHint": "Vos stickers sont en route. Conservez cette référence.",
     "placingOrder": "Enregistrement de votre commande…",
     "placingHint": "Un instant — ne fermez pas cette page.",
-    "qrOnce": "Ces QR codes ne s'affichent qu'une seule fois. Enregistrez-les avant de quitter cette page.",
-    "download": "Télécharger",
     "activationCode": "Code d'activation",
     "summary": "Récapitulatif",
     "summaryBenefit1": "Livraison partout en Tunisie",
@@ -305,7 +301,14 @@
     "total": "Total",
     "trustHint": "Paiement à la livraison",
     "unit": "stickers",
-    "yourStickers": "Vos stickers"
+    "nextTitle": "La suite",
+    "nextHint": "Chaque sticker est imprimé avec son propre QR code et son code d’activation.",
+    "next1": "Nous préparons vos stickers",
+    "next1Hint": "Imprimés avec leur QR code et le code d’activation dessous.",
+    "next2": "Livraison",
+    "next2Hint": "Vous payez le livreur à la réception.",
+    "next3": "Activation",
+    "next3Hint": "Créez votre compte et saisissez le code imprimé sous le QR."
   },
   "contact": {
     "publicTitle": "Contacter le propriétaire",
@@ -584,7 +587,6 @@
     "activated": "Sticker activé !",
     "activatedHint": "Votre sticker est maintenant lié à votre voiture — les visiteurs peuvent le scanner pour vous contacter.",
     "viewMine": "Voir mes stickers",
-    "birthDate": "Date de naissance",
     "licensePlate": "Plaque d'immatriculation",
     "licensePlateHint": "Le numéro d'immatriculation de votre voiture.",
     "activate": "Activer le sticker",
@@ -896,7 +898,19 @@
       "cancelConfirm": "Annuler la commande {{ref}} de {{customer}} ? Elle ne comptera plus dans le chiffre d'affaires.",
       "deliveredToast": "Commande {{ref}} marquée comme livrée",
       "cancelledToast": "Commande {{ref}} annulée",
-      "delivery": "Livraison"
+      "delivery": "Livraison",
+      "codes": {
+        "title": "QR codes et codes d’activation",
+        "confidential": "Confidentiel : à imprimer sur les stickers, à ne jamais partager. Chaque consultation est enregistrée dans le journal d’audit.",
+        "sticker": "Sticker {{n}}",
+        "qrAlt": "QR code du sticker {{n}}",
+        "activationCode": "Code d’activation",
+        "copy": "Copier le code",
+        "download": "QR seul (PNG)",
+        "unavailable": "Codes indisponibles : ce sticker a été vendu avant que les codes soient conservés, seule leur empreinte existe.",
+        "downloadSticker": "Télécharger le sticker (PNG)",
+        "openFull": "Ouvrir en taille réelle"
+      }
     },
     "contacts": {
       "subtitle": "Messages reçus via le formulaire de contact",
@@ -1294,8 +1308,7 @@
     "mobileRequired": "Le numéro de mobile est obligatoire",
     "mobileDigits": "Saisissez 8 chiffres (ex. 22 222 222)",
     "governorateRequired": "Choisissez un gouvernorat",
-    "addressRequired": "L'adresse de livraison est obligatoire",
-    "birthDateRequired": "La date de naissance est obligatoire"
+    "addressRequired": "L'adresse de livraison est obligatoire"
   },
   "legal": {
     "contents": "Sommaire",

@@ -21,7 +21,7 @@ const schema = activateStickerSchema.extend({
 })
 type Values = z.infer<typeof schema>
 
-const EMPTY: Values = { code: '', birthDate: '', licensePlate: '', nickname: '', brand: '', model: '', color: '' }
+const EMPTY: Values = { code: '', licensePlate: '', nickname: '', brand: '', model: '', color: '' }
 
 /**
  * Signed-in owners claim a new sticker by typing the activation code printed
@@ -32,7 +32,6 @@ export function ActivateStickerSheet({ open, onClose, onDone }: { open: boolean;
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [more, setMore] = useState(false)
-  const today = new Date().toISOString().slice(0, 10)
 
   const {
     register,
@@ -44,7 +43,6 @@ export function ActivateStickerSheet({ open, onClose, onDone }: { open: boolean;
   const activate = useMutation({
     mutationFn: (v: Values) =>
       stickerApi.activateByCode(v.code.trim().toUpperCase(), {
-        birthDate: v.birthDate,
         licensePlate: v.licensePlate.trim(),
         nickname: v.nickname?.trim() || undefined,
         brand: v.brand?.trim() || undefined,
@@ -100,14 +98,9 @@ export function ActivateStickerSheet({ open, onClose, onDone }: { open: boolean;
           />
         </Field>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t('stickers.licensePlate')} error={errors.licensePlate?.message}>
-            <Input placeholder={t('vehicle.licensePlatePlaceholder')} error={Boolean(errors.licensePlate)} {...register('licensePlate')} />
-          </Field>
-          <Field label={t('stickers.birthDate')} error={errors.birthDate?.message}>
-            <Input type="date" max={today} error={Boolean(errors.birthDate)} {...register('birthDate')} />
-          </Field>
-        </div>
+        <Field label={t('stickers.licensePlate')} error={errors.licensePlate?.message}>
+          <Input dir="ltr" placeholder={t('vehicle.licensePlatePlaceholder')} error={Boolean(errors.licensePlate)} {...register('licensePlate')} />
+        </Field>
 
         <button
           type="button"

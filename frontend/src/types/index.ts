@@ -181,13 +181,17 @@ export interface OrderCreateRequest {
 }
 
 /** Single sticker minted by an order — the raw token is shown exactly once. */
-export interface StickerIssuedResponse {
-  rawToken: string
-  publicUrl: string
+/** Admin-only: one sticker of an order, with what is printed on it. */
+export interface AdminOrderStickerView {
+  id: string
+  status: StickerStatus
+  /** False for stickers sold before the codes were stored (only hashes exist). */
+  codesAvailable: boolean
+  publicUrl: string | null
   /** base64 PNG data URI of the QR image. */
-  imageDataUri: string
-  /** Short human-enterable code printed under the QR; shown once. */
-  activationCode: string
+  imageDataUri: string | null
+  /** Short code printed under the QR. */
+  activationCode: string | null
 }
 
 export interface OrderItemResponse {
@@ -205,7 +209,6 @@ export interface OrderResponse {
   currency: string
   createdAt: ISOInstant
   items: OrderItemResponse[]
-  stickers: StickerIssuedResponse[]
 }
 
 /** Token-free, PII-free order summary used for status checks. */
@@ -248,7 +251,6 @@ export interface StickerResolveResponse {
 }
 
 export interface ActivateStickerRequest {
-  birthDate: string
   licensePlate: string
   nickname?: string
   brand?: string

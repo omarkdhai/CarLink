@@ -44,6 +44,8 @@ public interface StickerRepository extends JpaRepository<Sticker, UUID> {
 
     List<Sticker> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
 
+    List<Sticker> findByOrderIdOrderByCreatedAtAscIdAsc(UUID orderId);
+
     /** BOUND stickers of {@code ownerId} per order, as {@code [orderId, count]} rows. */
     @Query("""
             select s.order.id, count(s) from Sticker s

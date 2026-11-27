@@ -141,7 +141,7 @@
     "color": "Color",
     "colorPlaceholder": "e.g. Blue",
     "licensePlate": "License plate",
-    "licensePlatePlaceholder": "AB-123-CD",
+    "licensePlatePlaceholder": "123 TUN 1234",
     "create": "Add vehicle",
     "save": "Save",
     "archive": "Archive",
@@ -268,7 +268,6 @@
     },
     "increase": "Increase quantity",
     "keepReference": "Keep this reference — you'll need it to track your order.",
-    "label": "Sticker",
     "lastOrder": "You have an order in progress",
     "mobile": "Mobile number",
     "mobileHint": "8 digits after +216 — to reach the delivery agent only. Never shown publicly.",
@@ -278,7 +277,6 @@
     "quantity": "Quantity",
     "reference": "Order reference",
     "reviewPayment": "Review & choose payment",
-    "scanHint": "Scan it when it arrives",
     "statusPlaced": "Order placed",
     "stepConfirm": "Confirm",
     "stepDetails": "Details",
@@ -290,8 +288,6 @@
     "successHint": "Your stickers are on their way. Keep this reference for your records.",
     "placingOrder": "Placing your order…",
     "placingHint": "Please wait a moment — don't close this page.",
-    "qrOnce": "These QR codes are shown only once. Save them before leaving this page.",
-    "download": "Download",
     "activationCode": "Activation code",
     "summary": "Order summary",
     "summaryBenefit1": "Delivery across Tunisia",
@@ -305,7 +301,14 @@
     "total": "Total",
     "trustHint": "Cash on delivery",
     "unit": "stickers",
-    "yourStickers": "Your stickers"
+    "nextTitle": "What happens next",
+    "nextHint": "Each sticker comes printed with its own QR code and activation code.",
+    "next1": "We prepare your stickers",
+    "next1Hint": "Printed with their QR code and the activation code under it.",
+    "next2": "Delivery",
+    "next2Hint": "You pay the delivery agent when they arrive.",
+    "next3": "Activate",
+    "next3Hint": "Create your account and enter the code printed under the QR."
   },
   "contact": {
     "publicTitle": "Contact the owner",
@@ -584,7 +587,6 @@
     "activated": "Sticker activated!",
     "activatedHint": "Your sticker is now linked to your car — visitors can scan it to contact you.",
     "viewMine": "View my stickers",
-    "birthDate": "Birth date",
     "licensePlate": "License plate",
     "licensePlateHint": "Your car's registration number.",
     "activate": "Activate sticker",
@@ -876,7 +878,19 @@
       "cancelConfirm": "Cancel order {{ref}} for {{customer}}? It will no longer count towards revenue.",
       "deliveredToast": "Order {{ref}} marked as delivered",
       "cancelledToast": "Order {{ref}} cancelled",
-      "delivery": "Delivery"
+      "delivery": "Delivery",
+      "codes": {
+        "title": "QR codes & activation codes",
+        "confidential": "Confidential: print these on the stickers and never share them. Each view is recorded in the audit log.",
+        "sticker": "Sticker {{n}}",
+        "qrAlt": "QR code of sticker {{n}}",
+        "activationCode": "Activation code",
+        "copy": "Copy the code",
+        "download": "Plain QR only (PNG)",
+        "unavailable": "Codes not available: this sticker was sold before codes were kept, so only its fingerprint exists.",
+        "downloadSticker": "Download sticker (PNG)",
+        "openFull": "Open full size"
+      }
     },
     "contacts": {
       "subtitle": "Messages sent through the contact form",
@@ -1274,8 +1288,7 @@
     "mobileRequired": "The mobile number is required",
     "mobileDigits": "Enter 8 digits (e.g. 22 222 222)",
     "governorateRequired": "Choose a governorate",
-    "addressRequired": "The delivery address is required",
-    "birthDateRequired": "The birth date is required"
+    "addressRequired": "The delivery address is required"
   },
   "legal": {
     "contents": "Contents",

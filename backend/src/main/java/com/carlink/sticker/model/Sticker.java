@@ -69,6 +69,17 @@ public class Sticker extends BaseEntity {
     @Column(name = "activation_code_hash", length = 128)
     private String activationCodeHash;
 
+    /**
+     * Raw QR token and activation code, AES-256-GCM encrypted
+     * ({@link com.carlink.privacy.PhoneCipher}); read only by admins to print
+     * the sticker. {@code null} for stickers minted before they were stored.
+     */
+    @Column(name = "token_enc")
+    private String tokenEnc;
+
+    @Column(name = "activation_code_enc")
+    private String activationCodeEnc;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StickerStatus status;

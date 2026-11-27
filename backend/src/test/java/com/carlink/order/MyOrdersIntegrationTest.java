@@ -35,7 +35,7 @@ class MyOrdersIntegrationTest extends AbstractIntegrationTest {
 
         // Sticker bought under another e-mail, activated at sign-up → it's theirs.
         JsonNode stickerOrder = placeOrder("gift" + seq + "@example.com", "DOUBLE");
-        String token = register(email, stickerOrder.get("stickers").get(0).get("activationCode").asString());
+        String token = register(email, issuedStickers(stickerOrder).get(0).get("activationCode").asString());
 
         // An order placed with the account's e-mail, still unverified → not shown.
         JsonNode emailOrder = placeOrder(email.toUpperCase(), "SINGLE");
@@ -62,7 +62,7 @@ class MyOrdersIntegrationTest extends AbstractIntegrationTest {
         // A stranger sees none of it.
         JsonNode otherOrder = placeOrder("other" + (++seq) + "@example.com", "SINGLE");
         String stranger = register("stranger" + seq + "@example.com",
-                otherOrder.get("stickers").get(0).get("activationCode").asString());
+                issuedStickers(otherOrder).get(0).get("activationCode").asString());
         JsonNode theirs = mine(stranger);
         assertThat(theirs).hasSize(1);
         assertThat(theirs.get(0).get("reference").asString()).isEqualTo(otherOrder.get("reference").asString());

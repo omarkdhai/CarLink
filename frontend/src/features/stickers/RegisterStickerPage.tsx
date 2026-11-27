@@ -408,7 +408,6 @@ function AuthStep({
 function DetailsStep({ code, onDone }: { code: string; onDone: () => void }) {
   const { t } = useTranslation()
   const [error, setError] = useState<string | null>(null)
-  const today = new Date().toISOString().slice(0, 10)
 
   const {
     register,
@@ -416,13 +415,12 @@ function DetailsStep({ code, onDone }: { code: string; onDone: () => void }) {
     formState: { errors },
   } = useForm<ActivateStickerValues>({
     resolver: zodResolver(activateStickerSchema),
-    defaultValues: { birthDate: '', licensePlate: '', nickname: '', brand: '', model: '', color: '' },
+    defaultValues: { licensePlate: '', nickname: '', brand: '', model: '', color: '' },
   })
 
   const activateMutation = useMutation({
     mutationFn: (values: ActivateStickerValues) =>
       stickerApi.activateByCode(code, {
-        birthDate: values.birthDate,
         licensePlate: values.licensePlate.trim(),
         nickname: values.nickname?.trim() || undefined,
         brand: values.brand?.trim() || undefined,
@@ -454,12 +452,9 @@ function DetailsStep({ code, onDone }: { code: string; onDone: () => void }) {
         className="mt-5 space-y-4"
         noValidate
       >
-        <Field label={t('stickers.birthDate')} error={errors.birthDate?.message}>
-          <Input type="date" max={today} error={Boolean(errors.birthDate)} {...register('birthDate')} />
-        </Field>
         <Field label={t('stickers.licensePlate')} hint={t('stickers.licensePlateHint')} error={errors.licensePlate?.message}>
           <Input
-            placeholder={t('vehicle.licensePlatePlaceholder')}
+            dir="ltr" placeholder={t('vehicle.licensePlatePlaceholder')}
             maxLength={20}
             autoCapitalize="characters"
             error={Boolean(errors.licensePlate)}

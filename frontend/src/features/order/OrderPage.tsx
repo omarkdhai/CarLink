@@ -12,7 +12,6 @@ import {
   ChevronDown,
   CircleHelp,
   Copy,
-  Download,
   KeyRound,
   Loader2,
   Minus,
@@ -88,8 +87,9 @@ function packNum(key: StickerPackage) {
 /**
  * "Get your sticker" funnel — 3-step guest checkout (package → details →
  * cash-on-delivery confirm) ending on a success screen with the order
- * reference and each sticker's QR. Pricing is mirrored locally for UX but
- * always re-computed server-side.
+ * reference and what happens next. The QR and activation code come printed on
+ * the stickers (only the admin sees them). Pricing is mirrored locally for UX
+ * but always re-computed server-side.
  */
 export default function OrderPage() {
   const { t } = useTranslation()
@@ -300,54 +300,32 @@ export default function OrderPage() {
               </div>
             </div>
 
-            {/* QR stickers — raw tokens are shown exactly once */}
+            {/* What happens next: the QR and activation code come printed on the stickers */}
             <div className="mt-4 rounded-2xl border border-border bg-white p-5 sm:p-6">
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
                   <ScanLine className="h-4 w-4" aria-hidden />
                 </span>
                 <div>
-                  <h2 className="text-sm font-semibold text-heading">{t('order.yourStickers')}</h2>
-                  <p className="mt-1 text-xs leading-5 text-muted-fg">{t('order.qrOnce')}</p>
+                  <h2 className="text-sm font-semibold text-heading">{t('order.nextTitle')}</h2>
+                  <p className="mt-1 text-xs leading-5 text-muted-fg">{t('order.nextHint')}</p>
                 </div>
               </div>
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                {placed.stickers.map((st, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center gap-4 rounded-xl border border-border bg-background p-3"
-                  >
-                    <img
-                      src={st.imageDataUri}
-                      alt={`${t('order.label')} ${i + 1}`}
-                      className="h-24 w-24 shrink-0 rounded-lg bg-white p-1.5 shadow-card"
-                    />
+              <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+                {[
+                  { icon: PackageCheck, key: 'next1' },
+                  { icon: Truck, key: 'next2' },
+                  { icon: KeyRound, key: 'next3' },
+                ].map(({ icon: Icon, key }) => (
+                  <li key={key} className="flex gap-3 rounded-xl border border-border bg-background p-3">
+                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-heading">
-                        {t('order.label')} {i + 1}
-                      </p>
-                      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-fg">
-                        <ScanLine className="h-3.5 w-3.5" aria-hidden />
-                        {t('order.scanHint')}
-                      </p>
-                      <a
-                        href={st.imageDataUri}
-                        download={`carlink-sticker-${i + 1}.png`}
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-                      >
-                        <Download className="h-3.5 w-3.5" aria-hidden />
-                        {t('order.download')}
-                      </a>
-                      {st.activationCode && (
-                        <div className="mt-2 inline-flex items-center gap-1 text-xs rounded-lg bg-primary-soft text-primary px-2 py-1 font-mono font-semibold border border-primary/30">
-                          <KeyRound className="h-3 w-3" aria-hidden />
-                          {st.activationCode}
-                        </div>
-                      )}
+                      <p className="text-sm font-semibold text-heading">{t(`order.${key}`)}</p>
+                      <p className="mt-0.5 text-xs leading-5 text-muted-fg">{t(`order.${key}Hint`)}</p>
                     </div>
                   </li>
                 ))}
-              </ul>
+              </ol>
               <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-muted-fg">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                 {t('order.keepReference')}
@@ -371,7 +349,7 @@ export default function OrderPage() {
     )
   }
 
-  // ---------- Recovery banner (after refresh: no QR codes retrievable) ----------
+  // ---------- Recovery banner (after refresh: token-free summary of the last order) ----------
   const showRecovery = Boolean(lastReference && !placed && lastSummary.data)
 
   return (

@@ -25,7 +25,7 @@ import { SuccessMark } from '@/components/shared/SuccessMark'
  * The activation flow behind a scanned virgin sticker (/c/:token when its
  * state is UNBOUND or DEACTIVATED). Guests are sent to create/login an account
  * (remembering this sticker so they land back here); authenticated users fill
- * in their birth date + car details to bind the sticker.
+ * in their car details to bind the sticker.
  */
 export default function StickerActivation({ token }: { token: string }) {
   const { t } = useTranslation()
@@ -34,7 +34,6 @@ export default function StickerActivation({ token }: { token: string }) {
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const today = new Date().toISOString().slice(0, 10)
 
   const {
     register,
@@ -43,7 +42,6 @@ export default function StickerActivation({ token }: { token: string }) {
   } = useForm<ActivateStickerValues>({
     resolver: zodResolver(activateStickerSchema),
     defaultValues: {
-      birthDate: '',
       licensePlate: '',
       nickname: '',
       brand: '',
@@ -55,7 +53,6 @@ export default function StickerActivation({ token }: { token: string }) {
   const activateMutation = useMutation({
     mutationFn: (values: ActivateStickerValues) =>
       stickerApi.activate(token, {
-        birthDate: values.birthDate,
         licensePlate: values.licensePlate.trim(),
         nickname: values.nickname?.trim() || undefined,
         brand: values.brand?.trim() || undefined,
@@ -148,18 +145,9 @@ export default function StickerActivation({ token }: { token: string }) {
           className="mt-5 space-y-4"
           noValidate
         >
-          <Field label={t('stickers.birthDate')} error={errors.birthDate?.message}>
-            <Input
-              type="date"
-              max={today}
-              error={Boolean(errors.birthDate)}
-              {...register('birthDate')}
-            />
-          </Field>
-
           <Field label={t('stickers.licensePlate')} hint={t('stickers.licensePlateHint')} error={errors.licensePlate?.message}>
             <Input
-              placeholder={t('vehicle.licensePlatePlaceholder')}
+              dir="ltr" placeholder={t('vehicle.licensePlatePlaceholder')}
               maxLength={20}
               autoCapitalize="characters"
               error={Boolean(errors.licensePlate)}
